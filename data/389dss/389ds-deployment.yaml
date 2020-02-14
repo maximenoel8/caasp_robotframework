@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dirsrv-389ds
+  namespace: kube-system
+  labels:
+    app: dirsrv-389ds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dirsrv-389ds
+  template:
+    metadata:
+      labels:
+        app: dirsrv-389ds
+    spec:
+      containers:
+        - name: dirsrv-389ds
+          image: registry.suse.com/caasp/v4/389-ds:1.4.0
+          ports:
+            - containerPort: 3389
+              name: ldap
+            - containerPort: 636
+              name: ldaps
+          imagePullPolicy: Always
+          env:
+            - name: DS_DM_PASSWORD
+              value: admin1234
+            - name: DS_SUFFIX
+              value: "dc=example,dc=com"
