@@ -25,4 +25,17 @@ open ssh session
     Open Connection    ${SKUBA_STATION}
     Login With Public Key    ${VM_USER}    data/id_shared
 
-check_pod_running
+kubectl
+    [Arguments]    ${arguments}
+    ${output}    execute command localy    kubectl ${arguments}
+    [Return]    ${output}
+
+skuba
+    [Arguments]    ${arguments}
+    ${output}    execute command localy    skuba ${arguments}
+    [Return]    ${output}
+
+helm
+    [Arguments]    ${arguments}
+    ${output}    execute command localy    helm ${arguments}
+    [Return]    ${output}

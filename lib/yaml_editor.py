@@ -131,6 +131,3 @@ def modify_add_value(yaml_file, keys_list, value, add=False):
     logging.debug(yaml_dictionary)
     with open(yaml_file, "w+") as yaml_file_out:
         yaml.dump(yaml_dictionary, yaml_file_out, default_flow_style=False)
-
-
-modify_add_value("workdir/file.yaml", "customer toto", "adsf", True)
