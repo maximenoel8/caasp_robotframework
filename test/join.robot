@@ -8,9 +8,5 @@ Resource          ../parameters/global_parameters.robot
 Resource          ../function/rbac.robot
 
 *** Test Cases ***
-bootstrap
+deploy cluster
     Given cluster running
-    And helm install
-
-check pod running
-    389ds server installed

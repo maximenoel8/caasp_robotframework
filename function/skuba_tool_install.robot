@@ -3,6 +3,7 @@ Resource          generic_function.robot
 Library           JSONLibrary
 Library           String
 Library           Collections
+Resource          ../parameters/env.robot
 
 *** Keywords ***
 install skuba
@@ -16,6 +17,7 @@ get VM IP
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/cluster-${random}
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
     Set Global Variable    ${CLUSTERDIR}    ${WORKDIR}/cluster
+    Set Global Variable    ${DATADIR}    ${WORKDIR}/data
     Create Directory    ${LOGDIR}
     Set Environment Variable    HELM_HOME    ${WORKDIR}/helm
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}/admin.conf

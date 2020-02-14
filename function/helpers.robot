@@ -12,9 +12,9 @@ wait_reboot
     Wait Until Keyword Succeeds    30s    5s    execute command localy    kubectl cluster-info
 
 wait_pods
+    [Arguments]    ${arguments}=${EMPTY}
     ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed
     ${output}    Split String    ${output}    \n
-    Create Dictionary
     FOR    ${element}    IN    @{output}
         ${key}    Split String    ${element}
         Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=5m ${key[0]} -n kube-system
