@@ -4,6 +4,7 @@ Library           JSONLibrary
 Library           String
 Library           Collections
 Resource          ../parameters/env.robot
+Resource          helpers.robot
 
 *** Keywords ***
 install skuba
@@ -14,10 +15,12 @@ install skuba
 
 get VM IP
     ${random}    Generate Random String    4    [LOWER][UPPER]
-    Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/cluster-${random}
+    ${CLUSTER_NAME}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
+    Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER_NAME}
+    check cluster exist
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
     Set Global Variable    ${CLUSTERDIR}    ${WORKDIR}/cluster
-    Set Global Variable    ${DATADIR}    ${WORKDIR}/data
+    Set Global Variable    ${DATADIR}    ${CURDIR}/../data
     Create Directory    ${LOGDIR}
     Set Environment Variable    HELM_HOME    ${WORKDIR}/helm
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}/admin.conf

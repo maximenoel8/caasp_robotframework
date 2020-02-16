@@ -28,9 +28,9 @@ bootstrap
 cluster running
     get VM IP
     open ssh session
-    install skuba
-    bootstrap
-    join
-    wait_nodes
-    wait_pods
-    wait_cillium
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    bootstrap
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    join
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_nodes
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_pods
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_cillium

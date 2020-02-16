@@ -1,6 +1,7 @@
 *** Settings ***
 Library           SSHLibrary
 Library           OperatingSystem
+Resource          ../parameters/global_parameters.robot
 
 *** Keywords ***
 execute command with ssh

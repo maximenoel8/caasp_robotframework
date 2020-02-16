@@ -34,4 +34,9 @@ wait_podname
     ${output}    kubectl    wait pods --for=condition=ready --timeout=5m ${args} -o name
     ${output}    Remove String    ${output}    pod/
     ${pod_names}    Split String    ${output}    \n
-    [Return]    ${pod_names}
+    ${pod_name}    Set Variable    ${pod_names[0]}
+    [Return]    ${pod_name}
+
+check cluster exist
+    ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}
+    Set Global Variable    ${CLUSTER_STATUS}
