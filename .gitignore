@@ -2,3 +2,4 @@
 /*.xml
 /workdir
 parameters/env.robot
+/.idea
