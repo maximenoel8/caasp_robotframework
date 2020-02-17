@@ -34,7 +34,8 @@ wait_podname
     ${output}    kubectl    wait pods --for=condition=ready --timeout=5m ${args} -o name
     ${output}    Remove String    ${output}    pod/
     ${pod_names}    Split String    ${output}    \n
-    ${pod_name}    Set Variable    ${pod_names[0]}
+    ${length}    Get Length    ${pod_names}
+    ${pod_name}    Set Variable If    ${length}==1    ${pod_names[0]}    ${pod_names}
     [Return]    ${pod_name}
 
 check cluster exist
