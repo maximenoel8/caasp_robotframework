@@ -6,7 +6,7 @@ Resource          ../function/rbac.robot
 *** Test Cases ***
 389ds authentication
     Given cluster running
-    Comment    And helm install
+    And helm install
     And 389ds server installed
     And users has been added to ldap
     And dex is configured
