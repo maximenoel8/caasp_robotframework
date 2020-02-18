@@ -14,6 +14,14 @@ install skuba
     SSHLibrary.Put File    data/id_shared    /home/${VM_USER}/    mode=0600
 
 get VM IP
+    Copy File    workdir/cluster.json    ${WORKDIR}/logs
+    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster.json
+    Set Global Variable    ${MASTER_IP}    ${ip_dictionnary["ip_masters"]["value"]}
+    Set Global Variable    ${WORKER_IP}    ${ip_dictionnary["ip_workers"]["value"]}
+    Set Global Variable    ${SKUBA_STATION}    ${MASTER_IP[0]}
+    Set Global Variable    ${LB}    ${MASTER_IP[0]}
+
+setup_environment
     ${random}    Generate Random String    4    [LOWER][UPPER]
     ${CLUSTER_NAME}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER_NAME}
@@ -25,10 +33,3 @@ get VM IP
     Set Environment Variable    HELM_HOME    ${WORKDIR}/helm
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}/admin.conf
     Copy File    workdir/cluster.json    ${WORKDIR}/logs
-    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster.json
-    ${key}    Get Dictionary Keys    ${ip_dictionnary}
-    ${value}    Get From Dictionary    ${ip_dictionnary}    ip_masters
-    Set Global Variable    ${MASTER_IP}    ${ip_dictionnary["ip_masters"]["value"]}
-    Set Global Variable    ${WORKER_IP}    ${ip_dictionnary["ip_workers"]["value"]}
-    Set Global Variable    ${SKUBA_STATION}    ${MASTER_IP[0]}
-    Set Global Variable    ${LB}    ${MASTER_IP[0]}

@@ -26,6 +26,7 @@ bootstrap
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
+    setup_environment
     get VM IP
     open ssh session
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba

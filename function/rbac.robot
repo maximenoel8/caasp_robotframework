@@ -15,7 +15,7 @@ Resource          helpers.robot
     ${root_certificate}    kubectl    --namespace=kube-system exec -it "${ldap_pod}" -- bash -c "cat /etc/dirsrv/ssca/ca.crt | base64 | awk '{print}' ORS=''"
 
 authentication with skuba CI (group)
-    Run Keyword And Ignore Error    execute command localy    kubectl delete rolebinding italiansrb
+    Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
     kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
     Sleep    30
     skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB}:32000 -r "${WORKDIR}/cluster/pki/ca.crt" -c tesla.conf
@@ -63,7 +63,7 @@ authentication with WebUI user
     Remove File    ${WORKDIR}/euler.conf
 
 users has been added to ldap
-    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://"${MASTER_IP[0]}":"${DS_NODE_PORT}" -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
+    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${MASTER_IP[0]}:${DS_NODE_PORT} -D ${DS_ADMIN} -f ${DATADIR}/ldap_389ds.ldif -w ${DS_DM_PASSWORD}
 
 dex is configured
     kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGPATH}/dex-config.yaml"

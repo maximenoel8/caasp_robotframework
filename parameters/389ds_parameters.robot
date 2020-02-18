@@ -2,9 +2,9 @@
 Library           OperatingSystem
 
 *** Variables ***
-${DS_ADMIN}       "cn=Directory Manager"
-${DS_NODE_PORT}    "30636"
-${HOST}           "dirsrv-389ds.kube-system.svc.cluster.local:636"
+${DS_ADMIN}       cn=Directory Manager
+${DS_NODE_PORT}    30636
+${HOST}           dirsrv-389ds.kube-system.svc.cluster.local:636
 
 *** Keywords ***
 set 389ds variables
