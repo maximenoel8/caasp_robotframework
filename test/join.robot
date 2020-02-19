@@ -1,6 +1,5 @@
 *** Settings ***
 Suite Teardown    Close All Connections
-Resource          ../function/install_tools.robot
 Resource          ../function/helpers.robot
 Resource          ../function/helm.robot
 Resource          ../function/skuba_join.robot

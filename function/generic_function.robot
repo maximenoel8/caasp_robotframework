@@ -19,7 +19,7 @@ execute command localy
     ${rc}    ${output}    Run And Return Rc And Output    ${cmd}
     log    ${output}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    ${output}
-    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${rc}    0    ${output}
     [Return]    ${output}
 
 open ssh session

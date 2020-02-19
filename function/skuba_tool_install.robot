@@ -19,11 +19,11 @@ get VM IP
     Set Global Variable    ${WORKER_IP}    ${ip_dictionnary["ip_workers"]["value"]}
     Set Global Variable    ${SKUBA_STATION}    ${MASTER_IP[0]}
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary}    ip_load_balancer
-    ${LB}    Set Variable If    "${status}"=="FAIL"    ${MASTER_IP[0]}    ${ip_dictionnary["ip_load_balancer"]["value"]}
-    Set Global Variable    ${LB}
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${MASTER_IP[0]}    ${ip_dictionnary["ip_load_balancer"]["value"]}
+    Set Global Variable    ${IP_LB}
 
 setup_environment
-    ${random}    Generate Random String    4    [LOWER][UPPER]
+    ${random}    Generate Random String    4    [LOWER][NUMBERS]
     ${CLUSTER}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
     Set Global Variable    ${CLUSTER}
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}

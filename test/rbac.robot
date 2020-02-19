@@ -5,6 +5,7 @@ Resource          ../function/rbac.robot
 
 *** Test Cases ***
 389ds authentication
+    [Setup]    set 389ds variables
     Given cluster running
     And helm install
     And 389ds server installed
