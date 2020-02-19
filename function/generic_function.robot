@@ -9,9 +9,9 @@ execute command with ssh
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=15m
     log    ${stderr}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    ${stderr}
-    Should Be Equal As Integers    ${rc}    0
     log    ${output}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    ${output}
+    Should Be Equal As Integers    ${rc}    0
     [Return]    ${output}
 
 execute command localy
@@ -32,8 +32,9 @@ kubectl
     [Return]    ${output}
 
 skuba
-    [Arguments]    ${arguments}
-    ${output}    execute command localy    skuba ${arguments}
+    [Arguments]    ${arguments}    ${ssh}=False
+    ${output}    Run Keyword If    ${ssh}    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments}
+    ...    ELSE    execute command localy    skuba ${arguments}
     [Return]    ${output}
 
 helm

@@ -3,6 +3,7 @@ Resource          generic_function.robot
 Library           ../lib/yaml_editor.py
 Resource          ../parameters/389ds_parameters.robot
 Resource          helpers.robot
+Library           SSHLibrary
 
 *** Keywords ***
 389ds server installed
@@ -18,8 +19,9 @@ authentication with skuba CI (group)
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
     kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
     Sleep    30
-    skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB}:32000 -r "${WORKDIR}/cluster/pki/ca.crt" -c tesla.conf
-    kubectl    --kubeconfig=tesla.conf auth can-i get rolebindings | grep -x yes
+    skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c tesla.conf    True
+    SSHLibrary.Get File    tesla.conf    ${LOGDIR}/tesla.conf
+    kubectl    --kubeconfig=${LOGDIR}/tesla.conf auth can-i get rolebindings | grep -x yes
     kubectl    delete rolebinding italiansrb
 
 authentication with skuba CI (users)
@@ -27,16 +29,18 @@ authentication with skuba CI (users)
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
     Sleep    30
-    skuba    auth login -u curie@suse.com -p password -s https://${IP_LB}:32000 -r "${WORKDIR}/cluster/pki/ca.crt" -c curie.conf
-    kubectl    --kubeconfig=curie.conf auth can-i list pods | grep -x yes
-    kubectl    --kubeconfig=curie.conf auth can-i delete pods | grep -x no
-    skuba    auth login -u euler@suse.com -p password -s https://${IP_LB}:32000 -r "${WORKDIR}/cluster/pki/ca.crt" -c euler.conf
-    kubectl    --kubeconfig=euler.conf auth can-i delete pods | grep -x yes
-    kubectl    --kubeconfig=euler.conf auth can-i get rolebindings | grep -x no
-    kubectl    --kubeconfig=euler.conf get rolebindings | grep Forbidden
+    skuba    auth login -u curie@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c curie.conf    True
+    SSHLibrary.Get File    curie.conf    ${LOGDIR}/curie.conf
+    kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i list pods | grep -x yes
+    kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i delete pods | grep -x no
+    skuba    auth login -u euler@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c euler.conf    True
+    SSHLibrary.Get File    euler.conf    ${LOGDIR}/euler.conf
+    kubectl    --kubeconfig=${LOGDIR}/euler.conf auth can-i delete pods | grep -x yes
+    kubectl    --kubeconfig=${LOGDIR}/euler.conf auth can-i get rolebindings | grep -x no
+    kubectl    --kubeconfig=${LOGDIR}/euler.conf get rolebindings | grep Forbidden
     kubectl    delete rolebinding curierb eulerrb
-    Remove File    ${WORKDIR}/curie.conf
-    Remove File    ${WORKDIR}/euler.conf
+    Remove File    {LOGDIR}/curie.conf
+    Remove File    {LOGDIR}/euler.conf
 
 authentication with WebUI user
     #    step "Authentication users with selenium"

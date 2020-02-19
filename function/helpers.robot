@@ -2,6 +2,7 @@
 Library           OperatingSystem
 Resource          generic_function.robot
 Library           String
+Library           Collections
 
 *** Keywords ***
 wait_nodes
@@ -41,3 +42,11 @@ wait_podname
 check cluster exist
     ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}
     Set Global Variable    ${CLUSTER_STATUS}
+
+check replicat for
+    [Arguments]    ${args}    ${number_replicat}
+    ${ouput}    kubectl    describe pods ${args}
+    ${nodes_list}    Get Regexp Matches    ${ouput}    Node: *(.*)/.*\n    1
+    ${length}    Get Length    ${nodes_list}
+    Should Be Equal As Integers    ${length}    ${number_replicat}    Number of ${args} not equal to replicat
+    List Should Not Contain Duplicates    ${nodes_list}    ${args} are not correctly replicate

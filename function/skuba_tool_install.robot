@@ -8,9 +8,8 @@ Resource          helpers.robot
 
 *** Keywords ***
 install skuba
-    execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64
-    execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}
-    execute command with ssh    sudo zypper -n in \ -t pattern SUSE-CaaSP-Management
+    Run Keyword If    "${MODE}"=="${EMPTY}"    skuba from pattern
+    ...    ELSE IF    "${MODE}"=="DEV"    skuba devel
     SSHLibrary.Put File    data/id_shared    /home/${VM_USER}/    mode=0600
 
 get VM IP
@@ -25,8 +24,9 @@ get VM IP
 
 setup_environment
     ${random}    Generate Random String    4    [LOWER][UPPER]
-    ${CLUSTER_NAME}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
-    Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER_NAME}
+    ${CLUSTER}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
+    Set Global Variable    ${CLUSTER}
+    Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
     check cluster exist
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
     Set Global Variable    ${CLUSTERDIR}    ${WORKDIR}/cluster
@@ -35,3 +35,16 @@ setup_environment
     Set Environment Variable    HELM_HOME    ${WORKDIR}/helm
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}/admin.conf
     Copy File    workdir/cluster.json    ${WORKDIR}/logs
+
+skuba from pattern
+    execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64
+    execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}
+    execute command with ssh    sudo zypper -n in \ -t pattern SUSE-CaaSP-Management
+
+skuba devel
+    execute command with ssh    sudo zypper addrepo https://download.opensuse.org/repositories/devel:languages:go/SLE_15_SP1/devel:languages:go.repo && sudo zypper -n --no-gpg-checks install go
+    execute command with ssh    sudo zypper -n in git-core make
+    execute command with ssh    git clone https://github.com/SUSE/skuba.git
+    Run Keyword Unless    "${pull_request}"=="${EMPTY}"    execute command with ssh    cd skuba && git fetch origin pull/${PULL_REQUEST}/head:customise && git checkout customise
+    execute command with ssh    cd skuba && \ make
+    execute command with ssh    sudo ln -s /home/${VM_USER}/go/bin/skuba /usr/local/bin/

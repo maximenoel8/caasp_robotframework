@@ -10,19 +10,19 @@ join
     Remove From List    ${masters}    0
     ${count}    Evaluate    1
     FOR    ${ELEMENT}    IN    @{masters}
-        ${output}=    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba node join --role master --user ${VM_USER} --sudo --target ${ELEMENT} mnoel-master-${count}
+        ${output}=    skuba    node join --role master --user ${VM_USER} --sudo --target ${ELEMENT} ${SUFFIX}-${CLUSTER}-master-${count}    True
         ${count}    Evaluate    ${count}+1
     END
     ${count}    Evaluate    0
     FOR    ${ELEMENT}    IN    @{WORKER_IP}
-        ${output}=    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba \ node join --role worker --user ${VM_USER} --sudo --target ${ELEMENT} mnoel-worker-${count}
+        ${output}=    skuba    node join --role worker --user ${VM_USER} --sudo --target ${ELEMENT} ${SUFFIX}-${CLUSTER}-worker-${count}    True
         ${count}    Evaluate    ${count}+1
     END
     Log    Bootstrap finish
 
 bootstrap
     execute command with ssh    skuba cluster init --control-plane ${LB} cluster
-    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba node bootstrap --user ${VM_USER} --sudo --target ${SKUBA_STATION} mnoel-master-00 -v 10
+    skuba    node bootstrap --user ${VM_USER} --sudo --target ${SKUBA_STATION} ${SUFFIX}-${CLUSTER}-master-0 -v 10    True
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
@@ -35,3 +35,20 @@ cluster running
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_nodes
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_pods
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_cillium
+
+replica dex and gangway are correctly distribued
+    ${dexreplicat}    Set Variable    3
+    ${gangwayreplicat}    Set Variable    3
+    ${nodes}    kubectl    get nodes -o name
+    ${nodes_list}    Split String    ${nodes}    \n
+    ${number of nodes}    Get Length    ${nodes_list}
+    Run Keyword If    ${number of nodes} >= ${dexreplicat}    check replicat for    -l app=oidc-dex -n kube-system    ${dexreplicat}
+    Run Keyword If    ${number of nodes} >= ${gangwayreplicat}    check replicat for    -l app=oidc-gangway -n kube-system    ${gangwayreplicat}
+
+remove node
+    [Arguments]    ${node_name}
+    ${remove_output}    skuba    node remove ${node_name}    True
+    Should Contain    ${remove_output}    node ${node_name} successfully removed from the cluster
+    ${nodes_output}    kubectl    get nodes -o name
+    Should Not Contain    ${nodes_output}    ${node_name}
+    wait_pods
