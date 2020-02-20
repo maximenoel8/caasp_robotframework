@@ -7,10 +7,11 @@ Library           SSHLibrary
 
 *** Keywords ***
 389ds server installed
+    set 389ds variables
     Copy Directory    ${DATADIR}/389dss    ${LOGDIR}
     Modify Add Value    ${LOGDIR}/389dss/389ds-deployment.yaml    spec template spec containers 0 image    ${DS_IMAGE}
     kubectl    create -f "${LOGDIR}/389dss"
-    Sleep    30
+    Wait Until Keyword Succeeds    3min    10s    check_pod_log_contain    -l app=dirsrv-389ds -n kube-system    INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
 
 authentication with skuba CI (group)
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb

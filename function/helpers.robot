@@ -14,7 +14,7 @@ wait_reboot
 
 wait_pods
     [Arguments]    ${arguments}=${EMPTY}
-    ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed
+    ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating
     ${output}    Split String    ${output}    \n
     FOR    ${element}    IN    @{output}
         ${key}    Split String    ${element}
@@ -40,7 +40,7 @@ wait_podname
     [Return]    ${pod_name}
 
 check cluster exist
-    ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}
+    ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}/cluster
     Set Global Variable    ${CLUSTER_STATUS}
 
 check replicat for
@@ -50,3 +50,8 @@ check replicat for
     ${length}    Get Length    ${nodes_list}
     Should Be Equal As Integers    ${length}    ${number_replicat}    Number of ${args} not equal to replicat
     List Should Not Contain Duplicates    ${nodes_list}    ${args} are not correctly replicate
+
+check_pod_log_contain
+    [Arguments]    ${args}    ${expected_value}
+    ${output}    kubectl    logs ${args}
+    Should Contain    ${output}    ${expected_value}

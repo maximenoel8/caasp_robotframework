@@ -8,4 +8,6 @@ Resource          ../function/rbac.robot
 
 *** Test Cases ***
 deploy cluster
-    Given cluster running
+    Comment    Given cluster running
+    set_vmware_env_variables
+    clean cluster

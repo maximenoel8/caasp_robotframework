@@ -3,6 +3,7 @@ Resource          generic_function.robot
 Library           Collections
 Resource          skuba_tool_install.robot
 Resource          helpers.robot
+Resource          infra_setup/main_keywork.robot
 
 *** Keywords ***
 join
@@ -21,12 +22,12 @@ join
     Log    Bootstrap finish
 
 bootstrap
-    execute command with ssh    skuba cluster init --control-plane ${LB} cluster
+    execute command with ssh    skuba cluster init --control-plane ${IP_LB} cluster
     skuba    node bootstrap --user ${VM_USER} --sudo --target ${SKUBA_STATION} ${SUFFIX}-${CLUSTER}-master-0 -v 10    True
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
-    setup_environment
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    deploy cluster vms
     get VM IP
     open ssh session
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
