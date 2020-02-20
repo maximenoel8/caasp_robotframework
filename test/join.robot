@@ -9,5 +9,5 @@ Resource          ../function/rbac.robot
 *** Test Cases ***
 deploy cluster
     Comment    Given cluster running
-    set_vmware_env_variables
+    set infra env parameters
     clean cluster

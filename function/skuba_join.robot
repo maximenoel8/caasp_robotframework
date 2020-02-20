@@ -10,13 +10,15 @@ join
     @{masters}=    Copy List    ${MASTER_IP}
     Remove From List    ${masters}    0
     ${count}    Evaluate    1
-    FOR    ${ELEMENT}    IN    @{masters}
-        ${output}=    skuba    node join --role master --user ${VM_USER} --sudo --target ${ELEMENT} ${SUFFIX}-${CLUSTER}-master-${count}    True
+    FOR    ${ip}    IN    @{masters}
+        ${output}=    skuba    node join --role master --user ${VM_USER} --sudo --target ${ip} ${SUFFIX}-${CLUSTER}-master-${count}    True
+        add master to CS    ${SUFFIX}-${CLUSTER}-master-${count}    ${ip}
         ${count}    Evaluate    ${count}+1
     END
     ${count}    Evaluate    0
-    FOR    ${ELEMENT}    IN    @{WORKER_IP}
-        ${output}=    skuba    node join --role worker --user ${VM_USER} --sudo --target ${ELEMENT} ${SUFFIX}-${CLUSTER}-worker-${count}    True
+    FOR    ${ip}    IN    @{WORKER_IP}
+        ${output}=    skuba    node join --role worker --user ${VM_USER} --sudo --target ${ip} ${SUFFIX}-${CLUSTER}-worker-${count}    True
+        add worker to CS    ${SUFFIX}-${CLUSTER}-worker-${count}    ${ip}
         ${count}    Evaluate    ${count}+1
     END
     Log    Bootstrap finish
@@ -24,6 +26,7 @@ join
 bootstrap
     execute command with ssh    skuba cluster init --control-plane ${IP_LB} cluster
     skuba    node bootstrap --user ${VM_USER} --sudo --target ${SKUBA_STATION} ${SUFFIX}-${CLUSTER}-master-0 -v 10    True
+    add master to CS    ${SUFFIX}-${CLUSTER}-master-0    ${SKUBA_STATION}
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
@@ -53,3 +56,4 @@ remove node
     ${nodes_output}    kubectl    get nodes -o name
     Should Not Contain    ${nodes_output}    ${node_name}
     wait_pods
+    disable node in cs    ${node_name}

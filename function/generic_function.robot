@@ -2,6 +2,8 @@
 Library           SSHLibrary
 Library           OperatingSystem
 Resource          ../parameters/global_parameters.robot
+Resource          generic_function.robot
+Resource          interaction_with_cluster_state_dictionnary.robot
 
 *** Keywords ***
 execute command with ssh
