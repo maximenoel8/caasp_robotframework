@@ -3,6 +3,14 @@ Resource          generic_function.robot
 
 *** Keywords ***
 helm install
+    ${status}    check helm already install
+    Run Keyword If    "${status}"=="Fail"    install helm
+
+check helm already install
+    ${status}    ${output}    Run Keyword And Ignore Error    helm    version -s
+    [Return]    ${status}
+
+install helm
     ${helm_version}    helm    version -c --template "{{.Client.SemVer}}" | sed 's/^v//'
     ${helm_image}    Set Variable    registry.suse.com/caasp/v4/helm-tiller:${helm_version}
     kubectl    create serviceaccount -n kube-system tiller
