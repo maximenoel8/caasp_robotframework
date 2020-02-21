@@ -9,3 +9,7 @@ dex_gangway_replicat
     Then replica dex and gangway are correctly distribued
     Then remove node    ${SUFFIX}-${CLUSTER}-worker-1
     Then replica dex and gangway are correctly distribued
+    Then join    ${SUFFIX}-${CLUSTER}-worker-1
+    Then replica dex and gangway are correctly distribued
+    Then join    ${SUFFIX}-${CLUSTER}-worker-2
+    Then replica dex and gangway are correctly distribued

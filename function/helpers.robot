@@ -55,3 +55,7 @@ check_pod_log_contain
     [Arguments]    ${args}    ${expected_value}
     ${output}    kubectl    logs ${args}
     Should Contain    ${output}    ${expected_value}
+
+wait deploy
+    [Arguments]    ${arg}
+    kubectl    wait deployment --for=condition=available --timeout=5m ${arg}

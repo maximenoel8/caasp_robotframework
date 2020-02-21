@@ -7,7 +7,8 @@ Resource          interaction_with_cluster_state_dictionnary.robot
 
 *** Keywords ***
 execute command with ssh
-    [Arguments]    ${cmd}
+    [Arguments]    ${cmd}    ${alias}=skuba_station
+    Switch Connection    ${alias}
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=15m
     log    ${stderr}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    ${stderr}
@@ -25,7 +26,8 @@ execute command localy
     [Return]    ${output}
 
 open ssh session
-    Open Connection    ${SKUBA_STATION}
+    [Arguments]    ${server}    ${alias}
+    Open Connection    ${server}    alias=${alias}
     Login With Public Key    ${VM_USER}    data/id_shared
 
 kubectl
@@ -43,3 +45,7 @@ helm
     [Arguments]    ${arguments}
     ${output}    execute command localy    helm ${arguments}
     [Return]    ${output}
+
+titi
+    [Arguments]    ${1}    ${2}=defaul
+    log    toto

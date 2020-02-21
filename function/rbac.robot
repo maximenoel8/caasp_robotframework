@@ -4,6 +4,8 @@ Library           ../lib/yaml_editor.py
 Resource          ../parameters/389ds_parameters.robot
 Resource          helpers.robot
 Library           SSHLibrary
+Resource          selenium.robot
+Library           ../lib/firefox_profile.py
 
 *** Keywords ***
 389ds server installed
@@ -44,28 +46,23 @@ authentication with skuba CI (users)
     Remove File    {LOGDIR}/euler.conf
 
 authentication with WebUI user
-    #    step "Authentication users with selenium"
-    #    info "Clean existing roles"
-    kubectl    delete rolebinding curierb eulerrb || true
-    #    info "Create roles"
+    deploy selenium pod
+    Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb || true
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
     sleep    30
-    #    info 'WebUI kubeconfig (gangway) with VIEW role'
-    #    $TESTDIR/selenium-auth.py -i $IP_LB -u curie@suse.com
-    selenium_download    kubeconf.txt curie.conf
-    kubectl    --kubeconfig=curie.conf auth can-i list pods | grep -x yes
-    kubectl    --kubeconfig=curie.conf auth can-i delete pods | grep -x no
-    #    info 'WebUI kubeconfig (gangway) with EDIT role'
-    #    $TESTDIR/selenium-auth.py -i $IP_LB -u euler@suse.com
-    selenium_download    kubeconf.txt euler.conf
-    kubectl    --kubeconfig=euler.conf auth can-i delete pods | grep -x yes
-    kubectl    --kubeconfig=euler.conf auth can-i get rolebindings | grep -x no
-    kubectl    --kubeconfig=euler.conf get rolebindings | grep Forbidden
-    #    info 'Clean role binding'
+    selenium_authentication    curie@suse.com
+    selenium_download    kubeconf    ${LOGDIR}/curie.conf
+    kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i list pods | grep -x yes
+    kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i delete pods | grep -x no
+    selenium_authentication    euler@suse.com
+    selenium_download    kubeconf    ${LOGDIR}/euler.conf
+    kubectl    --kubeconfig=${LOGDIR}/euler.conf auth can-i delete pods | grep -x yes
+    kubectl    --kubeconfig=${LOGDIR}/euler.conf auth can-i get rolebindings | grep -x no
+    Run Keyword And Expect Error    STARTS: Error from server (Forbidden): rolebindings.rbac.authorization.k8s.io is forbidden:    kubectl    --kubeconfig=${LOGDIR}/euler.conf get rolebindings
     kubectl    delete rolebinding curierb eulerrb
-    Remove File    ${WORKDIR}/curie.conf
-    Remove File    ${WORKDIR}/euler.conf
+    Remove File    ${LOGDIR}/curie.conf
+    Remove File    ${LOGDIR}/euler.conf
 
 users has been added to ldap
     execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${MASTER_IP[0]}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"

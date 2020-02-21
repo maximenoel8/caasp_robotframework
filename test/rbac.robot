@@ -13,3 +13,4 @@ Resource          ../function/rbac.robot
     And dex is configured
     Then authentication with skuba CI (group)
     Then authentication with skuba CI (users)
+    Then authentication with WebUI user
