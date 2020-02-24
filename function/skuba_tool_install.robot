@@ -12,24 +12,20 @@ install skuba
     ...    ELSE IF    "${MODE}"=="DEV"    Skuba devel
     SSHLibrary.Put File    data/id_shared    /home/${VM_USER}/    mode=0600
 
-get VM IP
-    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster.json
-    Set Global Variable    ${MASTER_IP}    ${ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
-    Set Global Variable    ${WORKER_IP}    ${ip_dictionnary["modules"][0]["outputs"]["ip_workers"]["value"]}
-    Set Global Variable    ${SKUBA_STATION}    ${MASTER_IP[0]}
-    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary}    ip_load_balancer
-    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${MASTER_IP[0]}    ${ip_dictionnary["modules"]["outputs"][0]["ip_load_balancer"]["value"]}
-    Set Global Variable    ${IP_LB}
-    create cluster_state    ${MASTER_IP}    ${WORKER_IP}
-    add lb to CS    ${IP_LB}
+load vm ip
+    ${status}    check cluster state exist
+    Run Keyword if    "${status}"=="PASS"    load cluster state
+    ...    ELSE    create cluster_state
+    set global ip variable
 
 setup environment
     ${random}    Generate Random String    4    [LOWER][NUMBERS]
     ${CLUSTER}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
     Set Global Variable    ${CLUSTER}
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
-    check cluster exist
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
+    check cluster exist
+    check cluster deploy
     Set Global Variable    ${CLUSTERDIR}    ${WORKDIR}/cluster
     Set Global Variable    ${DATADIR}    ${CURDIR}/../data
     Set Global Variable    ${TERRAFORMDIR}    ${WORKDIR}/terraform
@@ -60,3 +56,7 @@ set vm number
     ${length}    Get Length    ${VM_NUMBER}
     ${extra_server}    Set Variable If    ${length}==3    ${VM_NUMBER[2]}
     Set Global Variable    ${VM_NUMBER}
+
+set global ip variable
+    Set Global Variable    ${BOOSTRAP_MASTER}    ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
+    Set Global Variable    ${IP_LB}    ${cluster_state["lb"]["ip"]}

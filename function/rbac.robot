@@ -65,7 +65,7 @@ authentication with WebUI user
     Remove File    ${LOGDIR}/euler.conf
 
 users has been added to ldap
-    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${MASTER_IP[0]}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
+    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOSTRAP_MASTER}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
 
 dex is configured
     kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGDIR}/dex-config.yaml"

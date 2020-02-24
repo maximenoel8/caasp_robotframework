@@ -26,4 +26,4 @@ You can change globale variable by adding -v <variablename>:<new value>. Here so
 - MODE : 
     - by default use skuba from pattern
     - DEV : will build skuba from github with devel option ( you can also specify a pull request number with PULL_REQUEST )
-- SUFFIX : give a suffix to your cluster nodes names, could be your name 
+- PREFIX : give a suffix to your cluster nodes names, could be your name 

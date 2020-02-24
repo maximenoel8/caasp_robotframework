@@ -59,3 +59,11 @@ check_pod_log_contain
 wait deploy
     [Arguments]    ${arg}
     kubectl    wait deployment --for=condition=available --timeout=5m ${arg}
+
+check cluster state exist
+    ${status}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster_state.json
+    [Return]    ${status}
+
+check cluster deploy
+    ${PLATFORM_DEPLOY}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster.json
+    Set Global Variable    ${PLATFORM_DEPLOY}

@@ -1,15 +1,16 @@
 *** Settings ***
 Library           Collections
 Library           String
+Library           JSONLibrary
 
 *** Variables ***
 &{cluster_state}
 
 *** Keywords ***
 add node to cluster state
-    [Arguments]    ${name}    ${ip}
+    [Arguments]    ${name}    ${ip}    ${disable}=False
     ${type}    get node type    ${name}
-    &{node_infos}    Create Dictionary    ip=${ip}    disable=False
+    &{node_infos}    Create Dictionary    ip=${ip}    disable=${disable}
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state}    ${type}
     &{node}    Run Keyword If    "${status}"=="PASS"    Create Dictionary    ${name}=${node_infos}    &{cluster_state["${type}"]}
     ...    ELSE    Create Dictionary    ${name}=${node_infos}
@@ -75,13 +76,21 @@ check node disable
     [Return]    ${status}
 
 create cluster_state
-    [Arguments]    ${master_ip}    ${worker_ip}
+    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster.json
     ${count}    Set Variable    0
-    FOR    ${ip}    IN    @{master_ip}
-        add node to cluster state    ${CLUSTER_PREFIX}-master-${count}    ${ip}
+    FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
+        add node to cluster state    ${CLUSTER_PREFIX}-master-${count}    ${ip}    True
         ${count}    Evaluate    ${count}+1
     END
-    FOR    ${ip}    IN    @{worker_ip}
-        add node to cluster state    ${CLUSTER_PREFIX}-worker-${count}    ${ip}
+    FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_workers"]["value"]}
+        add node to cluster state    ${CLUSTER_PREFIX}-worker-${count}    ${ip}    True
         ${count}    Evaluate    ${count}+1
     END
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary}    ip_load_balancer
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}    ${ip_dictionnary["modules"]["outputs"][0]["ip_load_balancer"]["value"]}
+    add lb to CS    ${IP_LB}
+    [Return]    ${cluster_state}
+
+load cluster state
+    &{cluster_state_temp}    JSONLibrary.Load JSON From File    ${LOGDIR}/cluster_state.json
+    Set To Dictionary    ${cluster_state}    &{cluster_state_temp}

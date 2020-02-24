@@ -32,4 +32,4 @@ deploy selenium pod
     Run Keyword If    "${status}"=="FAIL"    kubectl    expose deployment selenium --port=4444 --type=NodePort
     Run Keyword If    "${status}"=="FAIL"    wait deploy    selenium
     ${node port}    kubectl    get svc/selenium -o json | jq '.spec.ports[0].nodePort'
-    Set Global Variable    ${SELENIUM_URL}    http://${MASTER_IP[0]}:${node port}/wd/hub
+    Set Global Variable    ${SELENIUM_URL}    http://${BOOSTRAP_MASTER}:${node port}/wd/hub

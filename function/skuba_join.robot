@@ -4,40 +4,44 @@ Library           Collections
 Resource          skuba_tool_install.robot
 Resource          cluster_helpers.robot
 Resource          infra_setup/main_keywork.robot
+Library           JSONLibrary
 
 *** Keywords ***
 join all nodes
-    @{masters}=    Copy List    ${MASTER_IP}
+    @{masters}=    Get Dictionary Keys    ${cluster_state["master"]}
     Remove From List    ${masters}    0
     ${count}    Evaluate    1
-    FOR    ${ip}    IN    @{masters}
-        join    ${CLUSTER_PREFIX}-master-${count}    ${ip}
+    FOR    ${master}    IN    @{masters}
+        join    ${master}
         ${count}    Evaluate    ${count}+1
     END
     ${count}    Evaluate    0
-    FOR    ${ip}    IN    @{WORKER_IP}
-        join    ${CLUSTER_PREFIX}-worker-${count}    ${ip}
+    ${workers}    Get Dictionary Keys    ${cluster_state["worker"]}
+    FOR    ${worker}    IN    @{workers}
+        join    ${worker}
         ${count}    Evaluate    ${count}+1
     END
     Log    Bootstrap finish
+    ${cluster_state_string}    Convert To String    ${cluster_state}
+    ${cluster_state_string}    Replace String    ${cluster_state_string}    '    "
+    Create File    ${LOGDIR}/cluster_state.json    ${cluster_state_string}
 
 bootstrap
     Comment    --kubernetes-version 1.15.2
     execute command with ssh    skuba cluster init --control-plane ${IP_LB} cluster
-    skuba    node bootstrap --user ${VM_USER} --sudo --target ${SKUBA_STATION} ${CLUSTER_PREFIX}-master-0 -v 10    True
-    add node to cluster state    ${CLUSTER_PREFIX}-master-0    ${SKUBA_STATION}
+    skuba    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]} ${CLUSTER_PREFIX}-master-0    True
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    deploy cluster vms
-    get VM IP
-    open ssh session    ${SKUBA_STATION}    alias=skuba_station
+    Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL"    deploy cluster vms
+    load vm ip
+    open ssh session    ${BOOSTRAP_MASTER}    alias=skuba_station
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    bootstrap
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    join all nodes
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_nodes
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_pods
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_cillium
+    Comment    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_nodes
+    Comment    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_pods
+    Comment    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_cillium
 
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3
@@ -59,15 +63,17 @@ remove node
     disable node in cs    ${node_name}
 
 join
-    [Arguments]    ${name}    ${ip}=auto
+    [Arguments]    ${name}    ${ip}=auto    ${after_remove}=False
     ${node exist}    check node exit in CS    ${name}
     ${node disable}    Run Keyword If    ${node exist}    check node disable    ${name}
     ${ip}    Run Keyword If    ${node exist} and "${ip}"=="auto"    get node ip from CS    ${name}
     ...    ELSE    Set Variable    ${ip}
     ${type}    get node type    ${name}
     Run Keyword If    ${node exist} and not ${node disable}    Fail    Worker already part of the cluster !
-    ...    ELSE IF    ${node exist} and ${node disable}    Run Keywords    unmask kubelet    ${ip}
+    ...    ELSE IF    ${node exist} and ${node disable} and ${after_remove}    Run Keywords    unmask kubelet    ${ip}
     ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
+    ...    AND    enable node in CS    ${name}
+    ...    ELSE IF    ${node exist} and ${node disable} and not ${after_remove}    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
     ...    AND    enable node in CS    ${name}
     ...    ELSE    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
     ...    AND    add node to cluster state    ${name}    ${ip}
