@@ -1,8 +1,8 @@
 *** Settings ***
-Resource          generic_function.robot
+Resource          commands.robot
 Library           Collections
 Resource          skuba_tool_install.robot
-Resource          helpers.robot
+Resource          cluster_helpers.robot
 Resource          infra_setup/main_keywork.robot
 
 *** Keywords ***
@@ -11,20 +11,21 @@ join all nodes
     Remove From List    ${masters}    0
     ${count}    Evaluate    1
     FOR    ${ip}    IN    @{masters}
-        join    ${SUFFIX}-${CLUSTER}-master-${count}    ${ip}
+        join    ${CLUSTER_PREFIX}-master-${count}    ${ip}
         ${count}    Evaluate    ${count}+1
     END
     ${count}    Evaluate    0
     FOR    ${ip}    IN    @{WORKER_IP}
-        join    ${SUFFIX}-${CLUSTER}-worker-${count}    ${ip}
+        join    ${CLUSTER_PREFIX}-worker-${count}    ${ip}
         ${count}    Evaluate    ${count}+1
     END
     Log    Bootstrap finish
 
 bootstrap
+    Comment    --kubernetes-version 1.15.2
     execute command with ssh    skuba cluster init --control-plane ${IP_LB} cluster
-    skuba    node bootstrap --user ${VM_USER} --sudo --target ${SKUBA_STATION} ${SUFFIX}-${CLUSTER}-master-0 -v 10    True
-    add node to cluster state    ${SUFFIX}-${CLUSTER}-master-0    ${SKUBA_STATION}
+    skuba    node bootstrap --user ${VM_USER} --sudo --target ${SKUBA_STATION} ${CLUSTER_PREFIX}-master-0 -v 10    True
+    add node to cluster state    ${CLUSTER_PREFIX}-master-0    ${SKUBA_STATION}
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
@@ -41,6 +42,7 @@ cluster running
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3
     ${gangwayreplicat}    Set Variable    3
+    Comment    TODO: add ready option
     ${nodes}    kubectl    get nodes -o name
     ${nodes_list}    Split String    ${nodes}    \n
     ${number of nodes}    Get Length    ${nodes_list}
@@ -64,7 +66,7 @@ join
     ...    ELSE    Set Variable    ${ip}
     ${type}    get node type    ${name}
     Run Keyword If    ${node exist} and not ${node disable}    Fail    Worker already part of the cluster !
-    ...    ELSE IF    ${node exist} and ${node disable}    Run Keywords    skuba    ${ip}
+    ...    ELSE IF    ${node exist} and ${node disable}    Run Keywords    unmask kubelet    ${ip}
     ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
     ...    AND    enable node in CS    ${name}
     ...    ELSE    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True

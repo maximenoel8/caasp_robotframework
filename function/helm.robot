@@ -1,5 +1,5 @@
 *** Settings ***
-Resource          generic_function.robot
+Resource          commands.robot
 
 *** Keywords ***
 helm install

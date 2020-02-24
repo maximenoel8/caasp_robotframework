@@ -3,7 +3,7 @@ ${VM_USER}        ec2-user
 ${CLUSTER}        ${EMPTY}
 ${MODE}           ${EMPTY}
 ${PULL_REQUEST}    ${EMPTY}
-${SUFFIX}         robotframework
+${PREFIX}         robotframework
 ${GIT_BRANCH}     release-caasp-4.1.0
 ${PLATFORM}       vmware
 ${NUMBER}         1:2

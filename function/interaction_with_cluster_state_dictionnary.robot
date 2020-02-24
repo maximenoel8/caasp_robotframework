@@ -73,3 +73,15 @@ check node disable
     ${status}    Get From Dictionary    ${cluster_state["${type}"]["${name}"]}    disable
     ${status}    Convert To Boolean    ${status}
     [Return]    ${status}
+
+create cluster_state
+    [Arguments]    ${master_ip}    ${worker_ip}
+    ${count}    Set Variable    0
+    FOR    ${ip}    IN    @{master_ip}
+        add node to cluster state    ${CLUSTER_PREFIX}-master-${count}    ${ip}
+        ${count}    Evaluate    ${count}+1
+    END
+    FOR    ${ip}    IN    @{worker_ip}
+        add node to cluster state    ${CLUSTER_PREFIX}-worker-${count}    ${ip}
+        ${count}    Evaluate    ${count}+1
+    END

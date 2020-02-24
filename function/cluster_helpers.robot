@@ -1,6 +1,6 @@
 *** Settings ***
 Library           OperatingSystem
-Resource          generic_function.robot
+Resource          commands.robot
 Library           String
 Library           Collections
 

@@ -2,12 +2,14 @@
 Library           SSHLibrary
 Library           OperatingSystem
 Resource          ../parameters/global_parameters.robot
-Resource          generic_function.robot
+Resource          commands.robot
 Resource          interaction_with_cluster_state_dictionnary.robot
 
 *** Keywords ***
 execute command with ssh
     [Arguments]    ${cmd}    ${alias}=skuba_station
+    ${connections}    SSHLibrary.Get Connections
+    log    ${connections}
     Switch Connection    ${alias}
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=15m
     log    ${stderr}    repr=true    formatter=repr
@@ -27,7 +29,7 @@ execute command localy
 
 open ssh session
     [Arguments]    ${server}    ${alias}
-    Open Connection    ${server}    alias=${alias}
+    Open Connection    ${server}    alias=${alias}    timeout=20min
     Login With Public Key    ${VM_USER}    data/id_shared
 
 kubectl
@@ -36,8 +38,8 @@ kubectl
     [Return]    ${output}
 
 skuba
-    [Arguments]    ${arguments}    ${ssh}=False
-    ${output}    Run Keyword If    ${ssh}    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments}
+    [Arguments]    ${arguments}    ${ssh}=False    ${debug}=10
+    ${output}    Run Keyword If    ${ssh}    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}
     ...    ELSE    execute command localy    skuba ${arguments}
     [Return]    ${output}
 

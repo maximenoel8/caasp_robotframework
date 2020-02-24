@@ -1,6 +1,6 @@
 *** Settings ***
-Resource          generic_function.robot
-Resource          helpers.robot
+Resource          commands.robot
+Resource          cluster_helpers.robot
 Library           ../lib/firefox_profile.py
 Library           SeleniumLibrary
 
