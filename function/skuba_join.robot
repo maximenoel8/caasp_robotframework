@@ -39,9 +39,9 @@ cluster running
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    bootstrap
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    join all nodes
-    Comment    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_nodes
-    Comment    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_pods
-    Comment    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_cillium
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_nodes
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_pods
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_cillium
 
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3
