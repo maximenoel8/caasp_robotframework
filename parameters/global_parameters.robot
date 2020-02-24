@@ -1,5 +1,5 @@
 *** Variables ***
-${VM_USER}        ec2-user
+${VM_USER}        sles
 ${CLUSTER}        ${EMPTY}
 ${MODE}           ${EMPTY}
 ${PULL_REQUEST}    ${EMPTY}
