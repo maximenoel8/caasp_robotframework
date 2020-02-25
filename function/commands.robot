@@ -56,3 +56,8 @@ reinitialize skuba session
     Switch Connection    skuba_station
     Close Connection
     open ssh session    ${BOOSTRAP_MASTER}    alias=skuba_station
+
+openssl
+    [Arguments]    ${cmd}
+    ${output}    execute command localy    ${cmd}
+    [Return]    ${output}

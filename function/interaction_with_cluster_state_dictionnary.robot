@@ -102,3 +102,11 @@ dump cluster state
     ${cluster_state_string}    Replace String    ${cluster_state_string}    '    "
     ${status}    ${value}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state}    master
     Run Keyword If    "${status}"=="PASS"    Create File    ${LOGDIR}/cluster_state.json    ${cluster_state_string}
+
+get master servers name
+    ${master_keys}    Get Dictionary Keys    ${cluster_state["master"]}
+    [Return]    ${master_keys}
+
+get worker servers name
+    ${worker_keys}    Get Dictionary Keys    ${cluster_state["worker"]}
+    [Return]    ${worker_keys}
