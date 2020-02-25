@@ -30,6 +30,7 @@ bootstrap
     Comment    --kubernetes-version 1.15.2
     execute command with ssh    skuba cluster init --control-plane ${IP_LB} cluster
     skuba    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]} ${CLUSTER_PREFIX}-master-0    True
+    enable node in CS    ${CLUSTER_PREFIX}-master-0
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
@@ -72,6 +73,8 @@ join
     Run Keyword If    ${node exist} and not ${node disable}    Fail    Worker already part of the cluster !
     ...    ELSE IF    ${node exist} and ${node disable} and ${after_remove}    Run Keywords    unmask kubelet    ${ip}
     ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
+    ...    AND    wait_nodes
+    ...    AND    wait_pods
     ...    AND    enable node in CS    ${name}
     ...    ELSE IF    ${node exist} and ${node disable} and not ${after_remove}    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
     ...    AND    enable node in CS    ${name}

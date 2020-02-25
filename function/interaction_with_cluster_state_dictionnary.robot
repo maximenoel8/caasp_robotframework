@@ -82,6 +82,7 @@ create cluster_state
         add node to cluster state    ${CLUSTER_PREFIX}-master-${count}    ${ip}    True
         ${count}    Evaluate    ${count}+1
     END
+    ${count}    Set Variable    0
     FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_workers"]["value"]}
         add node to cluster state    ${CLUSTER_PREFIX}-worker-${count}    ${ip}    True
         ${count}    Evaluate    ${count}+1

@@ -34,3 +34,4 @@ reboot worker 0 and master 0 and wait server up
     wait server up    ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
     Wait Until Keyword Succeeds    10min    30    wait_nodes
     wait_pods
+    reinitialize skuba session
