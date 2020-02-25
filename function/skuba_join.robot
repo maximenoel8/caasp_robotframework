@@ -5,6 +5,7 @@ Resource          skuba_tool_install.robot
 Resource          cluster_helpers.robot
 Resource          infra_setup/main_keywork.robot
 Library           JSONLibrary
+Resource          reboot.robot
 
 *** Keywords ***
 join all nodes
@@ -22,9 +23,7 @@ join all nodes
         ${count}    Evaluate    ${count}+1
     END
     Log    Bootstrap finish
-    ${cluster_state_string}    Convert To String    ${cluster_state}
-    ${cluster_state_string}    Replace String    ${cluster_state_string}    '    "
-    Create File    ${LOGDIR}/cluster_state.json    ${cluster_state_string}
+    dump cluster state
 
 bootstrap
     Comment    --kubernetes-version 1.15.2
@@ -55,8 +54,10 @@ replica dex and gangway are correctly distribued
     Run Keyword If    ${number of nodes} >= ${gangwayreplicat}    check replicat for    -l app=oidc-gangway -n kube-system    ${gangwayreplicat}
 
 remove node
-    [Arguments]    ${node_name}
-    ${remove_output}    skuba    node remove ${node_name}    True
+    [Arguments]    ${node_name}    ${shutdown_first}=False
+    ${ip}    get node ip from CS    ${node_name}
+    Run Keyword If    ${shutdown_first}    reboot or shutdown server    ${ip}    shutdown
+    ${remove_output}    skuba    node remove --drain-timeout 2m ${node_name}    True
     Should Contain    ${remove_output}    node ${node_name} successfully removed from the cluster
     ${nodes_output}    kubectl    get nodes -o name
     Should Not Contain    ${nodes_output}    ${node_name}

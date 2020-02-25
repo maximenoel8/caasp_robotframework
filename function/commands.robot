@@ -13,9 +13,9 @@ execute command with ssh
     Switch Connection    ${alias}
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=15m
     log    ${stderr}    repr=true    formatter=repr
-    Append To File    ${LOGDIR}/console.log    ${cmd} : ERROR :\n ${stderr} \n
+    Append To File    ${LOGDIR}/console.log    \n\n${cmd} : ERROR :\n${stderr} \n
     log    ${output}    repr=true    formatter=repr
-    Append To File    ${LOGDIR}/console.log    ${cmd} : \n${output} \n
+    Append To File    ${LOGDIR}/console.log    \n\n${cmd} : \n${output} \n
     Should Be Equal As Integers    ${rc}    0
     [Return]    ${output}
 
@@ -23,7 +23,7 @@ execute command localy
     [Arguments]    ${cmd}
     ${rc}    ${output}    Run And Return Rc And Output    ${cmd}
     log    ${output}    repr=true    formatter=repr
-    Append To File    ${LOGDIR}/console.log    ${cmd} : \n ${output} \n
+    Append To File    ${LOGDIR}/console.log    \n\n${cmd} : \n${output} \n
     Should Be Equal As Integers    ${rc}    0    ${output}
     [Return]    ${output}
 

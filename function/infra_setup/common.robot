@@ -18,7 +18,7 @@ get terraform configuration
 run terraform
     execute command localy    cd ${TERRAFORMDIR} && terraform init
     execute command localy    eval `ssh-agent -s` && ssh-add ${DATADIR}/id_shared && cd ${TERRAFORMDIR} && terraform apply --auto-approve
-    execute command localy    cp ${TERRAFORMDIR}/terraform.tfstate ${LOGDIR}/cluster.json
+    Copy File    ${TERRAFORMDIR}/terraform.tfstate    ${LOGDIR}/cluster.json
 
 configure registration auto tfvars vmware
     ${terraform_tvars}    OperatingSystem.Get File    ${TERRAFORMDIR}/registration.auto.tfvars
@@ -28,7 +28,7 @@ configure registration auto tfvars vmware
 clean cluster
     [Arguments]    ${cluster_name}=${EMPTY}
     Run Keyword If    "${cluster_name}"=="${EMPTY}"    clean all cluster
-    ...    ELSE    execute command localy    cd ${CURDIR}/../workdir/${cluster_name}/terraform && terraform destroy --auto-approve
+    ...    ELSE    execute command localy    cd ${CURDIR}/../../workdir/${cluster_name}/terraform && terraform destroy --auto-approve
 
 clean all cluster
     ${clusters_dir}    OperatingSystem.List Directories In Directory    ${CURDIR}/../../workdir

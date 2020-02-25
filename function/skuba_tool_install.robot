@@ -21,6 +21,7 @@ load vm ip
 setup environment
     ${random}    Generate Random String    4    [LOWER][NUMBERS]
     ${CLUSTER}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
+    Log    ${CLUSTER}    console=yes    level=HTML
     Set Global Variable    ${CLUSTER}
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
