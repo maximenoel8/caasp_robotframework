@@ -14,12 +14,8 @@ wait_reboot
 
 wait_pods
     [Arguments]    ${arguments}=${EMPTY}
-    ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating
-    ${output}    Split String    ${output}    \n
-    FOR    ${element}    IN    @{output}
-        ${key}    Split String    ${element}
-        Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=5m ${key[0]} -n kube-system
-    END
+    Run Keyword If    "${arguments}"=="${EMPTY}"    wait all pods are running
+    ...    ELSE    kubectl    wait pods --for=condition=ready --timeout=5m ${arguments}
 
 wait_cillium
     ${cilium_pod_names}    wait_podname    -l k8s-app=cilium -n kube-system
@@ -67,3 +63,11 @@ check cluster state exist
 check cluster deploy
     ${PLATFORM_DEPLOY}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster.json
     Set Global Variable    ${PLATFORM_DEPLOY}
+
+wait all pods are running
+    ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating
+    ${output}    Split String    ${output}    \n
+    FOR    ${element}    IN    @{output}
+        ${key}    Split String    ${element}
+        Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=5m ${key[0]} -n kube-system
+    END
