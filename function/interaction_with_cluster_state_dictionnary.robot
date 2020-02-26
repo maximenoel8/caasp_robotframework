@@ -104,9 +104,21 @@ dump cluster state
     Run Keyword If    "${status}"=="PASS"    Create File    ${LOGDIR}/cluster_state.json    ${cluster_state_string}
 
 get master servers name
+    [Arguments]    ${with_status}=all    # ( all | enable | disable )
     ${master_keys}    Get Dictionary Keys    ${cluster_state["master"]}
+    FOR    ${master}    IN    @{master_keys}
+        BuiltIn.Exit For Loop If    "${with_status}"=="all"
+        ${status}    Set Variable if    ${cluster_state["master"]["${master}"]["disable"]}    disable    enable
+        Run Keyword If    "${with_status}"!="${status}"    Remove Values From List    ${master_keys}    ${master}
+    END
     [Return]    ${master_keys}
 
 get worker servers name
+    [Arguments]    ${with_status}=all    # ( all | enable | disable )
     ${worker_keys}    Get Dictionary Keys    ${cluster_state["worker"]}
+    FOR    ${worker}    IN    @{worker_keys}
+        BuiltIn.Exit For Loop If    "${with_status}"=="all"
+        ${status}    Set Variable if    ${cluster_state["worker"]["${worker}"]["disable"]}    disable    enable
+        Run Keyword If    "${with_status}"!="${status}"    Remove Values From List    ${worker_keys}    ${worker}
+    END
     [Return]    ${worker_keys}

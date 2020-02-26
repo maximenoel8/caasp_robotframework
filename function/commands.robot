@@ -59,5 +59,5 @@ reinitialize skuba session
 
 openssl
     [Arguments]    ${cmd}
-    ${output}    execute command localy    ${cmd}
+    ${output}    execute command localy    openssl ${cmd}
     [Return]    ${output}

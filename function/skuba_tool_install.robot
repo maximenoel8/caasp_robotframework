@@ -61,3 +61,11 @@ set vm number
 set global ip variable
     Set Global Variable    ${BOOSTRAP_MASTER}    ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
     Set Global Variable    ${IP_LB}    ${cluster_state["lb"]["ip"]}
+
+teardown_suite
+    Run Keyword And Ignore Error    Copy Files    ${OUTPUT_DIR}/*    ${LOGDIR}
+    Run Keyword And Ignore Error    Run Keyword Unless    ${KEEP}    clean cluster    ${CLUSTER}
+
+teardown_test
+    Run Keyword And Ignore Error    dump cluster state
+    Run Keyword And Ignore Error    Close All Connections

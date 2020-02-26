@@ -3,8 +3,8 @@ Resource          commands.robot
 
 *** Keywords ***
 kubelet server certificate should be signed by kubelet-ca for each node
-    ${master}    get master servers name
-    ${workers}    get worker servers name
+    ${master}    get master servers name    enable
+    ${workers}    get worker servers name    enable
     ${nodes}    Combine Lists    ${master}    ${workers}
     FOR    ${node}    IN    @{nodes}
         ${ip}    get node ip from CS    ${node}

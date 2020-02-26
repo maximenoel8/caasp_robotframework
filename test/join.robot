@@ -1,5 +1,4 @@
 *** Settings ***
-Suite Teardown    Close All Connections
 Resource          ../function/cluster_helpers.robot
 Resource          ../function/helm.robot
 Resource          ../function/skuba_join.robot

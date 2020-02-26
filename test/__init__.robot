@@ -1,4 +1,5 @@
 *** Settings ***
 Suite Teardown    teardown_suite
 Test Setup        Setup environment
-Resource          ../function/infra_setup/main_keywork.robot
+Test Teardown     teardown_test
+Resource          ../function/skuba_tool_install.robot
