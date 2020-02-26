@@ -1,0 +1,21 @@
+# Alertmanager configuration
+alertmanager:
+  persistentVolume:
+    enabled: false
+
+# Create a specific service account
+serviceAccounts:
+  nodeExporter:
+    name: prometheus-node-exporter
+
+# Enable Pushgateway
+pushgateway:
+  enabled: true
+
+# Prometheus configuration
+server:
+  persistentVolume:
+    enabled: false
+
+kubeStateMetrics:
+  enable: true

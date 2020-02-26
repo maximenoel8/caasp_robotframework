@@ -1,0 +1,18 @@
+# Configure admin password
+adminPassword: linux
+
+# Configure persistent storage
+persistence:
+  enabled: false
+
+# Enable sidecar for provisioning
+sidecar:
+  datasources:
+    enabled: true
+    label: grafana_datasource
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+
+testFramework:
+  enabled: false
