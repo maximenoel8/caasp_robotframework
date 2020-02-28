@@ -10,3 +10,4 @@ ${NUMBER}         1:2
 ${REPOS_LIST}     ${EMPTY}
 ${PACKAGES_LIST}    ${EMPTY}
 ${KEEP}           False
+${LOGDIR}         ${EMPTY}

@@ -14,6 +14,7 @@ get skuba tool
 
 get terraform configuration
     Copy Directory    ${WORKDIR}/skuba/ci/infra/${PLATFORM}    ${TERRAFORMDIR}
+    Remove Directory    ${WORKDIR}/skuba    True
 
 run terraform
     execute command localy    cd ${TERRAFORMDIR} && terraform init

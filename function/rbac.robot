@@ -8,7 +8,7 @@ Resource          selenium.robot
 Library           ../lib/firefox_profile.py
 
 *** Keywords ***
-389ds server installed
+389ds server is deployed
     set 389ds variables
     Copy Directory    ${DATADIR}/389dss    ${LOGDIR}
     Modify Add Value    ${LOGDIR}/389dss/389ds-deployment.yaml    spec template spec containers 0 image    ${DS_IMAGE}
@@ -17,7 +17,7 @@ Library           ../lib/firefox_profile.py
 
 authentication with skuba CI (group)
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
-    kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
+    kubectl    create rolebinding italiansrb --clusterrole=admin --group=italians
     Sleep    30
     skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c tesla.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/tesla.conf    ${LOGDIR}/tesla.conf
@@ -26,6 +26,7 @@ authentication with skuba CI (group)
     kubectl    delete rolebinding italiansrb
 
 authentication with skuba CI (users)
+    [Timeout]    4 minutes
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
@@ -64,23 +65,76 @@ authentication with WebUI user
     Remove File    ${LOGDIR}/curie.conf
     Remove File    ${LOGDIR}/euler.conf
 
-users has been added to ldap
-    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOSTRAP_MASTER}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
+users has been added to
+    [Arguments]    ${type}
+    Run Keyword If    "${type}"=="openldap"    _add user for ldap
+    ...    ELSE IF    "${type}"=="389ds"    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOSTRAP_MASTER}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
+    ...    ELSE    Fail    Wrong value for ldap type
 
-dex is configured
+dex is configured for
+    [Arguments]    ${type}
     kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGDIR}/dex-config.yaml"
+    Run Keyword If    "${type}"=="openldap"    _configure dex file config for openldap
+    ...    ELSE IF    "${type}"=="389ds"    _configure dex file config for 389ds
+    ...    ELSE IF    "${type}"=="static password"    _configure dex file config for static password
+    ...    ELSE    Fail    Wrong ldap type
+    kubectl    apply -f "${LOGDIR}/dex-config.yaml"
+    kubectl    delete pod -n kube-system -l app=oidc-dex --wait
+    wait_pods    -l app=oidc-dex -n kube-system
+
+clean 389ds server
+    kubectl    delete -f "${DATADIR}/389dss"
+
+openldap server is deployed
+    set 389ds variables
+    helm    install --name ldap --set adminPassword=admin --set env.LDAP_DOMAIN=example.com stable/openldap
+
+_add user for ldap
+    ${ldap_pod}    wait_podname    -l app=openldap
+    execute command localy    cat "${DATADIR}/ldap.ldif" | kubectl exec -i ${ldap_pod} -- ldapadd -x -D "cn=admin,dc=example,dc=com" -w admin
+
+_configure dex file config for 389ds
     ${ldap_pod}    wait_podname    -l app=dirsrv-389ds -n kube-system
-    ${root_certificate}    kubectl    --namespace=kube-system exec -it "${ldap_pod}" -- bash -c "cat /etc/dirsrv/ssca/ca.crt | base64 | awk '{print}' ORS=''"
+    ${output}    kubectl    --namespace=kube-system exec -it "${ldap_pod}" -- bash -c "cat /etc/dirsrv/ssca/ca.crt | base64 | awk \'{print}\' ORS=\'\'"
+    ${root_certificate}    Split String    ${output}    \n
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 id    389ds
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 name    389ds
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config host    ${HOST}
-    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config ca    ${root_certificate}    True
-    remove_key    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config insecureNoSSL
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config ca    ${root_certificate[1]}    True
+    Remove Key    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config insecureNoSSL
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config bindDN    ${DS_ADMIN}
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config bindPW    ${DS_DM_PASSWORD}
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config userSearch baseDN    ${DS_SUFFIX}
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch baseDN    ${DS_SUFFIX}
-    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch filter    (objectClass=groupOfNames)
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch filter    "(objectClass=groupOfNames)"
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    false
+
+_configure dex file config for openldap
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 id    openLDAP
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 name    openLDAP
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config bindDN    cn=admin,dc=example,dc=com
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config bindPW    admin
+    Remove Key    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config ca
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config insecureNoSSL    true    True
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config host    ldap-openldap.default.svc
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config userSearch baseDN    ${DS_SUFFIX}
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch filter    "(objectClass=groupOfUniqueNames)"
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch baseDN    ${DS_SUFFIX}
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    false
+
+clean up openldap
+    helm    delete --purge ldap
+
+_configure dex file config for static password
+    ${connectors_dictionnary}    Get Sub Dictionary    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors
+    Set Test Variable    ${connectors_dictionnary}
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    true    True
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | staticPasswords    ${DATADIR}/users_static_password.yaml    True
+    Remove Key    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors
+
+_restore_dex_after_static_password
+    kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGDIR}/dex-config.yaml"
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors    ${connectors_dictionnary}
     kubectl    apply -f "${LOGDIR}/dex-config.yaml"
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
     wait_pods    -l app=oidc-dex -n kube-system

@@ -91,6 +91,25 @@ def __remove_key(yaml_dictionary, keys):
     return yaml_dictionary
 
 
+# Recursive search to get to the last element in keys list and remove it
+def __get_sub_dictionary(yaml_dictionary, keys):
+    current_dictionary = yaml_dictionary
+    length = len(keys)
+    for i in range(length - 1):
+        if keys[i + 1] == '|':
+            logging.debug("Converting yaml string to dictionary")
+            logging.debug(current_dictionary[keys[i]])
+            new_dic = __convert_yaml_to_dictionary(current_dictionary[keys[i]])
+            yaml_sub_dictionary = __remove_key(new_dic, keys[i + 2:])
+            value = yaml.dump(yaml_sub_dictionary, default_flow_style=False)
+            keys = keys[:i + 1]
+            current_dictionary[keys[-1]] = value
+            return yaml_dictionary
+        else:
+            current_dictionary = current_dictionary[keys[i]]
+    return current_dictionary[keys[-1]]
+
+
 # Generate list from input keys
 def __generate_key_list(keys):
     new_list = []
@@ -130,3 +149,12 @@ def modify_add_value(yaml_file, keys_list, value, add=False):
     logging.debug(yaml_dictionary)
     with open(yaml_file, "w+") as yaml_file_out:
         yaml.dump(yaml_dictionary, yaml_file_out, default_flow_style=False)
+
+
+def get_sub_dictionary(yaml_file, keys_list):
+    # logging.debug("%s", yaml_file)
+    with open(yaml_file, "rb") as yaml_file_in:
+        yaml_dictionary = __convert_yaml_to_dictionary(yaml_file_in)
+    # Generate the path list
+    keys = __generate_key_list(keys_list)
+    return yaml.dump(__get_sub_dictionary(yaml_dictionary, keys), default_flow_style=False)
