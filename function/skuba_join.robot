@@ -39,9 +39,9 @@ cluster running
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    bootstrap
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    join all nodes
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_nodes
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_pods
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait_cillium
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait nodes
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait pods
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait cillium
 
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3
@@ -61,7 +61,7 @@ remove node
     Should Contain    ${remove_output}    node ${node_name} successfully removed from the cluster
     ${nodes_output}    kubectl    get nodes -o name
     Should Not Contain    ${nodes_output}    ${node_name}
-    wait_pods
+    wait pods
     disable node in cs    ${node_name}
 
 join
@@ -74,8 +74,8 @@ join
     Run Keyword If    ${node exist} and not ${node disable}    Fail    Worker already part of the cluster !
     ...    ELSE IF    ${node exist} and ${node disable} and ${after_remove}    Run Keywords    unmask kubelet    ${ip}
     ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
-    ...    AND    wait_nodes
-    ...    AND    wait_pods
+    ...    AND    wait nodes
+    ...    AND    wait pods
     ...    AND    enable node in CS    ${name}
     ...    ELSE IF    ${node exist} and ${node disable} and not ${after_remove}    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${name}    True
     ...    AND    enable node in CS    ${name}

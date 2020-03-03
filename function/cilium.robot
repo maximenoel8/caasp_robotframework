@@ -8,7 +8,7 @@ ${curlreq}        curl -sm10 -XPOST deathstar.default.svc.cluster.local/v1/reque
 *** Keywords ***
 deathstar is deployed
     kubectl    create -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/http-sw-app.yaml
-    wait_pods    -l 'org in (empire,alliance)'
+    wait pods    -l 'org in (empire,alliance)'
 
 node is able to land
     [Arguments]    ${node}
@@ -23,5 +23,5 @@ clean cilium test
     kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/http-sw-app.yaml
     kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
 
-l3/l4 policiy is deployed
+l3 l4 policiy is deployed
     kubectl    create -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml

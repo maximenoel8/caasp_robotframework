@@ -82,7 +82,7 @@ dex is configured for
     ...    ELSE    Fail    Wrong ldap type
     kubectl    apply -f "${LOGDIR}/dex-config.yaml"
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
-    wait_pods    -l app=oidc-dex -n kube-system
+    wait pods    -l app=oidc-dex -n kube-system
 
 clean 389ds server
     kubectl    delete -f "${DATADIR}/389dss"
@@ -92,11 +92,11 @@ openldap server is deployed
     helm    install --name ldap --set adminPassword=admin --set env.LDAP_DOMAIN=example.com stable/openldap
 
 _add user for ldap
-    ${ldap_pod}    wait_podname    -l app=openldap
+    ${ldap_pod}    wait podname    -l app=openldap
     execute command localy    cat "${DATADIR}/ldap.ldif" | kubectl exec -i ${ldap_pod} -- ldapadd -x -D "cn=admin,dc=example,dc=com" -w admin
 
 _configure dex file config for 389ds
-    ${ldap_pod}    wait_podname    -l app=dirsrv-389ds -n kube-system
+    ${ldap_pod}    wait podname    -l app=dirsrv-389ds -n kube-system
     ${output}    kubectl    --namespace=kube-system exec -it "${ldap_pod}" -- bash -c "cat /etc/dirsrv/ssca/ca.crt | base64 | awk \'{print}\' ORS=\'\'"
     ${root_certificate}    Split String    ${output}    \n
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 id    389ds
@@ -138,9 +138,9 @@ _restore_dex_after_static_password
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors    ${connectors_dictionnary}
     kubectl    apply -f "${LOGDIR}/dex-config.yaml"
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
-    wait_pods    -l app=oidc-dex -n kube-system
+    wait pods    -l app=oidc-dex -n kube-system
 
 clean static password
     kubectl    apply -f ${LOGDIR}/dex-config-ori.yaml --force
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
-    wait_pods    -l app=oidc-dex -n kube-system
+    wait pods    -l app=oidc-dex -n kube-system

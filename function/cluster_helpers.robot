@@ -5,20 +5,20 @@ Library           String
 Library           Collections
 
 *** Keywords ***
-wait_nodes
+wait nodes
     [Arguments]    ${nodes}=${EMPTY}
     kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}
 
-wait_reboot
+wait reboot
     Wait Until Keyword Succeeds    30s    5s    execute command localy    kubectl cluster-info
 
-wait_pods
+wait pods
     [Arguments]    ${arguments}=${EMPTY}
     Run Keyword If    "${arguments}"=="${EMPTY}"    wait all pods are running
     ...    ELSE    kubectl    wait pods --for=condition=ready --timeout=5m ${arguments}
 
-wait_cillium
-    ${cilium_pod_names}    wait_podname    -l k8s-app=cilium -n kube-system
+wait cillium
+    ${cilium_pod_names}    wait podname    -l k8s-app=cilium -n kube-system
     ${number_cillium_pods}    Get Length    ${cilium_pod_names}
     ${cillium_pod_status}    kubectl    -n kube-system exec ${cilium_pod_names[0]} -- cilium status
     ${controler_status}    Get Regexp Matches    ${cillium_pod_status}    Controller Status: *([0-9]+)/    1
@@ -26,7 +26,7 @@ wait_cillium
     Should Be Equal    ${controler_status}    ${controler_status_2}    Controller status unhealthy
     Wait Until Keyword Succeeds    300s    10s    kubectl    -n kube-system exec ${cilium_pod_names[0]} -- cilium status | grep -E "^Cluster health:\\s+(${number_cillium_pods})/\\1 reachable"
 
-wait_podname
+wait podname
     [Arguments]    ${args}
     ${output}    kubectl    wait pods --for=condition=ready --timeout=5m ${args} -o name
     ${output}    Remove String    ${output}    pod/
@@ -71,3 +71,11 @@ wait all pods are running
         ${key}    Split String    ${element}
         Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=5m ${key[0]} -n kube-system
     END
+
+expose service
+    [Arguments]    ${service}    ${port}    ${namespace}=default
+    ${service_string}    Split String    ${service}    ${SPACE}
+    ${service_name}    Set Variable    ${service_string[-1]}
+    kubectl    expose ${service} --port=${port} --type=NodePort -n ${namespace} --name="expose-${service_name}"
+    ${node port}    kubectl    get svc/expose-${service_name} -n ${namespace} -o json | jq '.spec.ports[0].nodePort'
+    [Return]    ${nodePort}

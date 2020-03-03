@@ -1,6 +1,7 @@
 *** Settings ***
 Resource          commands.robot
 Resource          cluster_helpers.robot
+Resource          selenium.robot
 
 *** Keywords ***
 grafana is deployed
@@ -43,14 +44,22 @@ prometheus should be healthy
     Checking prometheus-server health
 
 grafana dashboard should be accessible
-    Log    TODO
+    Expose grafana server
+    deploy selenium pod
+    selenium_grafana
 
 prometheus dashboard should be accessible
-    Log    TODO
+    Expose prometheus server
+    deploy selenium pod
+    selenium_prometheus
 
 Expose prometheus server
+    ${prometheus_port}    expose service    prometheus-pushgateway    9091    monitoring
+    Set Test Variable    ${prometheus_port}
 
 Expose grafana server
+    ${grafanaPort}    expose service    deployment grafana    3000    monitoring
+    Set Test Variable    ${grafanaPort}
 
 prometheus is deployed
     helm    install --name prometheus suse-charts/prometheus --namespace monitoring --values ${DATADIR}/prometheus-config-values.yaml
@@ -62,3 +71,6 @@ prometheus is deployed
 cleaning monitoring
     helm    delete prometheus --purge
     helm    delete grafana --purge
+
+grafana is deployed custom
+    helm    install --name grafana --namespace monitoring --values ./grafana-config-values.yaml --set downloadDashboardsImage.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/curl --set downloadDashboardsImage.pullPolicy=Always --set initChownData.image.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/busybox --set initChownData.image.pullPolicy=Always --set sidecar.image=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/k8s-sidecar:0.1.75 --set sidecar.imagePullPolicy=Always grafana
