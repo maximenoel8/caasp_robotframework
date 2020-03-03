@@ -49,13 +49,13 @@ set repo and packages
         ${repo_string}    Set Variable    ${repo},\n\t${repo_string}
     END
     Set Global Variable    ${REPOS_LIST}    ${repo_string}
-    Set Global Variable    ${PACKAGES_LIST}    "ca-certificates-suse"
+    Set Global Variable    ${PACKAGES_LIST}    ${PACKAGES_LIST}"ca-certificates-suse",\n
 
 configure terraform file common
     [Arguments]    ${tfvar_variabe}
     ${terraform_tvars}    Replace String    ${tfvar_variabe}    masters = 1    masters = ${VM_NUMBER[0]}
     ${terraform_tvars}    Replace String    ${terraform_tvars}    workers = 2    workers = ${VM_NUMBER[1]}
     ${terraform_tvars}    Replace String    ${terraform_tvars}    repositories = {}    repositories = {\n\t${REPOS_LIST}\n}
-    ${terraform_tvars}    Replace String    ${terraform_tvars}    packages = [    packages = [${PACKAGES_LIST},\n
+    ${terraform_tvars}    Replace String    ${terraform_tvars}    packages = [    packages = [${PACKAGES_LIST}
     ${terraform_tvars}    Replace String    ${terraform_tvars}    authorized_keys = [    authorized_keys = [ "${SSH_PUB_KEY}" ,
     [Return]    ${terraform_tvars}

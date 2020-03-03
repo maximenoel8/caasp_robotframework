@@ -2,7 +2,7 @@
 Resource          commands.robot
 
 *** Keywords ***
-helm install
+helm is installed
     ${status}    check helm already install
     Run Keyword If    "${status}"=="FAIL"    install helm
 

@@ -8,4 +8,4 @@ Resource          ../function/rbac.robot
 *** Test Cases ***
 deploy cluster
     Given cluster running
-    And helm install
+    And helm is installed

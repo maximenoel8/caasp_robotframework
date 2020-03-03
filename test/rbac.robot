@@ -6,7 +6,7 @@ Resource          ../function/rbac.robot
 *** Test Cases ***
 389ds authentication
     Given cluster running
-    And helm install
+    And helm is installed
     And 389ds server is deployed
     And users has been added to    389ds
     And dex is configured for    389ds
@@ -17,7 +17,7 @@ Resource          ../function/rbac.robot
 
 openldap authentication
     Given cluster running
-    And helm install
+    And helm is installed
     And openldap server is deployed
     And users has been added to    openldap
     And dex is configured for    openldap
@@ -31,4 +31,4 @@ static password authentication
     And dex is configured for    static password
     Then authentication with skuba CI (users)
     Then authentication with WebUI user
-    [Teardown]    _restore_dex_after_static_password
+    [Teardown]    clean static password

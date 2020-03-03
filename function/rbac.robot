@@ -10,14 +10,15 @@ Library           ../lib/firefox_profile.py
 *** Keywords ***
 389ds server is deployed
     set 389ds variables
-    Copy Directory    ${DATADIR}/389dss    ${LOGDIR}
+    Remove Directory    ${LOGDIR}/389dss    true
+    Copy Directory    ${DATADIR}/389dss    ${LOGDIR}/389dss
     Modify Add Value    ${LOGDIR}/389dss/389ds-deployment.yaml    spec template spec containers 0 image    ${DS_IMAGE}
     kubectl    create -f "${LOGDIR}/389dss"
     Wait Until Keyword Succeeds    3min    10s    check_pod_log_contain    -l app=dirsrv-389ds -n kube-system    INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
 
 authentication with skuba CI (group)
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
-    kubectl    create rolebinding italiansrb --clusterrole=admin --group=italians
+    kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
     Sleep    30
     skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c tesla.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/tesla.conf    ${LOGDIR}/tesla.conf
@@ -74,6 +75,7 @@ users has been added to
 dex is configured for
     [Arguments]    ${type}
     kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGDIR}/dex-config.yaml"
+    Copy File    ${LOGDIR}/dex-config.yaml    ${LOGDIR}/dex-config-ori.yaml
     Run Keyword If    "${type}"=="openldap"    _configure dex file config for openldap
     ...    ELSE IF    "${type}"=="389ds"    _configure dex file config for 389ds
     ...    ELSE IF    "${type}"=="static password"    _configure dex file config for static password
@@ -106,7 +108,7 @@ _configure dex file config for 389ds
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config bindPW    ${DS_DM_PASSWORD}
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config userSearch baseDN    ${DS_SUFFIX}
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch baseDN    ${DS_SUFFIX}
-    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch filter    "(objectClass=groupOfNames)"
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch filter    (objectClass=groupOfNames)
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    false
 
 _configure dex file config for openldap
@@ -118,16 +120,15 @@ _configure dex file config for openldap
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config insecureNoSSL    true    True
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config host    ldap-openldap.default.svc
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config userSearch baseDN    ${DS_SUFFIX}
-    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch filter    "(objectClass=groupOfUniqueNames)"
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch filter    (objectClass=groupOfUniqueNames)
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch baseDN    ${DS_SUFFIX}
+    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors 0 config groupSearch groupAttr    uniqueMember
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    false
 
 clean up openldap
     helm    delete --purge ldap
 
 _configure dex file config for static password
-    ${connectors_dictionnary}    Get Sub Dictionary    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors
-    Set Test Variable    ${connectors_dictionnary}
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    true    True
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | staticPasswords    ${DATADIR}/users_static_password.yaml    True
     Remove Key    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors
@@ -136,5 +137,10 @@ _restore_dex_after_static_password
     kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGDIR}/dex-config.yaml"
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors    ${connectors_dictionnary}
     kubectl    apply -f "${LOGDIR}/dex-config.yaml"
+    kubectl    delete pod -n kube-system -l app=oidc-dex --wait
+    wait_pods    -l app=oidc-dex -n kube-system
+
+clean static password
+    kubectl    apply -f ${LOGDIR}/dex-config-ori.yaml --force
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
     wait_pods    -l app=oidc-dex -n kube-system
