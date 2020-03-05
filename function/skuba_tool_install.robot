@@ -5,6 +5,8 @@ Library           String
 Library           Collections
 Resource          ../parameters/env.robot
 Resource          cluster_helpers.robot
+Resource          helm.robot
+Resource          interaction_with_cluster_state_dictionnary.robot
 
 *** Keywords ***
 install skuba
@@ -38,6 +40,7 @@ setup environment
     ${SSH_PUB_KEY}    Remove String    ${SSH_PUB_KEY}    \n
     Set Global Variable    ${SSH_PUB_KEY}
     Set vm number
+    Run Keyword Unless    "${CHART_PULL_REQUEST}"=="${EMPTY}"    get kubernetes charts
 
 _skuba from pattern
     execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64
@@ -48,7 +51,7 @@ _skuba devel
     execute command with ssh    sudo zypper addrepo https://download.opensuse.org/repositories/devel:languages:go/SLE_15_SP1/devel:languages:go.repo && sudo zypper -n --no-gpg-checks install go
     execute command with ssh    sudo zypper -n in git-core make
     execute command with ssh    git clone https://github.com/SUSE/skuba.git
-    Run Keyword Unless    "${pull_request}"=="${EMPTY}"    execute command with ssh    cd skuba && git fetch origin pull/${PULL_REQUEST}/head:customise && git checkout customise
+    Run Keyword Unless    "${SKUBA_PULL_REQUEST}=="${EMPTY}"    execute command with ssh    cd skuba && git fetch origin pull/${SKUBA_PULL_REQUEST}/head:customise && git checkout customise
     execute command with ssh    cd skuba && \ make
     execute command with ssh    sudo ln -s /home/${VM_USER}/go/bin/skuba /usr/local/bin/
 
@@ -69,3 +72,28 @@ teardown_suite
 teardown_test
     Run Keyword And Ignore Error    dump cluster state
     Run Keyword And Ignore Error    Close All Connections
+
+get kubernetes charts
+    [Arguments]    ${pull_request}=${EMPTY}
+    ${status}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${LOGDIR}/kubernetes-charts-suse-com
+    Run Keyword If    "${status}"=="FAIL"    execute command localy    cd ${LOGDIR} && git clone git@github.com:SUSE/kubernetes-charts-suse-com.git
+    Run Keyword If    "${status}"=="FAIL"    execute command localy    cd ${LOGDIR}/kubernetes-charts-suse-com && git fetch origin pull/${CHART_PULL_REQUEST}/head:customise && git checkout customise
+
+add CA to server
+    [Arguments]    ${ip}
+    open ssh session    ${ip}    tempo
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo    tempo
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ref    tempo
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper -n in ca-certificates-suse    tempo
+    Run Keyword And Ignore Error    execute command with ssh    sudo update-ca-certificates    tempo
+    Run Keyword And Ignore Error    execute command with ssh    sudo systemctl restart crio    tempo
+    [Teardown]    Close Connection
+
+add CA to all server
+    @{masters}    Collections.Get Dictionary Keys    ${cluster_state["master"]}
+    @{workers}    Collections.Get Dictionary Keys    ${cluster_state["worker"]}
+    @{nodes}    Combine Lists    ${masters}    ${workers}
+    FOR    ${node}    IN    @{nodes}
+        ${ip}    get node ip from CS    ${node}
+        add CA to server    ${ip}
+    END

@@ -64,5 +64,5 @@ openssl
 
 velero
     [Arguments]    ${argument}
-    ${output}    execute command localy    ${velero_path}/velero ${arguments}
+    ${output}    execute command localy    ${velero_path}velero ${argument}
     [Return]    ${output}

@@ -28,12 +28,25 @@ wait cillium
 
 wait podname
     [Arguments]    ${args}
-    ${output}    kubectl    wait pods --for=condition=ready --timeout=5m ${args} -o name
+    ${output}    kubectl    wait pods --for=condition=ready --timeout=10m ${args} -o name
     ${output}    Remove String    ${output}    pod/
     ${pod_names}    Split String    ${output}    \n
     ${length}    Get Length    ${pod_names}
     ${pod_name}    Set Variable If    ${length}==1    ${pod_names[0]}    ${pod_names}
     [Return]    ${pod_name}
+
+get ressource name
+    [Arguments]    ${args}    ${ressource_type}
+    @{names}    Create List
+    ${output}    kubectl    get ${ressource_type} ${args} -o name
+    ${element_names}    Split String    ${output}    \n
+    FOR    ${element_name}    IN    @{element_names}
+        ${element_parts}    Split String    ${element_name}    /
+        Collections.Append To List    ${names}    ${element_parts[-1]}
+    END
+    ${length}    Get Length    ${element_names}
+    ${ressource_name}    Set Variable If    ${length}==1    ${names[0]}    ${names}
+    [Return]    ${ressource_name}
 
 check cluster exist
     ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}/cluster

@@ -6,6 +6,7 @@ Resource          cluster_helpers.robot
 Resource          infra_setup/main_keywork.robot
 Library           JSONLibrary
 Resource          reboot.robot
+Resource          tools.robot
 
 *** Keywords ***
 join all nodes
