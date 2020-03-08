@@ -9,17 +9,17 @@ Library           OperatingSystem
 
 *** Keywords ***
 add node to cluster state
-    [Arguments]    ${name}    ${ip}    ${disable}=False
+    [Arguments]    ${name}    ${ip}    ${disable}=False    ${cluster_number}=1
     ${type}    get node type    ${name}
     &{node_infos}    Create Dictionary    ip=${ip}    disable=${disable}
-    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state}    ${type}
-    &{node}    Run Keyword If    "${status}"=="PASS"    Create Dictionary    ${name}=${node_infos}    &{cluster_state["${type}"]}
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["cluster_${cluster_number}"]}    ${type}
+    &{node}    Run Keyword If    "${status}"=="PASS"    Create Dictionary    ${name}=${node_infos}    &{cluster_state["cluster_${cluster_number}"]["${type}"]}
     ...    ELSE    Create Dictionary    ${name}=${node_infos}
-    Set To Dictionary    ${cluster_state}    ${type}=&{node}
+    Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]}    ${type}=&{node}
 
 _change node status in cluster state
-    [Arguments]    ${type}    ${node_name}    ${status}    # has to be a boolean
-    Set To Dictionary    ${cluster_state["${type}"]["${node_name}"]}    disable=${status}
+    [Arguments]    ${type}    ${node_name}    ${status}    ${cluster_number}=1    # has to be a boolean
+    Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${node_name}"]}    disable=${status}
 
 get node type
     [Arguments]    ${name}
@@ -28,9 +28,9 @@ get node type
     [Return]    ${type}
 
 add lb to CS
-    [Arguments]    ${ip}
+    [Arguments]    ${ip}    ${cluster_number}=1
     &{lb}    Create Dictionary    ip=${ip}
-    Set To Dictionary    ${cluster_state}    lb=${lb}
+    Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]}    lb=${lb}
 
 add extra machine to CS
     [Arguments]    @{ips}
@@ -56,28 +56,30 @@ enable node in CS
     _change node status in cluster state    ${type}    ${name}    False
 
 check node exit in CS
-    [Arguments]    ${name}
+    [Arguments]    ${name}    ${cluster_number}=1
     ${type}    get node type    ${name}
-    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["${type}"]}    ${name}
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["cluster_${cluster_number}"]["${type}"]}    ${name}
     ${status}    Set Variable If    "${status}"=="PASS"    True    False
     ${status}    Convert To Boolean    ${status}
     [Return]    ${status}
 
 get node ip from CS
-    [Arguments]    ${name}
+    [Arguments]    ${name}    ${cluster_number}=1
     ${type}    get node type    ${name}
-    ${ip}    Get From Dictionary    ${cluster_state["${type}"]["${name}"]}    ip
+    ${ip}    Get From Dictionary    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${name}"]}    ip
     [Return]    ${ip}
 
 check node disable
-    [Arguments]    ${name}
+    [Arguments]    ${name}    ${cluster_number}=1
     ${type}    get node type    ${name}
-    ${status}    Get From Dictionary    ${cluster_state["${type}"]["${name}"]}    disable
+    ${status}    Get From Dictionary    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${name}"]}    disable
     ${status}    Convert To Boolean    ${status}
     [Return]    ${status}
 
 create cluster_state
+    [Arguments]    ${cluster_number}=1
     ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster.json
+    create first cluster_state level
     ${count}    Set Variable    0
     FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
         add node to cluster state    ${CLUSTER_PREFIX}-master-${count}    ${ip}    True
@@ -89,7 +91,7 @@ create cluster_state
         ${count}    Evaluate    ${count}+1
     END
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["modules"][0]["outputs"]}    ip_load_balancer
-    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}    ${ip_dictionnary["modules"][0]["outputs"]["ip_load_balancer"]["value"][0]}
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}    ${ip_dictionnary["modules"][0]["outputs"]["ip_load_balancer"]["value"][0]}
     add lb to CS    ${IP_LB}
     [Return]    ${cluster_state}
 
@@ -100,25 +102,33 @@ load cluster state
 dump cluster state
     ${cluster_state_string}    Convert To String    ${cluster_state}
     ${cluster_state_string}    Replace String    ${cluster_state_string}    '    "
-    ${status}    ${value}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state}    master
+    ${status}    ${value}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["cluster_1"]}    master
     Run Keyword If    "${status}"=="PASS"    Create File    ${LOGDIR}/cluster_state.json    ${cluster_state_string}
 
 get master servers name
-    [Arguments]    ${with_status}=all    # ( all | enable | disable )
-    ${master_keys}    Get Dictionary Keys    ${cluster_state["master"]}
+    [Arguments]    ${with_status}=all    ${cluster_number}=1    # ( all | enable | disable )
+    ${master_keys}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["master"]}
     FOR    ${master}    IN    @{master_keys}
         BuiltIn.Exit For Loop If    "${with_status}"=="all"
-        ${status}    Set Variable if    ${cluster_state["master"]["${master}"]["disable"]}    disable    enable
+        ${status}    Set Variable if    ${cluster_state["cluster_${cluster_number}"]["master"]["${master}"]["disable"]}    disable    enable
         Run Keyword If    "${with_status}"!="${status}"    Remove Values From List    ${master_keys}    ${master}
     END
     [Return]    ${master_keys}
 
 get worker servers name
-    [Arguments]    ${with_status}=all    # ( all | enable | disable )
-    ${worker_keys}    Get Dictionary Keys    ${cluster_state["worker"]}
+    [Arguments]    ${with_status}=all    ${cluster_number}=1    # ( all | enable | disable )
+    ${worker_keys}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["worker"]}
     FOR    ${worker}    IN    @{worker_keys}
         BuiltIn.Exit For Loop If    "${with_status}"=="all"
-        ${status}    Set Variable if    ${cluster_state["worker"]["${worker}"]["disable"]}    disable    enable
+        ${status}    Set Variable if    ${cluster_state["cluster_${cluster_number}"]["worker"]["${worker}"]["disable"]}    disable    enable
         Run Keyword If    "${with_status}"!="${status}"    Remove Values From List    ${worker_keys}    ${worker}
     END
     [Return]    ${worker_keys}
+
+create first cluster_state level
+    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
+        &{cluster}    Create Dictionary
+        ${cluster_number}    Evaluate    ${i}+1
+        Collections.Set To Dictionary    ${cluster_state}    cluster_${cluster_number}=${cluster}
+    END
+    Log Dictionary    ${cluster_state}

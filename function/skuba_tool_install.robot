@@ -62,8 +62,9 @@ set vm number
     Set Global Variable    ${VM_NUMBER}
 
 set global ip variable
-    Set Global Variable    ${BOOSTRAP_MASTER}    ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
-    Set Global Variable    ${IP_LB}    ${cluster_state["lb"]["ip"]}
+    [Arguments]   ${cluster_number}=1
+    Set Global Variable    ${BOOSTRAP_MASTER}    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
+    Set Global Variable    ${IP_LB}    ${cluster_state["cluster_${cluster_number}"]["lb"]["ip"]}
 
 teardown_suite
     Run Keyword And Ignore Error    Copy Files    ${OUTPUT_DIR}/*    ${LOGDIR}
@@ -90,8 +91,9 @@ add CA to server
     [Teardown]    Close Connection
 
 add CA to all server
-    @{masters}    Collections.Get Dictionary Keys    ${cluster_state["master"]}
-    @{workers}    Collections.Get Dictionary Keys    ${cluster_state["worker"]}
+    [Arguments]   ${cluster_number}=1
+    @{masters}    Collections.Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["master"]}
+    @{workers}    Collections.Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["worker"]}
     @{nodes}    Combine Lists    ${masters}    ${workers}
     FOR    ${node}    IN    @{nodes}
         ${ip}    get node ip from CS    ${node}

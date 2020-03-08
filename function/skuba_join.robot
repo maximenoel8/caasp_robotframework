@@ -10,7 +10,8 @@ Resource          tools.robot
 
 *** Keywords ***
 join all nodes
-    @{masters}=    Get Dictionary Keys    ${cluster_state["master"]}
+    [Arguments]    ${cluster_number}=1
+    @{masters}=    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["master"]}
     Remove From List    ${masters}    0
     ${count}    Evaluate    1
     FOR    ${master}    IN    @{masters}
@@ -18,7 +19,7 @@ join all nodes
         ${count}    Evaluate    ${count}+1
     END
     ${count}    Evaluate    0
-    ${workers}    Get Dictionary Keys    ${cluster_state["worker"]}
+    ${workers}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["worker"]}
     FOR    ${worker}    IN    @{workers}
         join    ${worker}
         ${count}    Evaluate    ${count}+1
@@ -27,9 +28,10 @@ join all nodes
     dump cluster state
 
 bootstrap
+    [Arguments]    ${cluster_number}=1
     Comment    --kubernetes-version 1.15.2
     execute command with ssh    skuba cluster init --control-plane ${IP_LB} cluster
-    skuba    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]} ${CLUSTER_PREFIX}-master-0    True
+    skuba    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]} ${CLUSTER_PREFIX}-master-0    True
     enable node in CS    ${CLUSTER_PREFIX}-master-0
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
