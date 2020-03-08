@@ -12,3 +12,4 @@ ${PACKAGES_LIST}    "nfs-client",\n
 ${KEEP}           False
 ${LOGDIR}         ${EMPTY}
 ${CHART_PULL_REQUEST}    ${EMPTY}
+${NUMBER_OF_CLUSTER}    1

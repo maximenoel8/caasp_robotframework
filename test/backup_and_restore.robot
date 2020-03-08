@@ -3,6 +3,7 @@ Resource          ../function/skuba_join.robot
 Resource          ../function/backup_and_restore/bNr_helpers.robot
 Resource          ../function/backup_and_restore/velero.robot
 Resource          ../function/backup_and_restore/wordpress.robot
+Resource          ../function/setup_environment.robot
 
 *** Test Cases ***
 velero backup elastic search
