@@ -50,10 +50,8 @@ add CA to all server
     END
 
 setup environment
-    ${random}    Generate Random String    4    [LOWER][NUMBERS]
-    ${CLUSTER}    Set Variable If    "${CLUSTER}"==""    cluster-${random}    ${CLUSTER}
+    Run Keyword If    "${CLUSTER}"==""    create cluster folder
     Log    ${CLUSTER}    console=yes    level=HTML
-    Set Global Variable    ${CLUSTER}
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
     check cluster exist
@@ -76,3 +74,8 @@ load vm ip
     Run Keyword if    "${status}"=="PASS"    load cluster state
     ...    ELSE    create cluster_state
     set global ip variable
+
+create cluster folder
+    ${random}    Generate Random String    4    [LOWER][NUMBERS]
+    Set Global Variable    ${CLUSTER}    cluster-${random}
+    Log    ${CLUSTER}    console=yes    level=HTML
