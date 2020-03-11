@@ -2,6 +2,7 @@
 Library           String
 Resource          commands.robot
 Resource          cluster_helpers.robot
+Library           Process
 
 *** Keywords ***
 set vm number
@@ -11,9 +12,12 @@ set vm number
     Set Global Variable    ${VM_NUMBER}
 
 set global ip variable
-    [Arguments]    ${cluster_number}=1
-    Set Global Variable    ${BOOSTRAP_MASTER}    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
-    Set Global Variable    ${IP_LB}    ${cluster_state["cluster_${cluster_number}"]["lb"]["ip"]}
+    Log Dictionary    ${cluster_state}
+    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
+        ${cluster_number}    Evaluate    ${i}+1
+        Set Global Variable    ${BOOSTRAP_MASTER_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
+        Set Global Variable    ${IP_LB_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["lb"]["ip"]}
+    END
 
 teardown_suite
     Run Keyword And Ignore Error    Copy Files    ${OUTPUT_DIR}/*    ${LOGDIR}
@@ -22,6 +26,7 @@ teardown_suite
 teardown_test
     Run Keyword And Ignore Error    dump cluster state
     Run Keyword And Ignore Error    Close All Connections
+    Run Keyword And Ignore Error    Process.Terminate All Processes
 
 get kubernetes charts
     [Arguments]    ${pull_request}=${EMPTY}
@@ -79,3 +84,9 @@ create cluster folder
     ${random}    Generate Random String    4    [LOWER][NUMBERS]
     Set Global Variable    ${CLUSTER}    cluster-${random}
     Log    ${CLUSTER}    console=yes    level=HTML
+
+open bootstrap session
+    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
+        ${cluster_number}    Evaluate    ${i}+1
+        open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    alias=skuba_station_${cluster_number}
+    END

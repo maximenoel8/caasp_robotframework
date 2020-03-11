@@ -3,5 +3,5 @@ Resource          common.robot
 
 *** Keywords ***
 setup aws
-    get skuba tool
-    get terraform configuration
+    clone skuba locally
+    copy terraform configuration from skuba folder

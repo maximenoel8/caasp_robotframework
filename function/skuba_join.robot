@@ -7,6 +7,8 @@ Resource          infra_setup/main_keywork.robot
 Library           JSONLibrary
 Resource          reboot.robot
 Resource          tools.robot
+Resource          setup_environment.robot
+Resource          cluster_deployment.robot
 
 *** Keywords ***
 join all nodes
@@ -38,10 +40,9 @@ bootstrap
 cluster running
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL"    deploy cluster vms
     load vm ip
-    open ssh session    ${BOOSTRAP_MASTER}    alias=skuba_station
+    open bootstrap session
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    bootstrap
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    join all nodes
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    cluster is deployed
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait nodes
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait pods
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait cillium

@@ -18,7 +18,7 @@ add node to cluster state
     Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]}    ${type}=&{node}
 
 _change node status in cluster state
-    [Arguments]    ${type}    ${node_name}    ${status}    ${cluster_number}=1    # has to be a boolean
+    [Arguments]    ${type}    ${node_name}    ${status}    ${cluster_number}    # has to be a boolean
     Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${node_name}"]}    disable=${status}
 
 get node type
@@ -46,14 +46,14 @@ get extra machine ip and pop from CS
     [Return]    ${new_ip}
 
 disable node in cs
-    [Arguments]    ${name}
+    [Arguments]    ${name}    ${cluster_number}=1
     ${type}    get node type    ${name}
-    _change node status in cluster state    ${type}    ${name}    True
+    _change node status in cluster state    ${type}    ${name}    True    ${cluster_number}
 
 enable node in CS
-    [Arguments]    ${name}
+    [Arguments]    ${name}    ${cluster_number}=1
     ${type}    get node type    ${name}
-    _change node status in cluster state    ${type}    ${name}    False
+    _change node status in cluster state    ${type}    ${name}    False    ${cluster_number}
 
 check node exit in CS
     [Arguments]    ${name}    ${cluster_number}=1
@@ -77,22 +77,10 @@ check node disable
     [Return]    ${status}
 
 create cluster_state
-    [Arguments]    ${cluster_number}=1
-    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster.json
-    create first cluster_state level
-    ${count}    Set Variable    0
-    FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
-        add node to cluster state    ${CLUSTER_PREFIX}-master-${count}    ${ip}    True
-        ${count}    Evaluate    ${count}+1
+    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
+        ${var}    Evaluate    ${i}+1
+        create cluster_state for    ${var}
     END
-    ${count}    Set Variable    0
-    FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_workers"]["value"]}
-        add node to cluster state    ${CLUSTER_PREFIX}-worker-${count}    ${ip}    True
-        ${count}    Evaluate    ${count}+1
-    END
-    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["modules"][0]["outputs"]}    ip_load_balancer
-    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}    ${ip_dictionnary["modules"][0]["outputs"]["ip_load_balancer"]["value"][0]}
-    add lb to CS    ${IP_LB}
     [Return]    ${cluster_state}
 
 load cluster state
@@ -126,9 +114,25 @@ get worker servers name
     [Return]    ${worker_keys}
 
 create first cluster_state level
-    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
-        &{cluster}    Create Dictionary
-        ${cluster_number}    Evaluate    ${i}+1
-        Collections.Set To Dictionary    ${cluster_state}    cluster_${cluster_number}=${cluster}
+    [Arguments]    ${cluster_number}
+    &{cluster}    Create Dictionary
+    Collections.Set To Dictionary    ${cluster_state}    cluster_${cluster_number}=${cluster}
+
+create cluster_state for
+    [Arguments]    ${cluster_number}
+    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster${cluster_number}.json
+    create first cluster_state level    ${cluster_number}
+    ${count}    Set Variable    0
+    FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
+        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip}    True    ${cluster_number}
+        ${count}    Evaluate    ${count}+1
     END
-    Log Dictionary    ${cluster_state}
+    ${count}    Set Variable    0
+    FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_workers"]["value"]}
+        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-worker-${count}    ${ip}    True    ${cluster_number}
+        ${count}    Evaluate    ${count}+1
+    END
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["modules"][0]["outputs"]}    ip_load_balancer
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["modules"][0]["outputs"]["ip_load_balancer"]["value"][0]}
+    add lb to CS    ${IP_LB}    ${cluster_number}
+    [Return]    ${cluster_state}

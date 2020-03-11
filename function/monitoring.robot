@@ -54,7 +54,7 @@ prometheus dashboard should be accessible
     selenium_prometheus
 
 Expose prometheus server
-    ${prometheus_port}    expose service    prometheus-pushgateway    9091    monitoring
+    ${prometheus_port}    expose service    service prometheus-pushgateway    9091    monitoring
     Set Test Variable    ${prometheus_port}
 
 Expose grafana server
@@ -71,6 +71,7 @@ prometheus is deployed
 cleaning monitoring
     helm    delete prometheus --purge
     helm    delete grafana --purge
+    kubectl    delete namespace monitoring
 
 grafana is deployed custom
     helm    install --name grafana --namespace monitoring --values ./grafana-config-values.yaml --set downloadDashboardsImage.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/curl --set downloadDashboardsImage.pullPolicy=Always --set initChownData.image.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/busybox --set initChownData.image.pullPolicy=Always --set sidecar.image=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/k8s-sidecar:0.1.75 --set sidecar.imagePullPolicy=Always grafana

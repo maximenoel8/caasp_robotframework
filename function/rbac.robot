@@ -17,27 +17,29 @@ Library           ../lib/firefox_profile.py
     Wait Until Keyword Succeeds    3min    10s    check_pod_log_contain    -l app=dirsrv-389ds -n kube-system    INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
 
 authentication with skuba CI (group)
+    [Arguments]    ${cluster_number}=1
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
     kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
     Sleep    30
-    skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c tesla.conf    True
+    skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c tesla.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/tesla.conf    ${LOGDIR}/tesla.conf
     execute command with ssh    rm /home/${VM_USER}/cluster/tesla.conf
     kubectl    --kubeconfig=${LOGDIR}/tesla.conf auth can-i get rolebindings | grep -x yes
     kubectl    delete rolebinding italiansrb
 
 authentication with skuba CI (users)
+    [Arguments]    ${cluster_number}=1
     [Timeout]    4 minutes
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
     Sleep    30
-    skuba    auth login -u curie@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c curie.conf    True
+    skuba    auth login -u curie@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c curie.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/curie.conf    ${LOGDIR}/curie.conf
     execute command with ssh    rm /home/${VM_USER}/cluster/curie.conf
     kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i list pods | grep -x yes
     kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i delete pods | grep -x no
-    skuba    auth login -u euler@suse.com -p password -s https://${IP_LB}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c euler.conf    True
+    skuba    auth login -u euler@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c euler.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/euler.conf    ${LOGDIR}/euler.conf
     execute command with ssh    rm /home/${VM_USER}/cluster/euler.conf
     kubectl    --kubeconfig=${LOGDIR}/euler.conf auth can-i delete pods | grep -x yes
@@ -67,9 +69,9 @@ authentication with WebUI user
     Remove File    ${LOGDIR}/euler.conf
 
 users has been added to
-    [Arguments]    ${type}
+    [Arguments]    ${type}    ${cluster_number}=1
     Run Keyword If    "${type}"=="openldap"    _add user for ldap
-    ...    ELSE IF    "${type}"=="389ds"    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOSTRAP_MASTER}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
+    ...    ELSE IF    "${type}"=="389ds"    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOSTRAP_MASTER_${cluster_number}}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
     ...    ELSE    Fail    Wrong value for ldap type
 
 dex is configured for

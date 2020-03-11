@@ -12,10 +12,10 @@ selenium_download
     kubectl    exec ${selenium_pod} rm /home/seluser/Downloads/${source}
 
 selenium_authentication
-    [Arguments]    ${user}    ${password}=password
+    [Arguments]    ${user}    ${password}=password    ${cluster_number}=1
     ${profile}    get_firefox_profile
-    Open Browser    url=https://${IP_LB}:32001/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
-    Location Should Be    https://${IP_LB}:32001/
+    Open Browser    url=https://${IP_LB_${cluster_number}}:32001/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
+    Location Should Be    https://${IP_LB_${cluster_number}}:32001/
     Wait Until Element Is Enabled    download-button
     Click Element    download-button
     Wait Until Element Is Visible    login
@@ -27,25 +27,30 @@ selenium_authentication
     [Teardown]    Close All Browsers
 
 deploy selenium pod
+    [Arguments]    ${cluster_number}=1
     ${status}    ${output}    Run Keyword And Ignore Error    kubectl    get deploy selenium
     Run Keyword If    "${status}"=="FAIL"    kubectl    create deployment selenium --image=selenium/standalone-firefox:3.141.59-xenon
     Run Keyword If    "${status}"=="FAIL"    kubectl    expose deployment selenium --port=4444 --type=NodePort
     Run Keyword If    "${status}"=="FAIL"    wait deploy    selenium
     ${node port}    kubectl    get svc/selenium -o json | jq '.spec.ports[0].nodePort'
-    Set Global Variable    ${SELENIUM_URL}    http://${BOOSTRAP_MASTER}:${node port}/wd/hub
+    Set Global Variable    ${SELENIUM_URL}    http://${BOOSTRAP_MASTER_${cluster_number}}:${node port}/wd/hub
 
 selenium_grafana
+    [Arguments]    ${cluster_number}=1
     ${profile}    get_firefox_profile
-    Open Browser    url=http://${BOOSTRAP_MASTER}:${grafanaPort}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
-    SeleniumLibrary.Location Should Be    http://${BOOSTRAP_MASTER}:${grafanaPort}/login
+    Open Browser    url=http://${BOOSTRAP_MASTER_${cluster_number}}:${grafanaPort}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
+    SeleniumLibrary.Location Should Be    http://${BOOSTRAP_MASTER_${cluster_number}}:${grafanaPort}/login
     Wait Until Element Is Visible    username
     Input Text    username    admin
     Input Text    password    linux
     Click Element    CSS:button[type=submit]
     Wait Until Page Contains    Home Dashboard
+    [Teardown]    Close All Browsers
 
 selenium_prometheus
+    [Arguments]    ${cluster_number}=1
     ${profile}    get_firefox_profile
-    Open Browser    url=http://${BOOSTRAP_MASTER}:${prometheus_port}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
-    SeleniumLibrary.Location Should Be    http://${BOOSTRAP_MASTER}:${prometheus_port}
+    Open Browser    url=http://${BOOSTRAP_MASTER_${cluster_number}}:${prometheus_port}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
+    SeleniumLibrary.Location Should Be    http://${BOOSTRAP_MASTER_${cluster_number}}:${prometheus_port}/
     Wait Until Page Contains    Metrics
+    [Teardown]    Close All Browsers

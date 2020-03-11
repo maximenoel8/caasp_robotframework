@@ -7,9 +7,7 @@ Resource          ../parameters/velero.robot
 
 *** Keywords ***
 execute command with ssh
-    [Arguments]    ${cmd}    ${alias}=skuba_station
-    ${connections}    SSHLibrary.Get Connections
-    log    ${connections}
+    [Arguments]    ${cmd}    ${alias}=skuba_station_1
     Switch Connection    ${alias}
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=15m
     log    ${stderr}    repr=true    formatter=repr
@@ -33,7 +31,8 @@ open ssh session
     Login With Public Key    ${VM_USER}    data/id_shared
 
 kubectl
-    [Arguments]    ${arguments}
+    [Arguments]    ${arguments}    ${cluster_number}=1
+    Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${output}    execute command localy    kubectl ${arguments}
     [Return]    ${output}
 
@@ -44,7 +43,9 @@ skuba
     [Return]    ${output}
 
 helm
-    [Arguments]    ${arguments}
+    [Arguments]    ${arguments}    ${cluster_number}=1
+    Set Environment Variable    HELM_HOME    ${WORKDIR}/helm_${cluster_number}
+    Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${output}    execute command localy    helm ${arguments}
     [Return]    ${output}
 
@@ -53,9 +54,10 @@ titi
     log    toto
 
 reinitialize skuba session
+    [Arguments]    ${cluster_number}
     Switch Connection    skuba_station
     Close Connection
-    open ssh session    ${BOOSTRAP_MASTER}    alias=skuba_station
+    open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    alias=skuba_station_${cluster_number}
 
 openssl
     [Arguments]    ${cmd}
@@ -63,6 +65,7 @@ openssl
     [Return]    ${output}
 
 velero
-    [Arguments]    ${argument}
+    [Arguments]    ${argument}    ${cluster_number}=1
+    Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${output}    execute command localy    ${velero_path}velero ${argument}
     [Return]    ${output}

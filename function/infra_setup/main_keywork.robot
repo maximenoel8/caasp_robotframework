@@ -5,11 +5,9 @@ Resource          openstack_setup.robot
 
 *** Keywords ***
 deploy cluster vms
-    get skuba tool
-    get terraform configuration
+    clone skuba locally
+    copy terraform configuration from skuba folder
     set infra env parameters
-    &{variable}    Get Environment Variables
-    Log Dictionary    ${variable}
     Run Keyword If    "${MODE}"=="${EMPTY}"    configure registration auto tfvars vmware
     ...    ELSE    set repo and packages
     Run Keyword If    "${PLATFORM}"=="vmware"    configure terraform tfvars vmware
