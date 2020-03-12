@@ -135,13 +135,6 @@ _configure dex file config for static password
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | staticPasswords    ${DATADIR}/users_static_password.yaml    True
     Remove Key    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors
 
-_restore_dex_after_static_password
-    kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGDIR}/dex-config.yaml"
-    Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors    ${connectors_dictionnary}
-    kubectl    apply -f "${LOGDIR}/dex-config.yaml"
-    kubectl    delete pod -n kube-system -l app=oidc-dex --wait
-    wait pods    -l app=oidc-dex -n kube-system
-
 clean static password
     kubectl    apply -f ${LOGDIR}/dex-config-ori.yaml --force
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait

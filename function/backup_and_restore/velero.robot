@@ -5,6 +5,8 @@ Resource          minio.robot
 Resource          ../cluster_helpers.robot
 Resource          ../../parameters/velero.robot
 Resource          ../../parameters/minio.robot
+Resource          wordpress.robot
+Resource          ../setup_environment.robot
 
 *** Variables ***
 
@@ -29,7 +31,7 @@ backup-location slave is set up
 create backup on
     [Arguments]    ${backup_name}    ${location}=default    ${args}=${EMPTY}
     velero    backup create ${backup_name} ${args} --storage-location ${location}
-    Set Test Variable    ${backup_name}
+    Set Suite Variable    ${backup_name}
 
 backup should be successfull
     Wait Until Keyword Succeeds    5m    10s    check backup completed
@@ -41,14 +43,16 @@ setup backup location on awss3
     velero    velero backup-location create awss3
 
 velero server is deployed with volume snapshot
+    [Arguments]    ${cluster_number}=1
     create credentials file
-    helm    install \ \ \ \ \ --name velero \ \ \ \ \ --namespace kube-system \ \ \ \ \ --set configuration.provider=aws \ \ \ \ \ --set configuration.backupStorageLocation.name=default \ \ \ \ \ --set configuration.backupStorageLocation.bucket=velero \ \ \ \ \ --set configuration.backupStorageLocation.config.region=minio \ \ \ \ \ --set configuration.backupStorageLocation.config.s3ForcePathStyle=true \ \ \ \ \ --set configuration.backupStorageLocation.config.s3Url=http://10.84.72.33:9000 \ \ \ \ \ --set snapshotsEnabled=true \ \ \ \ \ --set deployRestic=true \ \ \ --set configuration.volumeSnapshotLocation.name=default \ \ \ --set configuration.volumeSnapshotLocation.bucket=velero \ \ \ --set configuration.volumeSnapshotLocation.config.region=minio \ \ \ --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true \ \ \ --set configuration.volumeSnapshotLocation.config.s3Url=http://10.84.72.33:9000 \ \ \ \ \ --set-file credentials.secretContents.cloud=${credential-velero-file} \ \ \ \ \ --set initContainers[0].name=velero-plugin-for-aws \ \ \ \ \ --set initContainers[0].image=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-plugin-for-aws:1.0.1 \ \ \ \ \ --set initContainers[0].volumeMounts[0].mountPath=/target \ \ \ \ \ --set initContainers[0].volumeMounts[0].name=plugins \ \ \ \ \ --set image.repository=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero \ \ \ \ \ --set configMaps.restic-restore-action-config.data.image=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-restic-restore-helper:1.3.0 \ \ \ \ \ ${LOGDIR}/kubernetes-charts-suse-com/stable/velero
-    wait pods    -l name=velero -n kube-system
-    velero    client config set namespace=kube-system
+    helm    install \ \ \ \ \ --name velero \ \ \ \ \ --namespace kube-system \ \ \ \ \ --set configuration.provider=aws \ \ \ \ \ --set configuration.backupStorageLocation.name=default \ \ \ \ \ --set configuration.backupStorageLocation.bucket=velero \ \ \ \ \ --set configuration.backupStorageLocation.config.region=minio \ \ \ \ \ --set configuration.backupStorageLocation.config.s3ForcePathStyle=true \ \ \ \ \ --set configuration.backupStorageLocation.config.s3Url=http://10.84.72.33:9000 \ \ \ \ \ --set snapshotsEnabled=true \ \ \ \ \ --set deployRestic=true \ \ \ --set configuration.volumeSnapshotLocation.name=default \ \ \ --set configuration.volumeSnapshotLocation.bucket=velero \ \ \ --set configuration.volumeSnapshotLocation.config.region=minio \ \ \ --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true \ \ \ --set configuration.volumeSnapshotLocation.config.s3Url=http://10.84.72.33:9000 \ \ \ \ \ --set-file credentials.secretContents.cloud=${credential-velero-file} \ \ \ \ \ --set initContainers[0].name=velero-plugin-for-aws \ \ \ \ \ --set initContainers[0].image=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-plugin-for-aws:1.0.1 \ \ \ \ \ --set initContainers[0].volumeMounts[0].mountPath=/target \ \ \ \ \ --set initContainers[0].volumeMounts[0].name=plugins \ \ \ \ \ --set image.repository=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero \ \ \ \ \ --set configMaps.restic-restore-action-config.data.image=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-restic-restore-helper:1.3.0 \ \ \ \ \ ${LOGDIR}/kubernetes-charts-suse-com/stable/velero    ${cluster_number}
+    wait pods    -l name=velero -n kube-system    ${cluster_number}
+    velero    client config set namespace=kube-system    ${cluster_number}
 
 create restore from backup
-    [Arguments]    ${backup_name}
-    ${output}    velero    restore create --from-backup ${backup_name}
+    [Arguments]    ${backup_name}    ${cluster_number}=1
+    Wait Until Keyword Succeeds    2min    10sec    check backup is present    ${backup_name}
+    ${output}    Wait Until Keyword Succeeds    2min    10sec    velero    restore create --from-backup ${backup_name}    ${cluster_number}
     ${restore}    Split String    ${output}    \n
     ${restore_names}    Split String    ${restore[0]}    "
     Set Test Variable    ${restore_name}    ${restore_names[1]}
@@ -64,3 +68,17 @@ check backup completed
 check restore finish
     ${output}    velero    backup describe ${backup_name}
     Should Contain    ${output}    Phase: \ Completed
+
+teardown velero
+    Run Keyword And Ignore Error    velero    delete backup --confirm ${backup_name}
+    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
+        ${cluster_number}    Evaluate    ${i}+1
+        Run Keyword And Ignore Error    helm    delete --purge velero    ${cluster_number}
+        Run Keyword And Ignore Error    wordpress is removed    ${cluster_number}
+    END
+    [Teardown]    teardown_test
+
+check backup is present
+    [Arguments]    ${backup}    ${cluster_number}=1
+    ${backup_list}    velero    get backup    ${cluster_number}
+    Should Contain    ${backup_list}    ${backup}

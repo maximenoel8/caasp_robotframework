@@ -38,14 +38,18 @@ bootstrap
     Get Directory    cluster    ${WORKDIR}    recursive=true
 
 cluster running
-    Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL"    deploy cluster vms
-    load vm ip
-    open bootstrap session
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    cluster is deployed
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait nodes
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait pods
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait cillium
+    [Arguments]    ${cluster_number}=1
+    Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL" and ${cluster_number}==1    deploy cluster vms
+    Run Keyword If    ${cluster_number}==1    load vm ip
+    Run Keyword If    ${cluster_number}==1    open bootstrap session
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    install skuba
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    cluster is deployed
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    wait nodes
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    wait pods
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    wait cillium
+    Run Keyword If    ${cluster_number}!=1    wait nodes    cluster_number=${cluster_number}
+    Run Keyword If    ${cluster_number}!=1    wait pods    cluster_number=${cluster_number}
+    Run Keyword If    ${cluster_number}!=1    wait cillium    cluster_number=${cluster_number}
 
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3

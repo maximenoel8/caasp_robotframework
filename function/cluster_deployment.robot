@@ -85,7 +85,7 @@ join node
 initiale join
     [Arguments]    ${node}    ${ip}    ${type}
     ${output}    skuba_write    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${node}
-    Create File    ${LOGDIR}/${node}    ${output}\n
+    Append To File    ${LOGDIR}/${node}    ${output}\n
 
 check if node is deployed
     [Arguments]    ${cluster}    ${node}
@@ -97,7 +97,10 @@ check if node is deployed
     Append To File    ${LOGDIR}/${node}    ${console_output}\n
     ${status_command}    ${output}    Run Keyword And Ignore Error    Should Contain    ${console_output}    ${expecting value}
     ${status_node}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    error joining node ${node}
+    ${status_node_already exist}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    [join] failed to join the node with name "${node}"
+    Run Keyword If    "${status_node_already exist}"=="FAIL"    _move node from on going to done    ${cluster}    ${node}
     Run Keyword If    "${status_node}"=="FAIL"    _move node from ongoing to waiting    ${cluster}    ${node}
+    Should Not Contain    ${console_output}    [join] failed to join the node with name "mnoel-cluster-itgx-1-worker-1"
     Should Not Contain    ${console_output}    error bootstrapping node
     ${status}    Set Variable if    "${status_command}"=="PASS"    True    False
     Run Keyword If    ${status} and "${state}"=="bootstrap"    Run Keywords    _change deployment state    ${cluster}

@@ -8,7 +8,7 @@ ${GIT_BRANCH}     release-caasp-4.1.0
 ${PLATFORM}       vmware
 ${NUMBER}         1:2
 ${REPOS_LIST}     ${EMPTY}
-${PACKAGES_LIST}    "nfs-client",\n
+${PACKAGES_LIST}    "nfs-client",
 ${KEEP}           False
 ${LOGDIR}         ${EMPTY}
 ${CHART_PULL_REQUEST}    ${EMPTY}

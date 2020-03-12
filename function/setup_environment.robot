@@ -50,7 +50,7 @@ add CA to all server
     @{workers}    Collections.Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["worker"]}
     @{nodes}    Combine Lists    ${masters}    ${workers}
     FOR    ${node}    IN    @{nodes}
-        ${ip}    get node ip from CS    ${node}
+        ${ip}    get node ip from CS    ${node}    ${cluster_number}
         add CA to server    ${ip}
     END
 

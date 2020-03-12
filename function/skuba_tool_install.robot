@@ -28,6 +28,6 @@ _skuba devel
     execute command with ssh    sudo zypper addrepo https://download.opensuse.org/repositories/devel:languages:go/SLE_15_SP1/devel:languages:go.repo && sudo zypper -n --no-gpg-checks install go    skuba_station_${cluster_number}
     execute command with ssh    sudo zypper -n in git-core make    skuba_station_${cluster_number}
     execute command with ssh    git clone https://github.com/SUSE/skuba.git    skuba_station_${cluster_number}
-    Run Keyword Unless    "${SKUBA_PULL_REQUEST}=="${EMPTY}"    execute command with ssh    cd skuba && git fetch origin pull/${SKUBA_PULL_REQUEST}/head:customise && git checkout customise    skuba_station_${cluster_number}
+    Run Keyword Unless    "${SKUBA_PULL_REQUEST}"=="${EMPTY}"    execute command with ssh    cd skuba && git fetch origin pull/${SKUBA_PULL_REQUEST}/head:customise && git checkout customise    skuba_station_${cluster_number}
     execute command with ssh    cd skuba && \ make    skuba_station_${cluster_number}
     execute command with ssh    sudo ln -s /home/${VM_USER}/go/bin/skuba /usr/local/bin/    skuba_station_${cluster_number}

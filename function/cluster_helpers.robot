@@ -37,9 +37,9 @@ wait podname
     [Return]    ${pod_name}
 
 get ressource name
-    [Arguments]    ${args}    ${ressource_type}
+    [Arguments]    ${args}    ${ressource_type}    ${cluster_number}=1
     @{names}    Create List
-    ${output}    kubectl    get ${ressource_type} ${args} -o name
+    ${output}    kubectl    get ${ressource_type} ${args} -o name    ${cluster_number}
     ${element_names}    Split String    ${output}    \n
     FOR    ${element_name}    IN    @{element_names}
         ${element_parts}    Split String    ${element_name}    /
