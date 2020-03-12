@@ -12,6 +12,7 @@ You need to have this tools installed :
 ## Setup environment
 Configure ${CAASP_KEY} in parametes/env.robot by adding your SSC key
 Configure your vmware and openstack setting in env.robot
+For backup and restore test, configure your aws identification key
 
 
 ## Execute test
@@ -41,3 +42,6 @@ You can change global variable by adding -v <variablename>:<new value>. Here som
 - PREFIX : give a suffix to your cluster nodes names, could be your name
 - NUMBER : number of master and worker for the test separated by `:` 
 - PLATFORM : (vmware|openstack) specify a platform where to run the test 
+- KEEP: keep cluster after test
+- NUMBER_OF_CLUSTER : by default one, deploy number of cluster in the same robot framework session ( will use NUMBER for both of it)
+- CHART_PULL_REQUEST : clone https://github.com/SUSE/kubernetes-charts-suse-com in LOGDIR and checkout to the pull request
