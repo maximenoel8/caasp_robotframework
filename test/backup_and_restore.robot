@@ -15,15 +15,15 @@ velero backup wordpress
     And velero cli is installed
     And velero server is deployed with volume snapshot
     And wordpress is deployed
-    And copy file to wordpress pod
-    And wordpress volumes volumes are annotated to be backed up
+    And file copy to wordpress pod
+    And wordpress volumes are annotated to be backed up
     When create backup on    ${cluster}    args=--include-namespaces wordpress
-    then backup should be successfull
-    when wordpress is removed
-    and create restore from backup    ${backup_name}
+    Then backup should be successfull
+    When wordpress is removed
+    And create restore from backup    ${backup_name}
     Sleep    10sec
-    and wordpress is up
-    then check file exist in wordpress pod
+    And wordpress is up
+    Then check file exist in wordpress pod
     [Teardown]    teardown velero
 
 velero migrate wordpress from cluster 1 to 2
@@ -40,8 +40,8 @@ velero migrate wordpress from cluster 1 to 2
     And velero server is deployed with volume snapshot    1
     And velero server is deployed with volume snapshot    2
     And wordpress is deployed
-    And copy file to wordpress pod
-    And wordpress volumes volumes are annotated to be backed up
+    And file copy to wordpress pod
+    And wordpress volumes are annotated to be backed up
     When create backup on    ${cluster}    args=--include-namespaces wordpress
     then backup should be successfull
     when create restore from backup    ${backup_name}    cluster_number=2

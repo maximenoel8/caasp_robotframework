@@ -26,7 +26,7 @@ check wordpress pvc name is null
     Should Be Empty    ${output}
     [Return]    ${output}
 
-copy file to wordpress pod
+file copy to wordpress pod
     kubectl    cp ${DATADIR}/picture.png wordpress/${wordpress_pod_name}:/opt/bitnami/wordpress/wp-content/uploads/2020/03/
 
 check file exist in wordpress pod
@@ -34,7 +34,7 @@ check file exist in wordpress pod
     ${output}    kubectl    -n wordpress exec -it ${wordpress_pod_name} -- ls /opt/bitnami/wordpress/wp-content/uploads/2020/03/    ${cluster_number}
     Should Contain    ${output}    picture.png
 
-wordpress volumes volumes are annotated to be backed up
+wordpress volumes are annotated to be backed up
     kubectl    -n wordpress annotate pod/wordpress-mariadb-0 backup.velero.io/backup-volumes=data,config
     kubectl    -n wordpress annotate pod/${wordpress_pod_name} backup.velero.io/backup-volumes=wordpress-data
 
@@ -52,7 +52,7 @@ check wordpress pv exist
 wordpress pv are patch
     ${output}    kubectl    get pvc -n wordpress
     ${result}    Split To Lines    ${output}
-    Should Not Contain    ${result}    No resources found     No PVC found
+    Should Not Contain    ${result}    No resources found    No PVC found
     FOR    ${element}    IN    @{result}
         ${value}    Split String    ${element}
         Continue For Loop If    "${value[0]}"=="NAME"
