@@ -71,7 +71,7 @@ Restore all master nodes - etcd cluster and data
     When add master to the etcd member list with etcdctl    master-1
     And start etcd ressource on    master-1
     Then check master started in etcdctl list    master-1
-    wait nodes are ready
-    delete etcd-backup job
-    wait pods ready
+    and wait nodes are ready
+    and delete etcd-backup job
+    and wait pods ready
     [Teardown]    teardown etcdctl
