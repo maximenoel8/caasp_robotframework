@@ -1,9 +1,11 @@
 *** Settings ***
 Resource          ../function/skuba_join.robot
-Resource          ../function/backup_and_restore/bNr_helpers.robot
 Resource          ../function/backup_and_restore/velero.robot
 Resource          ../function/backup_and_restore/wordpress.robot
 Resource          ../function/setup_environment.robot
+Resource          ../function/backup_and_restore/etcdctl.robot
+Resource          ../function/backup_and_restore/bNr_helpers.robot
+Resource          ../function/centralized_log.robot
 
 *** Test Cases ***
 velero backup wordpress
@@ -49,3 +51,27 @@ velero migrate wordpress from cluster 1 to 2
     and wordpress is up    2
     then check file exist in wordpress pod    2
     [Teardown]    teardown velero
+
+etcd-backup
+    Given cluster running
+    And etcd-backup job is executed
+    [Teardown]    teardown etcdctl
+
+Restore all master nodes - etcd cluster and data
+    Given cluster running
+    And helm is installed
+    And rsyslog is deployed
+    And etcd-backup job is executed
+    And install etcdctl on masters
+    And stop etcd ressource on all masters
+    And purge etcd data on all masters
+    When restore etcd data on    master-0
+    And start etcd ressource on    master-0
+    Then check master started in etcdctl list    master-0
+    When add master to the etcd member list with etcdctl    master-1
+    And start etcd ressource on    master-1
+    Then check master started in etcdctl list    master-1
+    wait nodes are ready
+    delete etcd-backup job
+    wait pods ready
+    [Teardown]    teardown etcdctl

@@ -52,10 +52,10 @@ def __modify_add_value(yaml_dictionary, keys, value, add):
             current_dictionary = current_dictionary[keys[i]]
 
     # Depending of the method, check if the targeted key exist (modify) or not (add)
-    if add and (keys[-1] in current_dictionary.keys()):
-        logging.warning("Key to be added already exist %s" % (keys[-1]))
-    elif (not add) and (keys[-1] not in current_dictionary.keys()):
-        logging.warning("Key to be modified doesn't exist %s " % (keys[-1]))
+    # if add and (keys[-1] in current_dictionary.keys()):
+    #     logging.warning("Key to be added already exist %s" % (keys[-1]))
+    # elif (not add) and (keys[-1] not in current_dictionary.keys()):
+    #     logging.warning("Key to be modified doesn't exist %s " % (keys[-1]))
 
     # Check if the value to add is a yaml file
     if os.path.isfile(value):

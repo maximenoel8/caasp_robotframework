@@ -137,3 +137,10 @@ create cluster_state for
     ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["modules"][0]["outputs"]["ip_load_balancer"]["value"][0]}
     add lb to CS    ${IP_LB}    ${cluster_number}
     [Return]    ${cluster_state}
+
+get nodes name from CS
+    [Arguments]    ${cluster_number}=1
+    @{masters}    get master servers name    cluster_number=1
+    @{workers}    get worker servers name    cluster_number=1
+    @{nodes}    Combine Lists    ${masters}    ${workers}
+    [Return]    ${nodes}

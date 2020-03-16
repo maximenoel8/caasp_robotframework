@@ -20,8 +20,8 @@ reboot and wait server up
     [Arguments]    ${ip}
     reboot or shutdown server    ${ip}
     wait server up    ${ip}
-    wait nodes
-    wait pods
+    wait nodes are ready
+    wait pods ready
     [Teardown]    Close Connection
 
 wait server up
@@ -34,6 +34,6 @@ reboot worker 0 and master 0 and wait server up
     reboot or shutdown server    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
     wait server up    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-worker-0"]["ip"]}
     wait server up    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
-    Wait Until Keyword Succeeds    10min    30    wait nodes
-    wait pods
+    Wait Until Keyword Succeeds    10min    30    wait nodes are ready
+    wait pods ready
     reinitialize skuba session

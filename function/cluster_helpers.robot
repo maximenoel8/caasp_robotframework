@@ -5,14 +5,14 @@ Library           String
 Library           Collections
 
 *** Keywords ***
-wait nodes
+wait nodes are ready
     [Arguments]    ${nodes}=${EMPTY}    ${cluster_number}=1
-    kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
+    Wait Until Keyword Succeeds    12min    10sec    kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
 
 wait reboot
     Wait Until Keyword Succeeds    30s    5s    execute command localy    kubectl cluster-info
 
-wait pods
+wait pods ready
     [Arguments]    ${arguments}=${EMPTY}    ${cluster_number}=1
     Run Keyword If    "${arguments}"=="${EMPTY}"    wait all pods are running    ${cluster_number}
     ...    ELSE    kubectl    wait pods --for=condition=ready --timeout=5m ${arguments}    ${cluster_number}
@@ -96,3 +96,12 @@ expose service
     kubectl    expose ${service} --port=${port} --type=NodePort -n ${namespace} --name="expose-${service_name}"
     ${node port}    kubectl    get svc/expose-${service_name} -n ${namespace} -o json | jq '.spec.ports[0].nodePort'
     [Return]    ${nodePort}
+
+wait job
+    [Arguments]    ${arguments}    ${condition}    ${cluster_number}=1
+    kubectl    wait job --for=condition=${condition} --timeout=5m ${arguments}    ${cluster_number}
+
+wait pod deleted
+    [Arguments]    ${arguments}    ${cluster_number}=1
+    ${status}    ${output}    Run Keyword And Ignore Error    kubectl    wait pods --for=delete --timeout=5m ${arguments}    ${cluster_number}
+    Run Keyword If    "${status}"=="FAIL" and "${output}"!="error: no matching resources found"    Fail    ${output}

@@ -25,9 +25,9 @@ deploy double cluster
     open bootstrap session
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    cluster is deployed
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait nodes
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait pods
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait nodes are ready
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait pods ready
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait cillium
-    wait nodes    cluster_number=2
-    wait pods    cluster_number=2
+    wait nodes are ready    cluster_number=2
+    wait pods ready    cluster_number=2
     wait cillium    cluster_number=2

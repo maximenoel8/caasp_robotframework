@@ -26,8 +26,11 @@ execute command localy
     [Return]    ${output}
 
 open ssh session
-    [Arguments]    ${server}    ${alias}
-    Open Connection    ${server}    alias=${alias}    timeout=20min
+    [Arguments]    ${server}    ${alias}=default
+    ${server_ip}    Run Keyword If    "${alias}"=="default"    get node ip from CS    ${server}
+    ...    ELSE    Set Variable    ${server}
+    ${alias}    Set Variable If    "${alias}"=="default"    ${server}    ${alias}
+    Open Connection    ${server_ip}    alias=${alias}    timeout=20min
     Login With Public Key    ${VM_USER}    data/id_shared
 
 kubectl
@@ -69,3 +72,18 @@ velero
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${output}    execute command localy    ${velero_path}velero ${argument}
     [Return]    ${output}
+
+remove string from file
+    [Arguments]    ${file}    ${string}
+    ${contents}=    OperatingSystem.Get File    ${file}
+    Remove File    ${file}
+    Create File    ${file}
+    @{lines}    Split To Lines    ${contents}
+    FOR    ${line}    IN    @{lines}
+        ${new_line}    String.Remove String    ${line}    ${string}
+        Append To File    ${file}    ${new_line}\n
+    END
+
+add devel repo
+    [Arguments]    ${alias}=skuba_station_1
+    execute command with ssh    sudo zypper ar -C -G -f http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/ caasp_devel    ${alias}

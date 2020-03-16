@@ -18,7 +18,7 @@ create credentials file
 
 velero server is deployed without volume snapshot configured
     helm    install --name velero --namespace kube-system --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${BUKET_MASTER} --set configuration.backupStorageLocation.config.region=minio --set configuration.backupStorageLocation.config.s3ForcePathStyle=true --set configuration.backupStorageLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set snapshotsEnabled=false --set-file credentials.secretContents.cloud=${credential-velero-file} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${velero_plugin_aws_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --wait ${velero_chart}
-    wait pods    -l name=velero -n kube-system
+    wait pods ready    -l name=velero -n kube-system
 
 velero cli is installed
     ${status}    ${output}    Run Keyword And Ignore Error    velero    version
@@ -46,7 +46,7 @@ velero server is deployed with volume snapshot
     [Arguments]    ${cluster_number}=1
     create credentials file
     helm    install \ \ \ \ \ --name velero \ \ \ \ \ --namespace kube-system \ \ \ \ \ --set configuration.provider=aws \ \ \ \ \ --set configuration.backupStorageLocation.name=default \ \ \ \ \ --set configuration.backupStorageLocation.bucket=velero \ \ \ \ \ --set configuration.backupStorageLocation.config.region=minio \ \ \ \ \ --set configuration.backupStorageLocation.config.s3ForcePathStyle=true \ \ \ \ \ --set configuration.backupStorageLocation.config.s3Url=http://10.84.72.33:9000 \ \ \ \ \ --set snapshotsEnabled=true \ \ \ \ \ --set deployRestic=true \ \ \ --set configuration.volumeSnapshotLocation.name=default \ \ \ --set configuration.volumeSnapshotLocation.bucket=velero \ \ \ --set configuration.volumeSnapshotLocation.config.region=minio \ \ \ --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true \ \ \ --set configuration.volumeSnapshotLocation.config.s3Url=http://10.84.72.33:9000 \ \ \ \ \ --set-file credentials.secretContents.cloud=${credential-velero-file} \ \ \ \ \ --set initContainers[0].name=velero-plugin-for-aws \ \ \ \ \ --set initContainers[0].image=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-plugin-for-aws:1.0.1 \ \ \ \ \ --set initContainers[0].volumeMounts[0].mountPath=/target \ \ \ \ \ --set initContainers[0].volumeMounts[0].name=plugins \ \ \ \ \ --set image.repository=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero \ \ \ \ \ --set configMaps.restic-restore-action-config.data.image=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-restic-restore-helper:1.3.0 \ \ \ \ \ ${LOGDIR}/kubernetes-charts-suse-com/stable/velero    ${cluster_number}
-    wait pods    -l name=velero -n kube-system    ${cluster_number}
+    wait pods ready    -l name=velero -n kube-system    ${cluster_number}
     velero    client config set namespace=kube-system    ${cluster_number}
 
 create restore from backup

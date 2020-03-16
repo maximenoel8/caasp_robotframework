@@ -84,7 +84,7 @@ dex is configured for
     ...    ELSE    Fail    Wrong ldap type
     kubectl    apply -f "${LOGDIR}/dex-config.yaml"
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
-    wait pods    -l app=oidc-dex -n kube-system
+    wait pods ready    -l app=oidc-dex -n kube-system
 
 clean 389ds server
     kubectl    delete -f "${DATADIR}/389dss"
@@ -138,4 +138,4 @@ _configure dex file config for static password
 clean static password
     kubectl    apply -f ${LOGDIR}/dex-config-ori.yaml --force
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
-    wait pods    -l app=oidc-dex -n kube-system
+    wait pods ready    -l app=oidc-dex -n kube-system

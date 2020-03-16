@@ -8,7 +8,7 @@ ${curlreq}        curl -sm10 -XPOST deathstar.default.svc.cluster.local/v1/reque
 *** Keywords ***
 deathstar is deployed
     kubectl    create -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/http-sw-app.yaml
-    wait pods    -l 'org in (empire,alliance)'
+    wait pods ready    -l 'org in (empire,alliance)'
 
 node is able to land
     [Arguments]    ${node}
