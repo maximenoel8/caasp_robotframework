@@ -11,10 +11,11 @@ Resource          ../function/centralized_log.robot
 velero backup wordpress
     Given cluster running
     And velero setup
-    And add CA to all server
+    Comment    And add CA to all server
     And helm is installed
     And nfs client is deployed
     And velero cli is installed
+    And minio is deployed and setup
     And velero server is deployed with volume snapshot
     And wordpress is deployed
     And file copy to wordpress pod

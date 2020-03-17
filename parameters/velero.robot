@@ -7,5 +7,7 @@ ${velero_version}    v1.3.1
 ${velero_path}    ${LOGDIR}/${velero_tar_name}/
 ${velero_tar_name}    velero-${velero_version}-linux-amd64
 ${S3_bucket_url}    http://10.84.72.33:9000
-${velero_plugin_aws_image}    velero/velero-plugin-for-aws:v1.0.1
-${velero_chart}    vmware-tanzu/velero
+${velero_chart}    ${LOGDIR}/kubernetes-charts-suse-com/stable/velero
+${restic_image}    registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-restic-restore-helper:1.3.0
+${velero_image}    registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero
+${aws_plugin_image}    registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-plugin-for-aws:1.0.1

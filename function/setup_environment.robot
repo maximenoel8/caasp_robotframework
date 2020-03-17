@@ -91,6 +91,6 @@ open bootstrap session
         open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    alias=skuba_station_${cluster_number}
     END
     @{nodes}    get nodes name from CS
-    FOR    ${node}    IN    @{nodes}
-        open ssh session    ${node}
-    END
+    Comment    FOR    ${node}    IN    @{nodes}
+    Comment    \    open ssh session    ${node}
+    Comment    END
