@@ -10,7 +10,6 @@ Resource          setup_environment.robot
 
 *** Keywords ***
 389ds server is deployed
-    set 389ds variables
     Remove Directory    ${LOGDIR}/389dss    true
     Copy Directory    ${DATADIR}/389dss    ${LOGDIR}/389dss
     Modify Add Value    ${LOGDIR}/389dss/389ds-deployment.yaml    spec template spec containers 0 image    ${DS_IMAGE}
@@ -92,7 +91,6 @@ clean 389ds server
     teardown_test
 
 openldap server is deployed
-    set 389ds variables
     helm    install --name ldap --set adminPassword=admin --set env.LDAP_DOMAIN=example.com stable/openldap
 
 _add user for ldap
