@@ -70,9 +70,9 @@ prometheus is deployed
     wait_deploy    -n monitoring prometheus-pushgateway
 
 cleaning monitoring
-    helm    delete prometheus --purge
-    helm    delete grafana --purge
-    kubectl    delete namespace monitoring
+    Run Keyword And Ignore Error    helm    delete prometheus --purge
+    Run Keyword And Ignore Error    helm    delete grafana --purge
+    Run Keyword And Ignore Error    kubectl    delete namespace monitoring
     [Teardown]    teardown_test
 
 grafana is deployed custom

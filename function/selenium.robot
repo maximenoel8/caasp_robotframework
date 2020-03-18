@@ -32,6 +32,8 @@ deploy selenium pod
     Run Keyword If    "${status}"=="FAIL"    kubectl    create deployment selenium --image=selenium/standalone-firefox:3.141.59-xenon
     Run Keyword If    "${status}"=="FAIL"    kubectl    expose deployment selenium --port=4444 --type=NodePort
     Run Keyword If    "${status}"=="FAIL"    wait deploy    selenium
+    ${pod}    wait podname    -l app=selenium
+    Wait Until Keyword Succeeds    2min    10sec    _check selenium grid up    ${pod}
     ${node port}    kubectl    get svc/selenium -o json | jq '.spec.ports[0].nodePort'
     Set Global Variable    ${SELENIUM_URL}    http://${BOOSTRAP_MASTER_${cluster_number}}:${node port}/wd/hub
 
@@ -54,3 +56,8 @@ selenium_prometheus
     SeleniumLibrary.Location Should Be    http://${BOOSTRAP_MASTER_${cluster_number}}:${prometheus_port}/
     Wait Until Page Contains    Metrics
     [Teardown]    Close All Browsers
+
+_check selenium grid up
+    [Arguments]    ${selenium_node}
+    ${ouput}    kubectl    logs ${selenium_node}
+    Should Contain    ${ouput}    INFO [SeleniumServer.boot] - Selenium Server is up and running on port 4444
