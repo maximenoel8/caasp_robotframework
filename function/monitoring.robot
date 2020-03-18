@@ -2,6 +2,7 @@
 Resource          commands.robot
 Resource          cluster_helpers.robot
 Resource          selenium.robot
+Resource          setup_environment.robot
 
 *** Keywords ***
 grafana is deployed
@@ -72,6 +73,7 @@ cleaning monitoring
     helm    delete prometheus --purge
     helm    delete grafana --purge
     kubectl    delete namespace monitoring
+    [Teardown]    teardown_test
 
 grafana is deployed custom
     helm    install --name grafana --namespace monitoring --values ./grafana-config-values.yaml --set downloadDashboardsImage.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/curl --set downloadDashboardsImage.pullPolicy=Always --set initChownData.image.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/busybox --set initChownData.image.pullPolicy=Always --set sidecar.image=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/k8s-sidecar:0.1.75 --set sidecar.imagePullPolicy=Always grafana

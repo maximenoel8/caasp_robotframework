@@ -4,6 +4,7 @@ Resource          ../function/cilium.robot
 
 *** Test Cases ***
 Cilium: L3/L4 policy test
+    [Tags]    release
     Given cluster running
     and deathstar is deployed
     then node is able to land    tiefighter

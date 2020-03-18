@@ -5,6 +5,7 @@ Resource          ../function/rbac.robot
 
 *** Test Cases ***
 389ds authentication
+    [Tags]    release
     Given cluster running
     And helm is installed
     And 389ds server is deployed
@@ -16,6 +17,7 @@ Resource          ../function/rbac.robot
     [Teardown]    clean 389ds server
 
 openldap authentication
+    [Tags]    release
     Given cluster running
     And helm is installed
     And openldap server is deployed
@@ -27,6 +29,7 @@ openldap authentication
     [Teardown]    clean up openldap
 
 static password authentication
+    [Tags]    release
     Given cluster running
     And dex is configured for    static password
     Then authentication with skuba CI (users)

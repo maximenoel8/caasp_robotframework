@@ -5,6 +5,7 @@ Resource          ../function/helm.robot
 
 *** Test Cases ***
 monitoring
+    [Tags]    release
     Given cluster running
     And helm is installed
     And prometheus is deployed

@@ -6,6 +6,7 @@ Resource          cluster_helpers.robot
 Library           SSHLibrary
 Resource          selenium.robot
 Library           ../lib/firefox_profile.py
+Resource          setup_environment.robot
 
 *** Keywords ***
 389ds server is deployed
@@ -88,6 +89,7 @@ dex is configured for
 
 clean 389ds server
     kubectl    delete -f "${DATADIR}/389dss"
+    teardown_test
 
 openldap server is deployed
     set 389ds variables
@@ -129,6 +131,7 @@ _configure dex file config for openldap
 
 clean up openldap
     helm    delete --purge ldap
+    [Teardown]    teardown_test
 
 _configure dex file config for static password
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    true    True
@@ -139,3 +142,4 @@ clean static password
     kubectl    apply -f ${LOGDIR}/dex-config-ori.yaml --force
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
     wait pods ready    -l app=oidc-dex -n kube-system
+    [Teardown]    teardown_test

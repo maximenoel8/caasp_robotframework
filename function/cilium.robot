@@ -1,6 +1,7 @@
 *** Settings ***
 Resource          commands.robot
 Resource          cluster_helpers.robot
+Resource          setup_environment.robot
 
 *** Variables ***
 ${curlreq}        curl -sm10 -XPOST deathstar.default.svc.cluster.local/v1/request-landing
@@ -22,6 +23,7 @@ node is NOT able to land
 clean cilium test
     kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/http-sw-app.yaml
     kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
+    [Teardown]    teardown_test
 
 l3 l4 policiy is deployed
     kubectl    create -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
