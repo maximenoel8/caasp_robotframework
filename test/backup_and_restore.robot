@@ -9,10 +9,12 @@ Resource          ../function/centralized_log.robot
 
 *** Test Cases ***
 velero backup wordpress
+    [Tags]    backup
     Given cluster running
     And velero setup
-    Comment    And add CA to all server
+    And add CA to all server
     And helm is installed
+    And nfs server is deployed
     And nfs client is deployed
     And velero cli is installed
     And minio is deployed and setup
@@ -30,6 +32,8 @@ velero backup wordpress
     [Teardown]    teardown velero
 
 velero migrate wordpress from cluster 1 to 2
+    [Tags]    backup
+    Run Keyword If    ${NUMBER_OF_CLUSTER} < 2    Fail    Need two cluster for this test
     Given cluster running
     and cluster running    2
     and velero setup
@@ -37,6 +41,7 @@ velero migrate wordpress from cluster 1 to 2
     And add CA to all server    2
     And helm is installed    1
     And helm is installed    2
+    And nfs server is deployed
     And nfs client is deployed    cluster_number=1
     And nfs client is deployed    cluster_number=2
     And velero cli is installed
@@ -54,11 +59,13 @@ velero migrate wordpress from cluster 1 to 2
     [Teardown]    teardown velero
 
 etcd-backup
+    [Tags]    backup
     Given cluster running
     And etcd-backup job is executed
     [Teardown]    teardown etcdctl
 
 Restore all master nodes - etcd cluster and data
+    [Tags]    backup
     Given cluster running
     And helm is installed
     And rsyslog is deployed
