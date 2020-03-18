@@ -27,6 +27,9 @@ teardown_test
     Run Keyword And Ignore Error    dump cluster state
     Run Keyword And Ignore Error    Close All Connections
     Run Keyword And Ignore Error    Process.Terminate All Processes
+    ${status}    ${pod_output}    Run Keyword And Ignore Error    kubectl    get pods -A
+    ${status}    ${svc_output}    Run Keyword And Ignore Error    kubectl    get svc -A
+    ${status}    ${pvc_output}    Run Keyword And Ignore Error    kubectl    get pvc -A
 
 get kubernetes charts
     [Arguments]    ${pull_request}=${EMPTY}

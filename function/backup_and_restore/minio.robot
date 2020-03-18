@@ -13,6 +13,7 @@ install and start minio server on master0
     Run Keyword if    "${status}"=="PASS"    execute command with ssh    chmod +x ${minio_server_path}/minio    minio_session
     Run Keyword if    "${status}"=="PASS"    execute command with ssh    mkdir ${minio_server_path}/bucket    minio_session
     Write    MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY} MINIO_SECRET_KEY=${MINIO_SECRET_KEY} ${minio_server_path}/minio \ server ${minio_server_path}/bucket &
+    Read Until    https://docs.min.io/docs/dotnet-client-quickstart-guide
     Set Suite Variable    ${MINIO_MASTER_SERVER_URL}    http://${BOOSTRAP_MASTER_1}:9000
 
 install minio client on local

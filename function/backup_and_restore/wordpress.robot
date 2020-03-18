@@ -42,7 +42,6 @@ wordpress is up
     [Arguments]    ${cluster_number}=1
     ${wordpress_pod_name}    wait podname    -l app.kubernetes.io/name=wordpress -n wordpress    ${cluster_number}
     Set Test Variable    ${wordpress_pod_name}
-    wordpress pv are patch
 
 check wordpress pv exist
     [Arguments]    ${cluster_number}=1
