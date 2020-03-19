@@ -4,12 +4,12 @@ ${CLUSTER}        ${EMPTY}
 ${MODE}           ${EMPTY}
 ${SKUBA_PULL_REQUEST}    ${EMPTY}
 ${PREFIX}         robotframework
-${GIT_BRANCH}     release-caasp-4.1.0
+${GIT_BRANCH}     release-caasp-4.1.2
 ${PLATFORM}       vmware
 ${NUMBER}         1:2
-${REPOS_LIST}     ${EMPTY}
-${PACKAGES_LIST}    "nfs-client",
 ${KEEP}           False
 ${LOGDIR}         ${EMPTY}
 ${CHART_PULL_REQUEST}    ${EMPTY}
 ${NUMBER_OF_CLUSTER}    1
+&{REPOS_LIST}
+@{PACKAGES_LIST}    nfs-client

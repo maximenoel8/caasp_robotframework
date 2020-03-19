@@ -7,6 +7,7 @@ Library           Collections
 Resource          ../../parameters/env.robot
 Library           Process
 Resource          terraform.robot
+Library           ../../lib/convert_tvars_to_json.py
 
 *** Keywords ***
 clone skuba locally
@@ -48,27 +49,23 @@ clean all cluster
     END
 
 set repo and packages
-    @{repos}=    Set Variable    sle_server_pool = "http://download.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP1/x86_64/product/"    basesystem_pool = "http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/product/"    containers_pool = "http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/product/"    sle_server_updates = "http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP1/x86_64/update/"    basesystem_updates = "http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/update/"    containers_updates = "http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/15-SP1/x86_64/update/"
-    Run Keyword If    "${MODE}"=="DEV" or "${MODE}"=="STAGING"    Append To List    ${repos}    suse_ca = "http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/"
-    Run Keyword If    "${MODE}"=="DEV"    Append To List    ${repos}    caasp_devel = "http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/"
-    ...    ELSE IF    "${MODE}"=="STAGING"    Append To List    ${repos}    caasp_staging = "http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/staging/"
-    ...    ELSE IF    "${MODE}"=="RELEASE"    Append To List    ${repos}    caasp_release = "http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/"
-    ${repo_string}    Set Variable    ${repos[0]}
-    FOR    ${repo}    IN    @{repos}
-        Continue For Loop If    '${repo}'=='${repos[0]}'
-        ${repo_string}    Set Variable    ${repo},\n\t${repo_string}
-    END
-    Set Global Variable    ${REPOS_LIST}    ${repo_string}
-    Set Global Variable    ${PACKAGES_LIST}    ${PACKAGES_LIST}"ca-certificates-suse",\n
+    &{repos}    Create Dictionary    sle_server_pool=http://download.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP1/x86_64/product/    basesystem_pool=http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/product/    containers_pool=http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/product/    sle_server_updates=http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP1/x86_64/update/    basesystem_updates=http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/update/    containers_updates=http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/15-SP1/x86_64/update/
+    Run Keyword If    "${MODE}"=="DEV" or "${MODE}"=="STAGING"    Set To Dictionary    ${repos}    suse_ca=http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/
+    Run Keyword If    "${MODE}"=="DEV"    Set To Dictionary    ${repos}    caasp_devel=http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/
+    ...    ELSE IF    "${MODE}"=="STAGING"    Set To Dictionary    ${repos}    caasp_staging=http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/staging/
+    ...    ELSE IF    "${MODE}"=="RELEASE"    Set To Dictionary    ${repos}    caasp_release=http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/
+    Set Global Variable    ${REPOS_LIST}    ${repos}
+    Append To List    ${PACKAGES_LIST}    ca-certificates-suse
 
 configure terraform file common
-    [Arguments]    ${tfvar_variabe}
-    ${terraform_tvars}    Replace String    ${tfvar_variabe}    masters = 1    masters = ${VM_NUMBER[0]}
-    ${terraform_tvars}    Replace String    ${terraform_tvars}    workers = 2    workers = ${VM_NUMBER[1]}
-    ${terraform_tvars}    Replace String    ${terraform_tvars}    repositories = {}    repositories = {\n\t${REPOS_LIST}\n}
-    ${terraform_tvars}    Replace String    ${terraform_tvars}    packages = [    packages = [${PACKAGES_LIST}
-    ${terraform_tvars}    Replace String    ${terraform_tvars}    authorized_keys = [    authorized_keys = [ "${SSH_PUB_KEY}" ,
-    [Return]    ${terraform_tvars}
+    [Arguments]    ${vmware_dico}
+    Set To Dictionary    ${vmware_dico}    masters    ${${VM_NUMBER[0]}}
+    Set To Dictionary    ${vmware_dico}    workers    ${${VM_NUMBER[1]}}
+    Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
+    Set To Dictionary    ${vmware_dico}    packages    ${PACKAGES_LIST}
+    @{authorized_keys}    Create List    ${SSH_PUB_KEY}
+    Set To Dictionary    ${vmware_dico}    authorized_keys    ${authorized_keys}
+    [Return]    ${vmware_dico}
 
 check terraform finish successfully
     [Arguments]    ${cluster}
@@ -85,3 +82,11 @@ check all terraform finish
         check terraform finish successfully    cluster_${cluster_number}
         Copy File    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfstate    ${LOGDIR}/cluster${cluster_number}.json
     END
+
+_create tvars json file
+    [Arguments]    ${dico}    ${cluster_number}
+    log    ${dico}
+    Log Dictionary    ${dico}
+    ${dico_json}    Convert Dictionary To Json    ${dico}
+    Log    ${dico_json}
+    Create File    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfvars.json    ${dico_json}

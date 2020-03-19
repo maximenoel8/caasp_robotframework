@@ -100,6 +100,7 @@ check if node is deployed
     ${status_node_already exist}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    [join] failed to join the node with name "${node}"
     Run Keyword If    "${status_node_already exist}"=="FAIL"    _move node from on going to done    ${cluster}    ${node}
     Run Keyword If    "${status_node}"=="FAIL"    _move node from ongoing to waiting    ${cluster}    ${node}
+    Should Not Contain    ${console_output}    invalid node name "${node}"
     Should Not Contain    ${console_output}    [join] failed to join the node with name "mnoel-cluster-itgx-1-worker-1"
     Should Not Contain    ${console_output}    error bootstrapping node
     ${status}    Set Variable if    "${status_command}"=="PASS"    True    False

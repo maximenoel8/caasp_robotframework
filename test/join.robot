@@ -31,3 +31,14 @@ deploy double cluster
     wait nodes are ready    cluster_number=2
     wait pods ready    cluster_number=2
     wait cillium    cluster_number=2
+
+vm deploy
+    clone skuba locally
+    copy terraform configuration from skuba folder
+    set infra env parameters
+    Run Keyword If    "${MODE}"=="${EMPTY}"    configure registration auto tfvars vmware
+    ...    ELSE    set repo and packages
+    Run Keyword If    "${PLATFORM}"=="vmware"    configure terraform tfvars vmware
+    ...    ELSE IF    "${PLATFORM}"=="openstack"    Configure terraform tfvars openstack
+    ...    ELSE IF    "${PLATFORM}"=="libvirt"    configure terraform tfvars libvirt
+    ...    ELSE    Fail    Wrong platform
