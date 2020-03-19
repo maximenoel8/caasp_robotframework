@@ -79,7 +79,7 @@ check node disable
 create cluster_state
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${var}    Evaluate    ${i}+1
-        create cluster_state for    ${var}
+        create cluster state for    ${var}
     END
     [Return]    ${cluster_state}
 
@@ -118,10 +118,8 @@ create first cluster_state level
     &{cluster}    Create Dictionary
     Collections.Set To Dictionary    ${cluster_state}    cluster_${cluster_number}=${cluster}
 
-create cluster_state for
-    [Arguments]    ${cluster_number}
-    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster${cluster_number}.json
-    create first cluster_state level    ${cluster_number}
+_create cluster_state terraform 11 for
+    [Arguments]    ${ip_dictionnary}    ${cluster_number}
     ${count}    Set Variable    0
     FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
         add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip}    True    ${cluster_number}
@@ -144,3 +142,24 @@ get nodes name from CS
     @{workers}    get worker servers name    cluster_number=1
     @{nodes}    Combine Lists    ${masters}    ${workers}
     [Return]    ${nodes}
+
+_create cluster_state terraform 12 for
+    [Arguments]    ${ip_dictionnary}    ${cluster_number}
+    @{masters}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
+    @{workers}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_workers"]["value"]}
+    FOR    ${key}    IN    @{masters}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    ${cluster_number}
+    END
+    FOR    ${key}    IN    @{workers}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    ${cluster_number}
+    END
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["ip_load_balancer"]["value"]["${CLUSTER_PREFIX}-${cluster_number}-lb"]}
+    add lb to CS    ${IP_LB}    ${cluster_number}
+
+create cluster state for
+    [Arguments]    ${cluster_number}=1
+    ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster${cluster_number}.json
+    create first cluster_state level    ${cluster_number}
+    Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
+    ...    ELSE    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
