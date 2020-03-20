@@ -19,7 +19,7 @@ configure terraform tfvars libvirt
         Set To Dictionary    ${libevirt_dico}    stack_name    ${CLUSTER_PREFIX}-${cluster_number}
         Set To Dictionary    ${libevirt_dico}    master_memory    ${4096}
         Set To Dictionary    ${libevirt_dico}    worker_memory    ${4096}
-        Set To Dictionary    ${libevirt_dico}    worker_disk_size    ${80}
+        Set To Dictionary    ${libevirt_dico}    network_cidr    10.17.0.0/16
         ${libevirt_dico}    configure terraform file common    ${libevirt_dico}
         _create tvars json file    ${libevirt_dico}    ${cluster_number}
     END

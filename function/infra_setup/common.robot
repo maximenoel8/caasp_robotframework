@@ -62,6 +62,9 @@ configure terraform file common
     Set To Dictionary    ${vmware_dico}    masters    ${${VM_NUMBER[0]}}
     Set To Dictionary    ${vmware_dico}    workers    ${${VM_NUMBER[1]}}
     Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
+    ${packages}    Get From Dictionary    ${vmware_dico}    packages
+    ${PACKAGES_LIST}    Run Keyword If    "${packages}"!="${EMPTY}"    Combine Lists    ${PACKAGES_LIST}    ${packages}
+    ...    ELSE    Set Variable    ${PACKAGES_LIST}
     Set To Dictionary    ${vmware_dico}    packages    ${PACKAGES_LIST}
     @{authorized_keys}    Create List    ${SSH_PUB_KEY}
     Set To Dictionary    ${vmware_dico}    authorized_keys    ${authorized_keys}
