@@ -112,7 +112,8 @@ wait pod deleted
     Run Keyword If    "${status}"=="FAIL" and "${output}"!="error: no matching resources found"    Fail    ${output}
 
 restart CrashLoopBack pod
-    @{pods}    kubectl    get pods --field-selector=status.phase=CrashLoopBackOff -n kube-system -o name
+    ${pods_output}    kubectl    get pods --field-selector=status.phase=CrashLoopBackOff -n kube-system -o name
+    @{pods}    Split To Lines    ${pods_output}
     ${length}    Get Length    ${pods}
     FOR    ${pod}    IN    @{pods}
         kubectl    delete ${pod} -n kube-system
