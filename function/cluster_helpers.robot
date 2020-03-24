@@ -25,7 +25,7 @@ wait cillium
     ${controler_status}    Get Regexp Matches    ${cillium_pod_status}    Controller Status: *([0-9]+)/    1
     ${controler_status_2}    Get Regexp Matches    ${cillium_pod_status}    Controller Status: *[0-9]+/([0-9]+)    1
     Should Be Equal    ${controler_status}    ${controler_status_2}    Controller status unhealthy
-    Wait Until Keyword Succeeds    300s    10s    kubectl    -n kube-system exec ${cilium_pod_names[0]} -- cilium status | grep -E "^Cluster health:\\s+(${number_cillium_pods})/\\1 reachable"    ${cluster_number}
+    Wait Until Keyword Succeeds    600s    15s    kubectl    -n kube-system exec ${cilium_pod_names[0]} -- cilium status | grep -E "^Cluster health:\\s+(${number_cillium_pods})/\\1 reachable"    ${cluster_number}
 
 wait podname
     [Arguments]    ${args}    ${cluster_number}=1
@@ -82,11 +82,16 @@ check cluster deploy
 
 wait all pods are running
     [Arguments]    ${cluster_number}=1
+    FOR    ${i}    IN RANGE    1    5
+        ${status}    restart CrashLoopBack pod
+        Exit For Loop If    ${status}
+        Sleep    15
+    END
     ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
     ${output}    Split String    ${output}    \n
     FOR    ${element}    IN    @{output}
         ${key}    Split String    ${element}
-        Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=5m ${key[0]} -n kube-system    ${cluster_number}
+        Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=10m ${key[0]} -n kube-system    ${cluster_number}
     END
 
 expose service
@@ -105,3 +110,12 @@ wait pod deleted
     [Arguments]    ${arguments}    ${cluster_number}=1
     ${status}    ${output}    Run Keyword And Ignore Error    kubectl    wait pods --for=delete --timeout=5m ${arguments}    ${cluster_number}
     Run Keyword If    "${status}"=="FAIL" and "${output}"!="error: no matching resources found"    Fail    ${output}
+
+restart CrashLoopBack pod
+    @{pods}    kubectl    get pods --field-selector=status.phase=CrashLoopBackOff -n kube-system -o name
+    ${length}    Get Length    ${pods}
+    FOR    ${pod}    IN    @{pods}
+        kubectl    delete ${pod} -n kube-system
+    END
+    ${status}    Set Variable If    ${length} == 0    True    False
+    [Return]    ${status}
