@@ -7,7 +7,7 @@ Resource          setup_environment.robot
 *** Keywords ***
 grafana is deployed
     helm    install --name grafana suse-charts/grafana --namespace monitoring --values ${DATADIR}/grafana-config-values.yaml
-    wait_deploy    -n monitoring grafana
+    wait_deploy    -n monitoring grafana    15m
 
 Checking prometheus-server health
     ${output}    kubectl    logs -n monitoring -l "app=prometheus,component=server" -c prometheus-server
@@ -64,10 +64,10 @@ Expose grafana server
 
 prometheus is deployed
     helm    install --name prometheus suse-charts/prometheus --namespace monitoring --values ${DATADIR}/prometheus-config-values.yaml
-    wait_deploy    -n monitoring prometheus-server
-    wait_deploy    -n monitoring prometheus-alertmanager
-    wait_deploy    -n monitoring prometheus-kube-state-metrics
-    wait_deploy    -n monitoring prometheus-pushgateway
+    wait_deploy    -n monitoring prometheus-server    15m
+    wait_deploy    -n monitoring prometheus-alertmanager    15m
+    wait_deploy    -n monitoring prometheus-kube-state-metrics    15m
+    wait_deploy    -n monitoring prometheus-pushgateway    15m
 
 cleaning monitoring
     Run Keyword And Ignore Error    helm    delete prometheus --purge

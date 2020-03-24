@@ -4,6 +4,7 @@ Resource          ../function/centralized_logging.robot
 
 *** Test Cases ***
 Centralized logging
+    [Tags]    release
     Given cluster running
     And helm is installed
     And rsyslog is deployed

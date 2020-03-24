@@ -61,3 +61,24 @@ _check selenium grid up
     [Arguments]    ${selenium_node}
     ${ouput}    kubectl    logs ${selenium_node}
     Should Contain    ${ouput}    INFO [SeleniumServer.boot] - Selenium Server is up and running on port 4444
+
+selenium_kube_dashboard
+    [Arguments]    ${token}
+    ${profile}    get_firefox_profile
+    Wait Until Keyword Succeeds    30sec    5sec    Open Browser    url=${dashboard_url}    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
+    Wait Until Element Is Visible    xpath://div[contains(text(),"Kubernetes Dashboard")]
+    Click Element    xpath://div[@class="mat-radio-label-content" and contains(text(), "Token")]
+    Wait Until Element Is Visible    token
+    Input Text    token    ${token}
+    Click Element    CSS:button[type=submit]
+    Wait Until Element Is Visible    xpath://div[@class='kd-toolbar-tools']
+    Click Element    xpath://div//a/span[@class="mat-button-wrapper" and contains(text(), "Namespaces ")]
+    @{namespaces}    Get WebElements    //kd-namespace-list/kd-card//mat-row/mat-cell/a
+    ${length}    Get Length    ${namespaces}
+    Return From Keyword If    ${length} <= 2    False
+    ${access_namespace}    Set Variable    True
+    FOR    ${element}    IN    @{namespaces}
+        ${namespace_name}    get text    ${element}
+        log    ${namespace_name}
+    END
+    [Return]    ${access_namespace}

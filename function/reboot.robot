@@ -30,10 +30,10 @@ wait server up
 
 reboot worker 0 and master 0 and wait server up
     [Arguments]    ${cluster_number}=1
-    reboot or shutdown server    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-worker-0"]["ip"]}
-    reboot or shutdown server    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
-    wait server up    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-worker-0"]["ip"]}
-    wait server up    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-master-0"]["ip"]}
+    reboot or shutdown server    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-${cluster_number}-worker-0"]["ip"]}
+    reboot or shutdown server    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
+    wait server up    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-${cluster_number}-worker-0"]["ip"]}
+    wait server up    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
     Wait Until Keyword Succeeds    10min    30    wait nodes are ready
     wait pods ready
     reinitialize skuba session

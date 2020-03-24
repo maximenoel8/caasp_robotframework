@@ -4,7 +4,7 @@ ${CLUSTER}        ${EMPTY}
 ${MODE}           ${EMPTY}
 ${SKUBA_PULL_REQUEST}    ${EMPTY}
 ${PREFIX}         robotframework
-${GIT_BRANCH}     release-caasp-4.1.2
+${GIT_BRANCH}     release-caasp-4.1.0
 ${PLATFORM}       vmware
 ${NUMBER}         1:2
 ${KEEP}           False

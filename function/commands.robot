@@ -57,8 +57,8 @@ titi
     log    toto
 
 reinitialize skuba session
-    [Arguments]    ${cluster_number}
-    Switch Connection    skuba_station
+    [Arguments]    ${cluster_number}=1
+    Switch Connection    skuba_station_${cluster_number}
     Close Connection
     open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    alias=skuba_station_${cluster_number}
 
