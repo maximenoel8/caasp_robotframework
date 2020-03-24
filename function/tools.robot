@@ -18,6 +18,7 @@ nfs server is deployed
     Run Keyword If    not ${configure}    execute command with ssh    sudo sh -c 'echo "/home/${VM_USER}/nfs/pv_folder \ \ \ \ \ \ \ *(rw,no_root_squash,sync,no_subtree_check)" >> /etc/exports'
     Run Keyword If    not ${configure}    execute command with ssh    sudo exportfs -a
     Run Keyword If    not ${run} or not ${configure}    execute command with ssh    sudo systemctl restart nfs-server
+    Run Keyword If    not ${run} or not ${configure}    sleep    15
     Set Global Variable    ${nfs_ip}    ${BOOSTRAP_MASTER_1}
     Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
 
