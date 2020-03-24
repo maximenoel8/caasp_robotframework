@@ -46,7 +46,7 @@ velero server is deployed with volume snapshot
     [Arguments]    ${cluster_number}=1
     create credentials file
     helm    install --name velero --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${BUCKET_MASTER} --set configuration.backupStorageLocation.config.region=minio --set configuration.backupStorageLocation.config.s3ForcePathStyle=true --set configuration.backupStorageLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.bucket=velero --set configuration.volumeSnapshotLocation.config.region=minio --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true --set configuration.volumeSnapshotLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set-file credentials.secretContents.cloud=${credential-velero-file} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set image.repository=${velero_image} --set configMaps.restic-restore-action-config.data.image=${restic_image} ${LOGDIR}/kubernetes-charts-suse-com/stable/velero    ${cluster_number}
-    wait pods ready    -l name=velero -n kube-system    ${cluster_number}
+    wait pods ready    -l name=velero -n velero    ${cluster_number}
     velero    client config set namespace=velero    ${cluster_number}
 
 create restore from backup
