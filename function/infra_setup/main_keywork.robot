@@ -6,7 +6,7 @@ Resource          libvirt_setup.robot
 
 *** Keywords ***
 deploy cluster vms
-    clone skuba locally
+    Comment    clone skuba locally
     copy terraform configuration from skuba folder
     set infra env parameters
     Run Keyword If    "${MODE}"=="${EMPTY}"    configure registration auto tfvars vmware

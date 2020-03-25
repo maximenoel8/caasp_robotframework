@@ -62,6 +62,7 @@ setup environment
     Log    ${CLUSTER}    console=yes    level=HTML
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
+    Set Global Variable    ${TEMPLATE_TERRAFORM_DIR}    ${CURDIR}/../terraform
     check cluster exist
     check cluster deploy
     Set Global Variable    ${CLUSTERDIR}    ${WORKDIR}/cluster

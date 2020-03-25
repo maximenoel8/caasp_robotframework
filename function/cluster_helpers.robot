@@ -83,7 +83,7 @@ check cluster deploy
 wait all pods are running
     [Arguments]    ${cluster_number}=1
     FOR    ${i}    IN RANGE    1    5
-        ${status}    restart CrashLoopBack pod
+        ${status}    restart CrashLoopBack pod    ${cluster_number}
         Exit For Loop If    ${status}
         Sleep    15
     END
@@ -112,11 +112,12 @@ wait pod deleted
     Run Keyword If    "${status}"=="FAIL" and "${output}"!="error: no matching resources found"    Fail    ${output}
 
 restart CrashLoopBack pod
-    ${pods_output}    kubectl    get pods --field-selector=status.phase=CrashLoopBackOff -n kube-system -o name
+    [Arguments]    ${cluster_number}=1
+    ${pods_output}    kubectl    get pods --field-selector=status.phase=CrashLoopBackOff -n kube-system -o name    ${cluster_number}
     @{pods}    Split To Lines    ${pods_output}
     ${length}    Get Length    ${pods}
     FOR    ${pod}    IN    @{pods}
-        kubectl    delete ${pod} -n kube-system
+        kubectl    delete ${pod} -n kube-system    ${cluster_number}
     END
     ${status}    Set Variable If    ${length} == 0    True    False
     [Return]    ${status}

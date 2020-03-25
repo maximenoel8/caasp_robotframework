@@ -18,9 +18,9 @@ clone skuba locally
 copy terraform configuration from skuba folder
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    evaluate    ${i}+1
-        Copy Directory    ${WORKDIR}/skuba/ci/infra/${PLATFORM}    ${TERRAFORMDIR}/cluster_${cluster_number}
+        Copy Directory    ${TEMPLATE_TERRAFORM_DIR}/${PLATFORM}    ${TERRAFORMDIR}/cluster_${cluster_number}
     END
-    Remove Directory    ${WORKDIR}/skuba    True
+    Comment    Remove Directory    ${WORKDIR}/skuba    True
 
 run terraform
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
