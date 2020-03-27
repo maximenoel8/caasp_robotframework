@@ -85,6 +85,7 @@ Restore all master nodes - etcd cluster and data
     [Teardown]    teardown etcdctl
 
 velero backup wordpress
+    [Tags]    backup
     Given cluster running
     And velero setup
     Comment    And add CA to all server
@@ -107,6 +108,7 @@ velero backup wordpress
     [Teardown]    teardown velero
 
 velero backup wordpress gcp
+    [Tags]    backup
     Given cluster running
     And velero setup
     Comment    And add CA to all server
