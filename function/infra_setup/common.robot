@@ -25,6 +25,8 @@ copy terraform configuration from skuba folder
 run terraform
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    evaluate    ${i}+1
+        ${tf_version}    execute command localy    terraform version
+        log    ${tf_version}
         execute command localy    cd ${TERRAFORMDIR}/cluster_${cluster_number} && terraform init
         terraform apply    cluster_${cluster_number}
     END

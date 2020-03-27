@@ -45,8 +45,8 @@ velero migrate wordpress from cluster 1 to 2
     And nfs client is deployed    cluster_number=1
     And nfs client is deployed    cluster_number=2
     And velero cli is installed
-    And velero server is deployed with volume snapshot for    minio   1
-    And velero server is deployed with volume snapshot for    minio   2
+    And velero server is deployed with volume snapshot for    minio    1
+    And velero server is deployed with volume snapshot for    minio    2
     And wordpress is deployed
     And file copy to wordpress pod
     And wordpress volumes are annotated to be backed up
@@ -85,7 +85,6 @@ Restore all master nodes - etcd cluster and data
     [Teardown]    teardown etcdctl
 
 velero backup wordpress
-    [Tags]    backup
     Given cluster running
     And velero setup
     Comment    And add CA to all server
@@ -108,7 +107,6 @@ velero backup wordpress
     [Teardown]    teardown velero
 
 velero backup wordpress gcp
-    [Tags]    backup
     Given cluster running
     And velero setup
     Comment    And add CA to all server
