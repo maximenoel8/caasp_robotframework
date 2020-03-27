@@ -21,7 +21,7 @@ set global ip variable
 
 teardown_suite
     Run Keyword And Ignore Error    Copy Files    ${OUTPUT_DIR}/*    ${LOGDIR}
-    Run Keyword And Ignore Error    Run Keyword Unless    ${KEEP}    clean cluster    ${CLUSTER}
+    Run Keyword And Ignore Error    Run Keyword Unless    ${KEEP}    clean cluster    ${cluster_name}
 
 teardown_test
     Run Keyword And Ignore Error    dump cluster state

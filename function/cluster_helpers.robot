@@ -83,13 +83,13 @@ check cluster deploy
 wait all pods are running
     [Arguments]    ${cluster_number}=1
     FOR    ${i}    IN RANGE    1    5
-        ${status}    restart CrashLoopBack pod    ${cluster_number}
+        ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
+        @{pods}    Split To Lines    ${output}
+        ${status}    restart CrashLoopBack pod    ${pods}    ${cluster_number}
         Exit For Loop If    ${status}
         Sleep    15
     END
-    ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
-    ${output}    Split String    ${output}    \n
-    FOR    ${element}    IN    @{output}
+    FOR    ${element}    IN    @{pods}
         ${key}    Split String    ${element}
         Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=10m ${key[0]} -n kube-system    ${cluster_number}
     END
@@ -112,12 +112,13 @@ wait pod deleted
     Run Keyword If    "${status}"=="FAIL" and "${output}"!="error: no matching resources found"    Fail    ${output}
 
 restart CrashLoopBack pod
-    [Arguments]    ${cluster_number}=1
-    ${pods_output}    kubectl    get pods --field-selector=status.phase=CrashLoopBackOff -n kube-system -o name    ${cluster_number}
-    @{pods}    Split To Lines    ${pods_output}
+    [Arguments]    ${pods}    ${cluster_number}=1
     ${length}    Get Length    ${pods}
-    FOR    ${pod}    IN    @{pods}
-        kubectl    delete ${pod} -n kube-system    ${cluster_number}
+    ${status}    Set Variable    True
+    FOR    ${pod}    IN    @{PODS}
+        ${elements}    Split String    ${pod}
+        Run Keyword If    "${elements[2]}"=="CrashLoopBackOff"    kubectl    delete pod ${elements[0]} -n kube-system    ${cluster_number}
+        Continue For Loop If    not ${status}
+        ${status}    Set Variable If    "${elements[2]}"=="CrashLoopBackOff"    False    True
     END
-    ${status}    Set Variable If    ${length} == 0    True    False
     [Return]    ${status}

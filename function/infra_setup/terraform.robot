@@ -6,7 +6,7 @@ terraform destroy
     [Arguments]    ${cluster_name}
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        execute command localy    cd ${CURDIR}/../../workdir/${cluster_name}/terraform/cluster_${cluster_number} && terraform destroy --auto-approve
+        execute command localy    eval `ssh-agent -s` && ssh-add ${DATADIR}/id_shared && cd ${CURDIR}/../../workdir/${cluster_name}/cluster_${cluster_number} && terraform destroy --auto-approve
     END
 
 terraform apply

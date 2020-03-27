@@ -40,13 +40,13 @@ bootstrap
 cluster running
     [Arguments]    ${cluster_number}=1
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL" and ${cluster_number}==1    deploy cluster vms
-    Run Keyword If    ${cluster_number}==1    load vm ip
+    load vm ip
     Run Keyword If    ${cluster_number}==1    open bootstrap session
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    cluster is deployed
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    wait nodes are ready
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    wait pods ready
-    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    wait cillium
+    Run Keyword If    ${cluster_number}==1    wait nodes are ready
+    Run Keyword If    ${cluster_number}==1    wait pods ready
+    Run Keyword If    ${cluster_number}==1    wait cillium
     Run Keyword If    ${cluster_number}!=1    wait nodes are ready    cluster_number=${cluster_number}
     Run Keyword If    ${cluster_number}!=1    wait pods ready    cluster_number=${cluster_number}
     Run Keyword If    ${cluster_number}!=1    wait cillium    cluster_number=${cluster_number}

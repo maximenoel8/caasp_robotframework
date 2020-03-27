@@ -1,6 +1,7 @@
 *** Settings ***
 Resource          interaction_with_cluster_state_dictionnary.robot
 Resource          commands.robot
+Resource          cluster_helpers.robot
 
 *** Variables ***
 &{deployment_state}
@@ -91,6 +92,7 @@ check if node is deployed
     [Arguments]    ${cluster}    ${node}
     [Timeout]
     ${state}    _get current state    ${cluster}
+    ${cluster_number}=    get cluster number    ${cluster}
     ${expecting value}    Set Variable    ${${state}_expected_output}
     Switch Connection    ${node}
     ${console_output}    Read
@@ -106,6 +108,8 @@ check if node is deployed
     ${status}    Set Variable if    "${status_command}"=="PASS"    True    False
     Run Keyword If    ${status} and "${state}"=="bootstrap"    Run Keywords    _change deployment state    ${cluster}
     ...    AND    Get Directory    cluster    ${WORKDIR}/${cluster}    recursive=true
+    ...    AND    wait nodes are ready    ${cluster_number}
+    ...    AND    wait pods ready    ${cluster_number}
     Run Keyword If    ${status}    Close Connection
     [Return]    ${status}
 

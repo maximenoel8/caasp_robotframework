@@ -5,7 +5,7 @@ Resource          ../../parameters/global_parameters.robot
 
 *** Keywords ***
 wordpress is deployed
-    helm    install --name wordpress --namespace wordpress --set ingress.enabled=true,ingress.hosts[0].name=wordpress.jaws.jio.com \ --set service.type=NodePort --set service.nodePorts.http=30800 --set service.nodePorts.https=30880 --set wordpressUsername=admin --set wordpressPassword=password stable/wordpress
+    helm    install --name wordpress --namespace wordpress --set ingress.enabled=true,ingress.hosts[0].name=wordpress.jaws.jio.com --set service.type=NodePort --set service.nodePorts.http=30800 --set service.nodePorts.https=30880 --set wordpressUsername=admin --set wordpressPassword=password stable/wordpress
     wordpress is up
     wordpress pv are patch
 
@@ -42,6 +42,7 @@ wordpress is up
     [Arguments]    ${cluster_number}=1
     ${wordpress_pod_name}    wait podname    -l app.kubernetes.io/name=wordpress -n wordpress    ${cluster_number}
     Set Test Variable    ${wordpress_pod_name}
+    wordpress pv are patch
 
 check wordpress pv exist
     [Arguments]    ${cluster_number}=1

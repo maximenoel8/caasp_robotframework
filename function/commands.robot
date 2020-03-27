@@ -7,22 +7,22 @@ Resource          ../parameters/velero.robot
 
 *** Keywords ***
 execute command with ssh
-    [Arguments]    ${cmd}    ${alias}=skuba_station_1
+    [Arguments]    ${cmd}    ${alias}=skuba_station_1    ${check_rc}=True
     Switch Connection    ${alias}
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=15m
     log    ${stderr}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    \n\nCommand :${cmd} : ERROR :\n${stderr} \n
     log    ${output}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    output: \n${output} \n
-    Should Be Equal As Integers    ${rc}    0
+    Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0
     [Return]    ${output}
 
 execute command localy
-    [Arguments]    ${cmd}
+    [Arguments]    ${cmd}    ${check_rc}=True
     ${rc}    ${output}    Run And Return Rc And Output    ${cmd}
     log    ${output}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    \n\nCommand :${cmd} output: \n${output} \n
-    Should Be Equal As Integers    ${rc}    0    ${output}
+    Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0    ${output}
     [Return]    ${output}
 
 open ssh session

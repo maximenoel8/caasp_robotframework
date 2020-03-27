@@ -21,7 +21,7 @@ _skuba from pattern
     [Arguments]    ${cluster_number}
     execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64    skuba_station_${cluster_number}
     execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
-    execute command with ssh    sudo zypper -n in \ -t pattern SUSE-CaaSP-Management    skuba_station_${cluster_number}
+    execute command with ssh    sudo zypper -n in -t pattern SUSE-CaaSP-Management    skuba_station_${cluster_number}
 
 _skuba devel
     [Arguments]    ${cluster_number}
