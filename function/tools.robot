@@ -14,7 +14,7 @@ nfs server is deployed
     ${exist}    ${configure}    ${run}    _check nfs server install, configure and running
     Run Keyword If    not ${exist}    execute command with ssh    sudo zypper -n in nfs-kernel-server
     Run Keyword If    not ${configure}    execute command with ssh    mkdir -p /home/${VM_USER}/nfs/pv_folder
-    Run Keyword If    not ${configure}    execute command with ssh    sudo chown nobody:nobody /home/${VM_USER}/nfs/pv_folder
+    Run Keyword If    not ${configure}    execute command with ssh    sudo chown nobody:nogroup /home/${VM_USER}/nfs/pv_folder
     Run Keyword If    not ${configure}    execute command with ssh    sudo sh -c 'echo "/home/${VM_USER}/nfs/pv_folder \ \ \ \ \ \ \ *(rw,no_root_squash,sync,no_subtree_check)" >> /etc/exports'
     Run Keyword If    not ${configure}    execute command with ssh    sudo exportfs -a
     Run Keyword If    not ${run} or not ${configure}    execute command with ssh    sudo systemctl restart nfs-server

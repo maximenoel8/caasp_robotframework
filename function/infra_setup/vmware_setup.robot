@@ -15,6 +15,7 @@ configure terraform tfvars vmware
         Set To Dictionary    ${vmware_dico}    worker_disk_size    ${80}
         Set To Dictionary    ${vmware_dico}    worker_cpus    ${8}
         Set To Dictionary    ${vmware_dico}    worker_memory    ${16384}
+        Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
         ${vmware_dico}    configure terraform file common    ${vmware_dico}
         _create tvars json file    ${vmware_dico}    ${cluster_number}
     END

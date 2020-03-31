@@ -63,8 +63,8 @@ configure terraform file common
     [Arguments]    ${vmware_dico}
     Set To Dictionary    ${vmware_dico}    masters    ${${VM_NUMBER[0]}}
     Set To Dictionary    ${vmware_dico}    workers    ${${VM_NUMBER[1]}}
-    Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
-    ${packages}    Get From Dictionary    ${vmware_dico}    packages
+    ${status}    ${packages}    Run Keyword And Ignore Error    Get From Dictionary    ${vmware_dico}    packages
+    @{packages}    Run Keyword If    "${status}"=="FAIL"    Create List
     ${PACKAGES_LIST}    Run Keyword If    "${packages}"!="${EMPTY}"    Combine Lists    ${PACKAGES_LIST}    ${packages}
     ...    ELSE    Set Variable    ${PACKAGES_LIST}
     Set To Dictionary    ${vmware_dico}    packages    ${PACKAGES_LIST}

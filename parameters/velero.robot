@@ -14,3 +14,4 @@ ${aws_plugin_image}    registry.suse.de/devel/caasp/4.0/containers/containers/ca
 ${aws_region}     eu-central-1
 ${gcp_credential_file}    suse-css-qa-2ec5b9ab3db9.json
 ${gcp_plugin_image}    registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-plugin-for-gcp:1.0.1
+${azure_plugin_image}    registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/velero-plugin-for-microsoft-azure:1.0.1

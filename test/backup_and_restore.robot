@@ -126,3 +126,48 @@ velero backup wordpress gcp
     Sleep    10sec
     And wordpress is up
     Then check file exist in wordpress pod
+
+velero backup wordpress azure
+    [Tags]    backup
+    Given cluster running
+    And velero setup
+    And helm is installed
+    And nfs server is deployed
+    And nfs client is deployed
+    And velero cli is installed
+    And velero server is deployed with volume snapshot for    azure
+    And wordpress is deployed
+    And file copy to wordpress pod
+    And wordpress volumes are annotated to be backed up
+    When create backup on    ${cluster}    args=--include-namespaces wordpress
+    Then backup should be successfull
+    When wordpress is removed
+    And create restore from backup    ${backup_name}
+    Sleep    10sec
+    And wordpress is up
+    Then check file exist in wordpress pod
+    [Teardown]    teardown velero
+
+velero migration with azure
+    Run Keyword If    ${NUMBER_OF_CLUSTER} < 2    Fail    Need two cluster for this test
+    Given cluster running
+    and cluster running    2
+    and velero setup
+    And helm is installed    1
+    And helm is installed    2
+    And nfs server is deployed
+    And nfs client is deployed    cluster_number=1
+    And nfs client is deployed    cluster_number=2
+    And velero cli is installed
+    And velero server is deployed with volume snapshot for    azure    1
+    And velero server is deployed with volume snapshot for    azure    2
+    And wordpress is deployed
+    And file copy to wordpress pod
+    And wordpress volumes are annotated to be backed up
+    When create backup on    ${cluster}    args=--include-namespaces wordpress
+    then backup should be successfull
+    when create restore from backup    ${backup_name}    cluster_number=2
+    Sleep    10sec
+    and wordpress is up    2
+    then check file exist in wordpress pod    2
+    [Teardown]    teardown velero
