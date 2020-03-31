@@ -39,6 +39,7 @@ bootstrap
 
 cluster running
     [Arguments]    ${cluster_number}=1
+    set infra env parameters
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL" and ${cluster_number}==1    deploy cluster vms
     load vm ip
     Run Keyword If    ${cluster_number}==1    open bootstrap session

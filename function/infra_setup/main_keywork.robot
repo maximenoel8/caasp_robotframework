@@ -8,7 +8,6 @@ Resource          libvirt_setup.robot
 deploy cluster vms
     Comment    clone skuba locally
     copy terraform configuration from skuba folder
-    set infra env parameters
     Run Keyword If    "${MODE}"=="${EMPTY}"    Run Keyword And Ignore Error    configure registration auto tfvars vmware
     ...    ELSE    set repo and packages
     Run Keyword If    "${PLATFORM}"=="vmware"    configure terraform tfvars vmware

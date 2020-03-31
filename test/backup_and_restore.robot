@@ -126,6 +126,7 @@ velero backup wordpress gcp
     Sleep    10sec
     And wordpress is up
     Then check file exist in wordpress pod
+    [Teardown]    teardown velero
 
 velero backup wordpress azure
     [Tags]    backup
@@ -149,6 +150,7 @@ velero backup wordpress azure
     [Teardown]    teardown velero
 
 velero migration with azure
+    [Tags]    backup
     Run Keyword If    ${NUMBER_OF_CLUSTER} < 2    Fail    Need two cluster for this test
     Given cluster running
     and cluster running    2
