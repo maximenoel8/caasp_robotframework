@@ -11,6 +11,10 @@ nfs client is deployed
     wait pods ready    -l app=nfs-client-provisioner    ${cluster_number}
 
 nfs server is deployed
+    ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOSTRAP_MASTER_1}
+    Set Global Variable    ${nfs_ip}
+    Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
+    Return From Keyword If    "${PLATFORM}"=="openstack"
     ${exist}    ${configure}    ${run}    _check nfs server install, configure and running
     Run Keyword If    not ${exist}    execute command with ssh    sudo zypper -n in nfs-kernel-server
     Run Keyword If    not ${configure}    execute command with ssh    mkdir -p /home/${VM_USER}/nfs/pv_folder
@@ -19,8 +23,6 @@ nfs server is deployed
     Run Keyword If    not ${configure}    execute command with ssh    sudo exportfs -a
     Run Keyword If    not ${run} or not ${configure}    execute command with ssh    sudo systemctl restart nfs-server
     Run Keyword If    not ${run} or not ${configure}    sleep    15
-    Set Global Variable    ${nfs_ip}    ${BOOSTRAP_MASTER_1}
-    Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
 
 _check nfs server install, configure and running
     ${status}    ${output}    Run Keyword And Ignore Error    execute command with ssh    sudo systemctl status nfs-server

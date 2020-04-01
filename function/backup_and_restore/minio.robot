@@ -12,9 +12,9 @@ install and start minio server on master0
     Run Keyword if    "${status}"=="PASS"    execute command with ssh    curl ${minio_url_binary} --output ${minio_server_path}/minio    minio_session
     Run Keyword if    "${status}"=="PASS"    execute command with ssh    chmod +x ${minio_server_path}/minio    minio_session
     Run Keyword if    "${status}"=="PASS"    execute command with ssh    mkdir ${minio_server_path}/bucket    minio_session
-    Write    MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY} MINIO_SECRET_KEY=${MINIO_SECRET_KEY} ${minio_server_path}/minio server ${minio_server_path}/bucket &
+    Write    MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY} MINIO_SECRET_KEY=${MINIO_SECRET_KEY} ${minio_server_path}/minio server ${minio_server_path}/bucket --address ":${MINIO_PORT}" &
     Read Until    https://docs.min.io/docs/dotnet-client-quickstart-guide
-    Set Suite Variable    ${MINIO_MASTER_SERVER_URL}    http://${BOOSTRAP_MASTER_1}:9000
+    Set Suite Variable    ${MINIO_MASTER_SERVER_URL}    http://${BOOSTRAP_MASTER_1}:${MINIO_PORT}
 
 install minio client localy
     execute command localy    curl https://dl.min.io/client/mc/release/linux-amd64/mc --output ${LOGDIR}/mc
@@ -32,7 +32,7 @@ minio is deployed and setup
 
 setup minio bucket with minio client
     [Arguments]    ${provider}    ${bucket_name}
-    ${args}    Set Variable If    "${provider}"=="s3"     --region ${aws_region}    "${EMPTY}"
+    ${args}    Set Variable If    "${provider}"=="s3"    --region ${aws_region}    ${EMPTY}
     execute command localy    ${LOGDIR}/mc mb ${args} -p ${provider}/${bucket_name}
 
 check minio is correctly deploy and have a bucket
