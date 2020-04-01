@@ -166,7 +166,7 @@ velero migration with azure
     And wordpress is deployed
     And file copy to wordpress pod
     And wordpress volumes are annotated to be backed up
-    When create backup on    ${cluster}    args=--include-namespaces wordpress
+    When create backup on    ${cluster}-migration    args=--include-namespaces wordpress
     then backup should be successfull
     when create restore from backup    ${backup_name}    cluster_number=2
     Sleep    10sec

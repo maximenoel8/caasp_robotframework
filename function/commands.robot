@@ -22,6 +22,7 @@ execute command localy
     ${rc}    ${output}    Run And Return Rc And Output    ${cmd}
     log    ${output}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    \n\nCommand :${cmd} output: \n${output} \n
+    Run Keyword Unless    ${rc}==0    screenshot cluster status
     Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0    ${output}
     [Return]    ${output}
 
@@ -51,10 +52,6 @@ helm
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${output}    execute command localy    helm ${arguments}
     [Return]    ${output}
-
-titi
-    [Arguments]    ${1}    ${2}=defaul
-    log    toto
 
 reinitialize skuba session
     [Arguments]    ${cluster_number}=1
@@ -98,3 +95,8 @@ modify string in file
         ${new_line}    String.Replace String    ${line}    ${se}    ${re}
         Append To File    ${file}    ${new_line}\n
     END
+
+screenshot cluster status
+    Run Keyword And Ignore Error    kubectl    get pods -A
+    Run Keyword And Ignore Error    kubectl    get svc -A
+    Run Keyword And Ignore Error    kubectl    get pvc -A
