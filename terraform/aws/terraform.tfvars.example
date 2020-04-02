@@ -8,7 +8,7 @@ stack_name = "my-k8s"
 
 # a SSH public key for accessing the machines
 authorized_keys = [
-  "ssh-rsa AAAAB3NzaC1yc2EA...",
+  "ssh-rsa AAAAB3NzaC1yc2EA..."
 ]
 
 # AWS region

@@ -17,7 +17,7 @@ resource "aws_instance" "nodes" {
   tags = merge(
     local.tags,
     {
-      "Name"  = "${var.stack_name}-node-${count.index}"
+      "Name"  = "${var.stack_name}-worker-${count.index}"
       "Class" = "Instance"
     },
   )

@@ -28,5 +28,14 @@ resource "aws_security_group" "master" {
     cidr_blocks = ["0.0.0.0/0"]
     description = "kubernetes api-server"
   }
+
+  # certificat
+  ingress {
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "certificat"
+  }
 }
 
