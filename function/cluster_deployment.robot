@@ -11,6 +11,7 @@ ${bootstrap_deployment_limit}    1
 ${bootstrap_expected_output}    [bootstrap] successfully bootstrapped core add-ons on node
 ${master_expected_output}    [join] node successfully joined the cluster
 ${worker_expected_output}    [join] node successfully joined the cluster
+${sleep_time}     10
 
 *** Keywords ***
 create cluster deployment dictionnary
@@ -60,8 +61,10 @@ start bootstrap
     [Arguments]    ${node}    ${cluster}
     ${cluster_number}    get cluster number    ${cluster}
     open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    ${node}
-    execute command with ssh    skuba cluster init --control-plane ${IP_LB_${cluster_number}} cluster    ${node}
-    ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${CLUSTER_PREFIX}-${cluster_number}-master-0
+    ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
+    execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${node}
+    ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
+    ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
     Create File    ${LOGDIR}/${node}    ${output}\n
 
 join node
@@ -73,14 +76,15 @@ join node
     ${ip}    Run Keyword If    ${node exist} and "${ip}"=="auto"    get node ip from CS    ${node}    ${cluster_number}
     ...    ELSE    Set Variable    ${ip}
     ${type}    get node type    ${node}
+    ${skuba_name}    get node skuba name    ${node}    ${cluster_number}
     Run Keyword If    ${node exist} and not ${node disable}    Fail    Worker already part of the cluster !
     ...    ELSE IF    ${node exist} and ${node disable} and ${after_remove}    Run Keywords    unmask kubelet    ${ip}
-    ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${node}    True
+    ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${skuba_name}    True
     ...    AND    wait nodes
     ...    AND    wait pods
     ...    AND    enable node in CS    ${node}
-    ...    ELSE IF    ${node exist} and ${node disable} and not ${after_remove}    initiale join    ${node}    ${ip}    ${type}
-    ...    ELSE    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${node}    True
+    ...    ELSE IF    ${node exist} and ${node disable} and not ${after_remove}    initiale join    ${skuba_name}    ${ip}    ${type}
+    ...    ELSE    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${skuba_name}    True
     ...    AND    add node to cluster state    ${node}    ${ip}
 
 initiale join
@@ -188,14 +192,7 @@ skuba_write
 
 cluster is deployed
     create cluster deployment dictionnary
-    ${clusters}    Get Dictionary Keys    ${deployment_state}
-    ${waiting time}    Set Variable    1
-    ${sleep_time}    Set Variable    10
-    FOR    ${cluster}    IN    @{clusters}
-        ${worker_number}    Get Length    ${deployment_state["${cluster}"]["waiting_worker"]}
-        ${master_number}    Get Length    ${deployment_state["${cluster}"]["waiting_master"]}
-        ${waiting time}    Evaluate    (${worker_number} + ${master_number}) * ( 300 / ${sleep_time} ) + ${waiting time}
-    END
+    ${waiting time}    _set deployment timeout
     FOR    ${temp}    IN RANGE    ${waiting time}
         ${status}    check state of all the cluster is done
         Exit For Loop If    ${status}
@@ -223,3 +220,13 @@ _move node from ongoing to waiting
     Append To List    ${deployment_state["${cluster}"]["waiting_${state}"]}    ${node}
     Set To Dictionary    ${deployment_state["${cluster}"]}    on_going=${on_going}
     Log Dictionary    ${deployment_state}
+
+_set deployment timeout
+    ${clusters}    Get Dictionary Keys    ${deployment_state}
+    ${waiting time}    Set Variable    1
+    FOR    ${cluster}    IN    @{clusters}
+        ${worker_number}    Get Length    ${deployment_state["${cluster}"]["waiting_worker"]}
+        ${master_number}    Get Length    ${deployment_state["${cluster}"]["waiting_master"]}
+        ${waiting time}    Evaluate    (${worker_number} + ${master_number}) * ( 300 / ${sleep_time} ) + ${waiting time}
+    END
+    [Return]    ${waiting time}
