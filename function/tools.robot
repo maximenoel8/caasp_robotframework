@@ -6,15 +6,14 @@ Resource          ../parameters/tool_parameters.robot
 *** Keywords ***
 nfs client is deployed
     [Arguments]    ${server_ip}=${NFS_IP}    ${path}=${NFS_PATH}    ${mode}=Delete    ${cluster_number}=1
+    ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOSTRAP_MASTER_1}
+    Set Global Variable    ${nfs_ip}
+    Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
     ${output}    kubectl    get pod -l app=nfs-client-provisioner -o name    ${cluster_number}
     Run Keyword If    "${output}"=="${EMPTY}"    helm    install stable/nfs-client-provisioner --name nfs --set nfs.server="${server_ip}" --set nfs.path="${path}" --set storageClass.defaultClass=true --set storageClass.reclaimPolicy="${mode}"    ${cluster_number}
     wait pods ready    -l app=nfs-client-provisioner    ${cluster_number}
 
 nfs server is deployed
-    ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOSTRAP_MASTER_1}
-    Set Global Variable    ${nfs_ip}
-    Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
-    Return From Keyword If    "${PLATFORM}"=="openstack"
     ${exist}    ${configure}    ${run}    _check nfs server install, configure and running
     Run Keyword If    not ${exist}    execute command with ssh    sudo zypper -n in nfs-kernel-server
     Run Keyword If    not ${configure}    execute command with ssh    mkdir -p /home/${VM_USER}/nfs/pv_folder
@@ -34,3 +33,13 @@ _check nfs server install, configure and running
     ${run_status}    Set Variable If    "${run_status}"=="FAIL"    False    True
     ${export_status}    Set Variable If    "${export_status}"=="FAIL"    False    True
     [Return]    ${run_status}    ${export_status}    ${run_status}
+
+storageclass is deployed
+    [Arguments]    ${cluster_number}=1
+    Run Keyword If    "${PLATFORM}"=="vmware" and ${cluster_number}==1    nfs server is deployed
+    Run Keyword If    "${PLATFORM}"=="vmware" or "${PLATFORM}"=="openstack"    nfs client is deployed    cluster_number=1
+    Run Keyword If    "${PLATFORM}"=="aws"    deploy storagedefault on aws    cluster_number=1
+
+deploy storagedefault on aws
+    [Arguments]    ${cluster_number}
+    kubectl    apply -f ${DATADIR}/storage-default.yaml    cluster_number=${cluster_number}
