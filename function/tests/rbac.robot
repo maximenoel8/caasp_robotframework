@@ -1,12 +1,12 @@
 *** Settings ***
-Resource          commands.robot
-Library           ../lib/yaml_editor.py
-Resource          ../parameters/389ds_parameters.robot
-Resource          cluster_helpers.robot
+Resource          ../commands.robot
+Library           ../../lib/yaml_editor.py
+Resource          ../../parameters/389ds_parameters.robot
+Resource          ../cluster_helpers.robot
 Library           SSHLibrary
-Resource          selenium.robot
-Library           ../lib/firefox_profile.py
-Resource          setup_environment.robot
+Resource          ../selenium.robot
+Library           ../../lib/firefox_profile.py
+Resource          ../setup_environment.robot
 
 *** Keywords ***
 389ds server is deployed

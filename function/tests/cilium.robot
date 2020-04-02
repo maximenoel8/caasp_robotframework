@@ -1,7 +1,7 @@
 *** Settings ***
-Resource          commands.robot
-Resource          cluster_helpers.robot
-Resource          setup_environment.robot
+Resource          ../commands.robot
+Resource          ../cluster_helpers.robot
+Resource          ../setup_environment.robot
 
 *** Variables ***
 ${curlreq}        curl -sm10 -XPOST deathstar.default.svc.cluster.local/v1/request-landing

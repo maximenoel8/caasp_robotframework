@@ -1,5 +1,5 @@
 *** Settings ***
-Resource          commands.robot
+Resource          ../commands.robot
 
 *** Keywords ***
 kubelet server certificate should be signed by kubelet-ca for each node

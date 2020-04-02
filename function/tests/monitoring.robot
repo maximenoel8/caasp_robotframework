@@ -1,8 +1,8 @@
 *** Settings ***
-Resource          commands.robot
-Resource          cluster_helpers.robot
-Resource          selenium.robot
-Resource          setup_environment.robot
+Resource          ../commands.robot
+Resource          ../cluster_helpers.robot
+Resource          ../selenium.robot
+Resource          ../setup_environment.robot
 
 *** Keywords ***
 grafana is deployed

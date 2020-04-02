@@ -1,8 +1,8 @@
 *** Settings ***
-Resource          commands.robot
-Library           ../lib/yaml_editor.py
-Resource          cluster_helpers.robot
-Resource          setup_environment.robot
+Resource          ../commands.robot
+Library           ../../lib/yaml_editor.py
+Resource          ../cluster_helpers.robot
+Resource          ../setup_environment.robot
 
 *** Variables ***
 ${MESSAGE}        Sample component log entry.
