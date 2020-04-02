@@ -4,7 +4,6 @@ Resource          ../../parameters/global_parameters.robot
 Library           ../../lib/yaml_editor.py
 Resource          ../cluster_helpers.robot
 Resource          ../interaction_with_cluster_state_dictionnary.robot
-Resource          ../centralized_log.robot
 
 *** Variables ***
 ${etcd_snapshot_path}    /home/${VM_USER}
