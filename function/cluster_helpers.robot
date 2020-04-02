@@ -71,10 +71,6 @@ wait deploy
     [Arguments]    ${arg}    ${timeout}=5m
     kubectl    wait deployment --for=condition=available --timeout=${timeout} ${arg}
 
-check cluster state exist
-    ${status}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster_state.json
-    [Return]    ${status}
-
 check cluster deploy
     [Arguments]    ${cluster_number}=1
     ${PLATFORM_DEPLOY}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster${cluster_number}.json
