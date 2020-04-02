@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/skuba_join.robot
-Resource          ../function/certificat.robot
+Resource          ../function/tests/certificat.robot
 
 *** Test Cases ***
 Check kubelet server certificate is the one signed by kubelet-ca for each node

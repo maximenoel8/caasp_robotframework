@@ -1,7 +1,7 @@
 *** Settings ***
 Resource          ../function/skuba_join.robot
 Resource          ../function/helm.robot
-Resource          ../function/rbac.robot
+Resource          ../function/tests/rbac.robot
 
 *** Test Cases ***
 389ds authentication

@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/skuba_join.robot
-Resource          ../function/centralized_logging.robot
+Resource          ../function/tests/centralized_logging.robot
 
 *** Test Cases ***
 Centralized logging

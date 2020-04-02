@@ -1,5 +1,5 @@
 *** Settings ***
-Resource          ../function/monitoring.robot
+Resource          ../function/tests/monitoring.robot
 Resource          ../function/skuba_join.robot
 Resource          ../function/helm.robot
 

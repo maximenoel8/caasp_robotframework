@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/skuba_join.robot
-Resource          ../function/cilium.robot
+Resource          ../function/tests/cilium.robot
 
 *** Test Cases ***
 Cilium: L3/L4 policy test
