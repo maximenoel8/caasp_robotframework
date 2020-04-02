@@ -6,7 +6,7 @@ Resource          ../setup_environment.robot
 
 *** Keywords ***
 kubernetes dashboard is deployed
-    kubectl    apply -f https://github.com/kubernetes/dashboard/blob/master/aio/deploy/recommended.yaml --wait
+    kubectl    apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended.yaml --wait
     wait deploy    kubernetes-dashboard -n kubernetes-dashboard
     ${node_port}    expose service    svc kubernetes-dashboard    8443    kubernetes-dashboard
     Set Test Variable    ${dashboard_url}    https://${BOOSTRAP_MASTER_1}:${node_port}
