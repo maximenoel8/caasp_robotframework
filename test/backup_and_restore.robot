@@ -12,10 +12,8 @@ velero backup wordpress aws
     [Tags]    backup
     Given cluster running
     And velero setup
-    Comment    And add CA to all server
     And helm is installed
-    And nfs server is deployed
-    And nfs client is deployed
+    And storageclass is deployed
     And velero cli is installed
     And aws bucket is setup
     And velero server is deployed with volume snapshot for    aws
@@ -37,13 +35,10 @@ velero migrate wordpress from cluster 1 to 2
     Given cluster running
     and cluster running    2
     and velero setup
-    Comment    And add CA to all server    1
-    Comment    And add CA to all server    2
     And helm is installed    1
     And helm is installed    2
-    And nfs server is deployed
-    And nfs client is deployed    cluster_number=1
-    And nfs client is deployed    cluster_number=2
+    And storageclass is deployed    cluster_number=1
+    And storageclass is deployed    cluster_number=2
     And velero cli is installed
     And velero server is deployed with volume snapshot for    minio    1
     And velero server is deployed with volume snapshot for    minio    2
@@ -90,8 +85,7 @@ velero backup wordpress
     And velero setup
     Comment    And add CA to all server
     And helm is installed
-    And nfs server is deployed
-    And nfs client is deployed
+    And storageclass is deployed
     And velero cli is installed
     And minio is deployed and setup
     And velero server is deployed with volume snapshot for    minio
@@ -112,8 +106,7 @@ velero backup wordpress gcp
     And velero setup
     Comment    And add CA to all server
     And helm is installed
-    And nfs server is deployed
-    And nfs client is deployed
+    And storageclass is deployed
     And velero cli is installed
     And velero server is deployed with volume snapshot for    gcp
     And wordpress is deployed
@@ -133,8 +126,7 @@ velero backup wordpress azure
     Given cluster running
     And velero setup
     And helm is installed
-    And nfs server is deployed
-    And nfs client is deployed
+    And storageclass is deployed
     And velero cli is installed
     And velero server is deployed with volume snapshot for    azure
     And wordpress is deployed
@@ -157,9 +149,8 @@ velero migration with azure
     and velero setup
     And helm is installed    1
     And helm is installed    2
-    And nfs server is deployed
-    And nfs client is deployed    cluster_number=1
-    And nfs client is deployed    cluster_number=2
+    And storageclass is deployed    cluster_number=1
+    And storageclass is deployed    cluster_number=2
     And velero cli is installed
     And velero server is deployed with volume snapshot for    azure    1
     And velero server is deployed with volume snapshot for    azure    2
