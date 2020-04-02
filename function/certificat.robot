@@ -13,6 +13,6 @@ kubelet server certificate should be signed by kubelet-ca for each node
 
 check kubelet server certificate is signed by kubelet-ca
     [Arguments]    ${server_ip}    ${cluster_number}=1
-    ${output}    openssl    s_client -connect ${server_ip}:10250 -CAfile ${CLUSTERDIR}_${cluster_number}/pki/kubelet-ca.crt <<< "Q"
-    Should Contain    ${output}    CN = kubelet-ca
+    ${output}    openssl    s_client -connect ${server_ip}:10250 -CAfile /home/${VM_USER}/cluster/pki/kubelet-ca.crt <<< "Q"
+    Should Contain    ${output}    issuer=/CN=kubelet-ca
     Should Contain    ${output}    Verify return code: 0 (ok)
