@@ -78,7 +78,8 @@ setup environment
 load vm ip
     ${status}    check cluster state exist
     Run Keyword if    "${status}"=="PASS"    load cluster state
-    ...    ELSE    create cluster_state
+    ${integrity_status}    check cluster state integrity
+    Run Keyword if    "${status}"=="FAIL" or not ${integrity_status}    create cluster_state
     set global ip variable
 
 create cluster folder
@@ -91,7 +92,7 @@ open bootstrap session
         ${cluster_number}    Evaluate    ${i}+1
         open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    alias=skuba_station_${cluster_number}
     END
-    @{nodes}    get nodes name from CS
+    @{nodes}    get master servers name
     FOR    ${node}    IN    @{nodes}
         open ssh session    ${node}
     END
