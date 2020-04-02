@@ -22,8 +22,8 @@ execute command localy
     ${rc}    ${output}    Run And Return Rc And Output    ${cmd}
     log    ${output}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    \n\nCommand :${cmd} output: \n${output} \n
-    Run Keyword Unless    ${rc}==0    screenshot cluster status
     Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0    ${output}
+    ...    ELSE    Return From Keyword    ${output}    ${rc}
     [Return]    ${output}
 
 open ssh session
@@ -35,9 +35,11 @@ open ssh session
     Login With Public Key    ${VM_USER}    data/id_shared
 
 kubectl
-    [Arguments]    ${arguments}    ${cluster_number}=1
+    [Arguments]    ${arguments}    ${cluster_number}=1    ${screenshot}=False
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
-    ${output}    execute command localy    kubectl ${arguments}
+    ${output}    ${rc}    execute command localy    kubectl ${arguments}    False
+    Run Keyword if    ${rc}!=0 and not ${screenshot}    screenshot cluster status
+    Should Be Equal As Integers    ${rc}    0    ${output}
     [Return]    ${output}
 
 skuba
@@ -61,7 +63,7 @@ reinitialize skuba session
 
 openssl
     [Arguments]    ${cmd}
-    ${output}    execute command localy    openssl ${cmd}
+    ${output}    execute command with ssh    openssl ${cmd}
     [Return]    ${output}
 
 velero
@@ -97,6 +99,6 @@ modify string in file
     END
 
 screenshot cluster status
-    Run Keyword And Ignore Error    kubectl    get pods -A
-    Run Keyword And Ignore Error    kubectl    get svc -A
-    Run Keyword And Ignore Error    kubectl    get pvc -A
+    Run Keyword And Ignore Error    kubectl    get pods -A    screenshot=True
+    Run Keyword And Ignore Error    kubectl    get svc -A    screenshot=True
+    Run Keyword And Ignore Error    kubectl    get pvc -A    screenshot=True
