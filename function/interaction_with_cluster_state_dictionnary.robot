@@ -9,9 +9,10 @@ Library           OperatingSystem
 
 *** Keywords ***
 add node to cluster state
-    [Arguments]    ${name}    ${ip}    ${disable}=False    ${cluster_number}=1
+    [Arguments]    ${name}    ${ip}    ${disable}=False    ${dns}=default    ${cluster_number}=1
     ${type}    get node type    ${name}
-    &{node_infos}    Create Dictionary    ip=${ip}    disable=${disable}
+    ${skuba_name}    Set Variable If    "${dns}"=="default"    ${name}    ${dns}
+    &{node_infos}    Create Dictionary    ip=${ip}    disable=${disable}    skuba_name=${skuba_name}
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["cluster_${cluster_number}"]}    ${type}
     &{node}    Run Keyword If    "${status}"=="PASS"    Create Dictionary    ${name}=${node_infos}    &{cluster_state["cluster_${cluster_number}"]["${type}"]}
     ...    ELSE    Create Dictionary    ${name}=${node_infos}
@@ -95,39 +96,29 @@ dump cluster state
 
 get master servers name
     [Arguments]    ${with_status}=all    ${cluster_number}=1    # ( all | enable | disable )
-    ${master_keys}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["master"]}
-    FOR    ${master}    IN    @{master_keys}
-        BuiltIn.Exit For Loop If    "${with_status}"=="all"
-        ${status}    Set Variable if    ${cluster_state["cluster_${cluster_number}"]["master"]["${master}"]["disable"]}    disable    enable
-        Run Keyword If    "${with_status}"!="${status}"    Remove Values From List    ${master_keys}    ${master}
-    END
+    ${master_keys}    _get node name    with_status=${with_status}    type=master    cluster_number=${cluster_number}
     [Return]    ${master_keys}
 
 get worker servers name
     [Arguments]    ${with_status}=all    ${cluster_number}=1    # ( all | enable | disable )
-    ${worker_keys}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["worker"]}
-    FOR    ${worker}    IN    @{worker_keys}
-        BuiltIn.Exit For Loop If    "${with_status}"=="all"
-        ${status}    Set Variable if    ${cluster_state["cluster_${cluster_number}"]["worker"]["${worker}"]["disable"]}    disable    enable
-        Run Keyword If    "${with_status}"!="${status}"    Remove Values From List    ${worker_keys}    ${worker}
-    END
+    ${worker_keys}    _get node name    with_status=${with_status}    type=worker    cluster_number=${cluster_number}
     [Return]    ${worker_keys}
 
 create first cluster_state level
     [Arguments]    ${cluster_number}
-    &{cluster}    Create Dictionary
+    &{cluster}    Create Dictionary    platform=${PLATFORM}
     Collections.Set To Dictionary    ${cluster_state}    cluster_${cluster_number}=${cluster}
 
 _create cluster_state terraform 11 for
     [Arguments]    ${ip_dictionnary}    ${cluster_number}
     ${count}    Set Variable    0
     FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
-        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip}    True    ${cluster_number}
+        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip}    True    cluster_number=${cluster_number}
         ${count}    Evaluate    ${count}+1
     END
     ${count}    Set Variable    0
     FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_workers"]["value"]}
-        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-worker-${count}    ${ip}    True    ${cluster_number}
+        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-worker-${count}    ${ip}    True    cluster_number=${cluster_number}
         ${count}    Evaluate    ${count}+1
     END
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["modules"][0]["outputs"]}    ip_load_balancer
@@ -148,10 +139,10 @@ _create cluster_state terraform 12 for
     @{masters}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
     @{workers}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_workers"]["value"]}
     FOR    ${key}    IN    @{masters}
-        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    ${cluster_number}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    cluster_number=${cluster_number}
     END
     FOR    ${key}    IN    @{workers}
-        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    ${cluster_number}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    cluster_number=${cluster_number}
     END
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer
     ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["ip_load_balancer"]["value"]["${CLUSTER_PREFIX}-${cluster_number}-lb"]}
@@ -162,4 +153,58 @@ create cluster state for
     ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster${cluster_number}.json
     create first cluster_state level    ${cluster_number}
     Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
-    ...    ELSE    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
+    ...    ELSE IF    "${ip_dictionnary["terraform_version"]}"=="0.12.19" and not "${PLATFORM}"=="aws"    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
+    ...    ELSE IF    "${PLATFORM}"=="aws"    _create cluster_state for aws    ${ip_dictionnary}    ${cluster_number}
+    ...    ELSE    Fail    Wrong platform file
+
+_create cluster_state for aws
+    [Arguments]    ${ip_dictionnary}    ${cluster_number}
+    @{aws_masters_key}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]}
+    @{aws_workers_key}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["nodes_private_dns"]["value"]}
+    ${count}    Set Variable    0
+    FOR    ${key}    IN    @{aws_masters_key}
+        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]["${key}"]}    True    ${ip_dictionnary["outputs"]["control_plane_private_dns"]["value"]["${key}"]}    cluster_number=${cluster_number}
+        ${count}    Evaluate    ${count}+1
+    END
+    ${count}    Set Variable    0
+    FOR    ${key}    IN    @{aws_workers_key}
+        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-worker-${count}    ${ip_dictionnary["outputs"]["nodes_private_dns"]["value"]["${key}"]}    True    ${ip_dictionnary["outputs"]["nodes_private_dns"]["value"]["${key}"]}    cluster_number=${cluster_number}
+        ${count}    Evaluate    ${count}+1
+    END
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    elb_address
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["elb_address"]["value"]}
+    add lb to CS    ${IP_LB}    ${cluster_number}
+
+check cluster state exist
+    ${status}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster_state.json
+    [Return]    ${status}
+
+check cluster state integrity
+    ${clusters}    Get Dictionary Keys    ${cluster_state}
+    ${cluster_length}    Get Length    ${clusters}
+    Return From Keyword If    "${cluster_length}"==0    False
+    FOR    ${cluster}    IN    @{clusters}
+        ${keys}    Get Dictionary Keys    ${cluster_state["${cluster}"]}
+        ${status_master}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["${cluster}"]}    master
+        ${status_worker}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["${cluster}"]}    worker
+        ${status_lb}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["${cluster}"]}    lb
+        Return From Keyword If    "${status_master}"=="FAIL" or "${status_worker}"=="FAIL" or "${status_lb}"=="FAIL"    False
+    END
+    Return From Keyword    True
+    [Return]    ${status}
+
+_get node name
+    [Arguments]    ${with_status}    ${type}    ${cluster_number}
+    ${node_keys}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["${type}"]}
+    FOR    ${node}    IN    @{node_keys}
+        BuiltIn.Exit For Loop If    "${with_status}"=="all"
+        ${status}    Set Variable if    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${node}"]["disable"]}    disable    enable
+        Run Keyword If    "${with_status}"!="${status}"    Remove Values From List    ${node_keys}    ${node}
+    END
+    [Return]    ${node_keys}
+
+get node skuba name
+    [Arguments]    ${node_name}    ${cluster_number}=1
+    ${type}    get node type    ${node_name}
+    ${skuba_name}    Set Variable    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${node_name}"]["skuba_name"]}
+    [Return]    ${skuba_name}
