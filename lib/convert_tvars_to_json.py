@@ -2,11 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import json
-import os
 import logging
-import ast
 import re
-from itertools import combinations
 
 regex = re.compile(r"\[.*(\"\n)")
 

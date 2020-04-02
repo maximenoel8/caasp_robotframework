@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import yaml
 import logging
 import os
+
+import yaml
 
 FORMAT = '[%(levelname)s-%(asctime)-15s]-%(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
