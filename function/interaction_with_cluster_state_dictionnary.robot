@@ -112,9 +112,13 @@ create first cluster_state level
 _create cluster_state terraform 11 for
     [Arguments]    ${ip_dictionnary}    ${cluster_number}
     ${count}    Set Variable    0
+    ${length}    Get Length    ${ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
+    ${length}    Evaluate    ${length}-1
     FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
         add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip}    True    cluster_number=${cluster_number}
         ${count}    Evaluate    ${count}+1
+        Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip}    ${cluster_number}
+        ...    AND    Exit For Loop
     END
     ${count}    Set Variable    0
     FOR    ${ip}    IN    @{ip_dictionnary["modules"][0]["outputs"]["ip_workers"]["value"]}
@@ -138,8 +142,14 @@ _create cluster_state terraform 12 for
     [Arguments]    ${ip_dictionnary}    ${cluster_number}
     @{masters}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
     @{workers}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_workers"]["value"]}
+    ${count}    Set Variable    0
+    ${length}    Get Length    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
+    ${length}    Evaluate    ${length}-1
     FOR    ${key}    IN    @{masters}
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    cluster_number=${cluster_number}
+        ${count}    Evaluate    ${count}+1
+        Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    ${cluster_number}
+        ...    AND    Exit For Loop
     END
     FOR    ${key}    IN    @{workers}
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    cluster_number=${cluster_number}
@@ -162,9 +172,13 @@ _create cluster_state for aws
     @{aws_masters_key}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]}
     @{aws_workers_key}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["nodes_private_dns"]["value"]}
     ${count}    Set Variable    0
+    ${length}    Get Length    ${ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
+    ${length}    Evaluate    ${length}-1
     FOR    ${key}    IN    @{aws_masters_key}
         add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]["${key}"]}    True    ${ip_dictionnary["outputs"]["control_plane_private_dns"]["value"]["${key}"]}    cluster_number=${cluster_number}
         ${count}    Evaluate    ${count}+1
+        Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]["${key}"]}    ${cluster_number}
+        ...    AND    Exit For Loop
     END
     ${count}    Set Variable    0
     FOR    ${key}    IN    @{aws_workers_key}
@@ -208,3 +222,7 @@ get node skuba name
     ${type}    get node type    ${node_name}
     ${skuba_name}    Set Variable    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${node_name}"]["skuba_name"]}
     [Return]    ${skuba_name}
+
+add workstation
+    [Arguments]    ${ip}    ${cluster_number}
+    Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]}    workstation=${ip}

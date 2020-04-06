@@ -61,7 +61,8 @@ set repo and packages
 
 configure terraform file common
     [Arguments]    ${vmware_dico}
-    Set To Dictionary    ${vmware_dico}    masters    ${${VM_NUMBER[0]}}
+    ${master_vm}    Evaluate    ${${VM_NUMBER[0]}}+1
+    Set To Dictionary    ${vmware_dico}    masters    ${master_vm}
     Set To Dictionary    ${vmware_dico}    workers    ${${VM_NUMBER[1]}}
     ${status}    ${packages}    Run Keyword And Ignore Error    Get From Dictionary    ${vmware_dico}    packages
     @{packages}    Run Keyword If    "${status}"=="FAIL"    Create List

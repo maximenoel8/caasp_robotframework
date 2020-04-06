@@ -84,7 +84,7 @@ remove string from file
     END
 
 add devel repo
-    [Arguments]    ${alias}=skuba_station_1
+    [Arguments]    ${alias}
     execute command with ssh    sudo zypper ar -C -G -f http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/ caasp_devel    ${alias}
 
 modify string in file

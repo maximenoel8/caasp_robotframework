@@ -33,7 +33,7 @@ configure etcd-backup job
     remove string from file    ${LOGDIR}/snapshot_job.yaml    removechar
 
 install etcdctl on node
-    [Arguments]    ${alias}=skuba_station_1
+    [Arguments]    ${alias}
     Run Keyword And Ignore Error    add devel repo    ${alias}
     execute command with ssh    sudo zypper -n in etcdctl    ${alias}
 
@@ -45,7 +45,7 @@ restore etcd data on
     execute command with ssh    sudo ETCDCTL_API=3 etcdctl snapshot restore ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db\ --data-dir /var/lib/etcd --name ${CLUSTER_PREFIX}-${cluster_number}-${node} --initial-cluster ${CLUSTER_PREFIX}-${cluster_number}-${node}=https://${NODE_IP}:2380 \ --initial-advertise-peer-urls https://${NODE_IP}:2380    ${CLUSTER_PREFIX}-${cluster_number}-${node}
 
 get etcd cluster member list with etcdctl
-    [Arguments]    ${alias}=skuba_station_1
+    [Arguments]    ${alias}=booststrap_master_1
     ${output}    Wait Until Keyword Succeeds    2min    10sec    execute command with ssh    sudo ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \ --cacert=/etc/kubernetes/pki/etcd/ca.crt \ --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \ --key=/etc/kubernetes/pki/etcd/healthcheck-client.key member list    ${alias}
     [Return]    ${output}
 

@@ -39,11 +39,11 @@ redeploy elasticsearch has data
     Should Contain    ${output}    10000
 
 stop etcd ressource on
-    [Arguments]    ${alias}=skuba_station_1
+    [Arguments]    ${alias}
     execute command with ssh    sudo mv /etc/kubernetes/manifests/etcd.yaml /tmp/    ${alias}
 
 purge etcd data on
-    [Arguments]    ${alias}=skuba_station_1
+    [Arguments]    ${alias}
     execute command with ssh    sudo rm -rf /var/lib/etcd    ${alias}
 
 start etcd ressource on
