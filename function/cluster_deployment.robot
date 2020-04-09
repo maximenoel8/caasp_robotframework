@@ -8,7 +8,7 @@ Resource          cluster_helpers.robot
 ${worker_deployment_limit}    4
 ${master_deployment_limit}    1
 ${bootstrap_deployment_limit}    1
-${bootstrap_expected_output}    [bootstrap] successfully bootstrapped core add-ons on node
+${bootstrap_expected_output}    [bootstrap] successfully bootstrapped
 ${master_expected_output}    [join] node successfully joined the cluster
 ${worker_expected_output}    [join] node successfully joined the cluster
 ${sleep_time}     10
@@ -60,7 +60,7 @@ _move node from waiting state to on going
 start bootstrap
     [Arguments]    ${node}    ${cluster}
     ${cluster_number}    get cluster number    ${cluster}
-    open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    ${node}
+    open ssh session    ${WORKSTATION__${cluster_number}}    ${node}
     ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
     execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${node}
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
@@ -70,7 +70,7 @@ start bootstrap
 join node
     [Arguments]    ${node}    ${cluster}=cluster_1    ${ip}=auto    ${after_remove}=False
     ${cluster_number}    get cluster number    ${cluster}
-    open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    ${node}
+    open ssh session    ${WORKSTATION_${cluster_number}}    ${node}
     ${node exist}    check node exit in CS    ${node}    ${cluster_number}
     ${node disable}    Run Keyword If    ${node exist}    check node disable    ${node}    ${cluster_number}
     ${ip}    Run Keyword If    ${node exist} and "${ip}"=="auto"    get node ip from CS    ${node}    ${cluster_number}

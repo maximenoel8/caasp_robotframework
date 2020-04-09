@@ -7,9 +7,9 @@ Resource          ../parameters/velero.robot
 
 *** Keywords ***
 execute command with ssh
-    [Arguments]    ${cmd}    ${alias}=skuba_station_1    ${check_rc}=True
+    [Arguments]    ${cmd}    ${alias}=skuba_station_1    ${check_rc}=True    ${timeout}=15min
     Switch Connection    ${alias}
-    ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=15m
+    ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=${timeout}
     log    ${stderr}    repr=true    formatter=repr
     Append To File    ${LOGDIR}/console.log    \n\nCommand :${cmd} : ERROR :\n${stderr} \n
     log    ${output}    repr=true    formatter=repr
@@ -43,8 +43,8 @@ kubectl
     [Return]    ${output}
 
 skuba
-    [Arguments]    ${arguments}    ${ssh}=False    ${debug}=10
-    ${output}    Run Keyword If    ${ssh}    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}
+    [Arguments]    ${arguments}    ${ssh}=False    ${debug}=10    ${timeout}=15min
+    ${output}    Run Keyword If    ${ssh}    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}    timeout=${timeout}
     ...    ELSE    execute command localy    skuba ${arguments}
     [Return]    ${output}
 
@@ -59,7 +59,7 @@ reinitialize skuba session
     [Arguments]    ${cluster_number}=1
     Switch Connection    skuba_station_${cluster_number}
     Close Connection
-    open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    alias=skuba_station_${cluster_number}
+    open ssh session    ${WORKSTATION__${cluster_number}}    alias=skuba_station_${cluster_number}
 
 openssl
     [Arguments]    ${cmd}
@@ -102,3 +102,9 @@ screenshot cluster status
     Run Keyword And Ignore Error    kubectl    get pods -A    screenshot=True
     Run Keyword And Ignore Error    kubectl    get svc -A    screenshot=True
     Run Keyword And Ignore Error    kubectl    get pvc -A    screenshot=True
+
+check string contain
+    [Arguments]    ${string}    ${contain}
+    ${status_cmd}    ${outptu}    Run Keyword And Ignore Error    Should Contain    ${string}    ${contain}
+    ${status}    Set Variable If    "${status_cmd}"=="PASS"    True    False
+    [Return]    ${status}

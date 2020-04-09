@@ -10,7 +10,8 @@ wait nodes are ready
     Wait Until Keyword Succeeds    12min    10sec    kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
 
 wait reboot
-    Wait Until Keyword Succeeds    30s    5s    execute command localy    kubectl cluster-info
+    Wait Until Keyword Succeeds    50s    10s    kubectl    cluster-info
+    wait pods ready
 
 wait pods ready
     [Arguments]    ${arguments}=${EMPTY}    ${cluster_number}=1
@@ -78,17 +79,22 @@ check cluster deploy
 
 wait all pods are running
     [Arguments]    ${cluster_number}=1
-    FOR    ${i}    IN RANGE    1    5
+    ${pods}    get pod list and try restart crashpod    ${cluster_number}
+    FOR    ${i}    IN RANGE    1    90
         ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
-        @{pods}    Split To Lines    ${output}
-        ${status}    restart CrashLoopBack pod    ${pods}    ${cluster_number}
+        ${status}    ${pod}    check pods running    ${output}
         Exit For Loop If    ${status}
         Sleep    15
     END
-    FOR    ${element}    IN    @{pods}
-        ${key}    Split String    ${element}
-        Run Keyword If    "${key[2]}"!="Running"    kubectl    wait pods --for=condition=ready --timeout=10m ${key[0]} -n kube-system    ${cluster_number}
-    END
+    Run Keyword If    not ${status}    Fail    Pod ${pod} not running
+    Comment    FOR    ${element}    IN    @{pods}
+    Comment    \    ${key}    Split String    ${element}
+    Comment    \    ${status}    ${output}    Run Keyword If    "${key[2]}"!="Running"    Run Keyword And Ignore Error    kubectl    wait pods --for=condition=ready --timeout=10m ${key[0]} -n kube-system    ${cluster_number}
+    Comment    \    Exit For Loop If    "${status}"=="FAIL"
+    Comment    END
+    Comment    ${status pod not found}    Run Keyword If    "${status}"=="FAIL"    check string contain    ${output}    Error from server (NotFound): pods
+    ...    ELSE    Set Variable    False
+    Comment    Run Keyword If    ${status pod not found}    wait all pods are running    ${cluster_number}
 
 expose service
     [Arguments]    ${service}    ${port}    ${namespace}=default
@@ -118,3 +124,54 @@ restart CrashLoopBack pod
         ${status}    Set Variable If    "${elements[2]}"=="CrashLoopBackOff"    False    True
     END
     [Return]    ${status}
+
+get node description
+    ${output}    kubectl    get nodes -o json
+    Create File    ${LOGDIR}/node_description.json    ${output}
+    ${node_json}    Load JSON From File    ${LOGDIR}/node_description.json
+    Log Dictionary    ${node_json}
+    &{node description}    Create Dictionary
+    FOR    ${item}    IN    @{node_json["items"]}
+        Set To Dictionary    ${node description}    ${item["metadata"]["name"]}=${item["status"]}
+    END
+    Log Dictionary    ${node description}
+    [Return]    ${node description}
+
+check nodes version are equal
+    [Arguments]    ${fail_status}=False
+    ${dictionnary}    get node description
+    ${nodes}    Get Dictionary Keys    ${dictionnary}
+    ${previous_version}    Set Variable    ${EMPTY}
+    FOR    ${node}    IN    @{NODES}
+        ${version}    Set Variable    ${dictionnary["${node}"]["nodeInfo"]["kubeletVersion"]}
+        ${status}    Set Variable If    "${version}"!="${previous_version}" and not "${previous_version}"=="${EMPTY}"    False    True
+        Exit For Loop If    not ${status}
+        ${previous_version}    Set Variable    ${version}
+    END
+    Run Keyword If    ${fail_status}    Should Be True    ${status}
+    [Return]    ${status}
+
+wait until node version are the same
+    Wait Until Keyword Succeeds    5min    15sec    check nodes version are equal    True
+
+get pod list and try restart crashpod
+    [Arguments]    ${cluster_number}
+    FOR    ${i}    IN RANGE    1    5
+        ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
+        @{pods}    Split To Lines    ${output}
+        ${status}    restart CrashLoopBack pod    ${pods}    ${cluster_number}
+        Exit For Loop If    ${status}
+        Sleep    15
+    END
+    [Return]    ${pods}
+
+check pods running
+    [Arguments]    ${output}
+    ${lines}    Split To Lines    ${output}
+    FOR    ${line}    IN    @{lines}
+        ${elements}    Split String    ${line}
+        ${status}    Set Variable If    "${elements[2]}"=="Running"    True    False
+        Exit For Loop If    not ${status}
+    END
+    ${pod}    Set Variable if    not ${status}    ${elements[0]}    ${EMPTY}
+    [Return]    ${status}    ${pod}

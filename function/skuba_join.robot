@@ -9,6 +9,7 @@ Resource          reboot.robot
 Resource          tools.robot
 Resource          setup_environment.robot
 Resource          cluster_deployment.robot
+Resource          upgrade/upgrade.robot
 
 *** Keywords ***
 join all nodes
@@ -51,6 +52,7 @@ cluster running
     Run Keyword If    ${cluster_number}!=1    wait nodes are ready    cluster_number=${cluster_number}
     Run Keyword If    ${cluster_number}!=1    wait pods ready    cluster_number=${cluster_number}
     Run Keyword If    ${cluster_number}!=1    wait cillium    cluster_number=${cluster_number}
+    Run Keyword If    ${UPGRADE}    upgrade cluster
 
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3
