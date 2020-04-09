@@ -53,7 +53,7 @@ skuba upgrade all nodes
 
 upgrade cluster
     upgrade workstation
-    Comment    skuba addon upgrade
+    skuba addon upgrade
     skuba upgrade all nodes
     skuba addon upgrade
     wait nodes are ready
