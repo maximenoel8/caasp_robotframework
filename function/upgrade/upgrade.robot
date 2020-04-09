@@ -52,10 +52,16 @@ skuba upgrade all nodes
     Should Contain    ${cluster_status}    Congratulations! You are already at the latest version available
 
 upgrade cluster
-    upgrade workstation
-    skuba addon upgrade
-    skuba upgrade all nodes
-    skuba addon upgrade
-    wait nodes are ready
-    wait pods ready
+    ${passed}    ${output}    Run Keyword And Ignore Error    upgrade workstation
+    Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
+    ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade
+    Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
+    ${passed}    ${output}    Run Keyword And Ignore Error    skuba upgrade all nodes
+    Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
+    ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade
+    Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
+    ${passed}    ${output}    Run Keyword And Ignore Error    wait nodes are ready
+    Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
+    ${passed}    ${output}    Run Keyword And Ignore Error    wait pods ready
+    Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     [Teardown]    set global variable    ${UPGRADE}    False
