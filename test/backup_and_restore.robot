@@ -82,7 +82,6 @@ velero backup wordpress
     [Tags]    backup
     Given cluster running
     And velero setup
-    Comment    And add CA to all server
     And helm is installed
     And storageclass is deployed
     And velero cli is installed
@@ -101,9 +100,9 @@ velero backup wordpress
     [Teardown]    teardown velero
 
 velero backup wordpress gcp
+    [Tags]    backup
     Given cluster running
     And velero setup
-    Comment    And add CA to all server
     And helm is installed
     And storageclass is deployed
     And velero cli is installed

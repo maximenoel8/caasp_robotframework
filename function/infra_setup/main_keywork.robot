@@ -8,8 +8,8 @@ Resource          libvirt_setup.robot
 deploy cluster vms
     Comment    clone skuba locally
     copy terraform configuration from skuba folder
-    Run Keyword If    "${MODE}"=="${EMPTY}"    Run Keyword And Ignore Error    configure registration auto tfvars vmware
-    ...    ELSE    set repo and packages
+    Run Keyword If    "${MODE}"!="${EMPTY}"    set repo and packages
+    Run Keyword If    "${MODE}"=="${EMPTY}" or "${MODE}"=="RELEASE"     Run Keyword And Ignore Error    configure registration auto tfvars vmware
     Run Keyword If    "${PLATFORM}"=="vmware"    configure terraform tfvars vmware
     ...    ELSE IF    "${PLATFORM}"=="openstack"    Configure terraform tfvars openstack
     ...    ELSE IF    "${PLATFORM}"=="libvirt"    configure terraform tfvars libvirt
