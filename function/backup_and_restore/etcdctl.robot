@@ -22,7 +22,7 @@ teardown etcdctl
 
 configure etcd-backup job
     [Arguments]    ${cluster_number}=1
-    ${etcd_image}    execute command with ssh    sudo grep image: /etc/kubernetes/manifests/etcd.yaml | awk '{print $2}'
+    ${etcd_image}    execute command with ssh    sudo grep image: /etc/kubernetes/manifests/etcd.yaml | awk '{print $2}'    alias=bootstrap_master_${cluster_number}
     Copy File    ${DATADIR}/snapshot_job.yaml    ${LOGDIR}
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec containers 0 image    ${etcd_image}
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec volumes 1 hostPath path    ${etcd_snapshot_path}
