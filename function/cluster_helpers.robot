@@ -10,7 +10,7 @@ wait nodes are ready
     Wait Until Keyword Succeeds    12min    10sec    kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
 
 wait reboot
-    Wait Until Keyword Succeeds    50s    10s    kubectl    cluster-info
+    Wait Until Keyword Succeeds    2min    20s    kubectl    cluster-info
     wait pods ready
 
 wait pods ready
@@ -29,8 +29,8 @@ wait cillium
     Wait Until Keyword Succeeds    600s    15s    kubectl    -n kube-system exec ${cilium_pod_names[0]} -- cilium status | grep -E "^Cluster health:\\s+(${number_cillium_pods})/\\1 reachable"    ${cluster_number}
 
 wait podname
-    [Arguments]    ${args}    ${cluster_number}=1
-    ${output}    kubectl    wait pods --for=condition=ready --timeout=10m ${args} -o name    ${cluster_number}
+    [Arguments]    ${args}    ${cluster_number}=1    ${timeout}=10m
+    ${output}    kubectl    wait pods --for=condition=ready --timeout=${timeout} ${args} -o name    ${cluster_number}
     ${output}    Remove String    ${output}    pod/
     ${pod_names}    Split String    ${output}    \n
     ${length}    Get Length    ${pod_names}

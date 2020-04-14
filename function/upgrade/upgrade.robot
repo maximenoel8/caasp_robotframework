@@ -21,7 +21,6 @@ skuba update nodes
 skuba addon upgrade
     skuba    addon upgrade plan    ssh=True
     skuba    addon upgrade apply    ssh=True
-    wait pods ready
 
 skuba upgrade node
     [Arguments]    ${server_name}

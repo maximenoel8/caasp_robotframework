@@ -102,6 +102,7 @@ screenshot cluster status
     Run Keyword And Ignore Error    kubectl    get pods -A    screenshot=True
     Run Keyword And Ignore Error    kubectl    get svc -A    screenshot=True
     Run Keyword And Ignore Error    kubectl    get pvc -A    screenshot=True
+    Run Keyword And Ignore Error    kubectl    get pv    screenshot=True
 
 check string contain
     [Arguments]    ${string}    ${contain}
