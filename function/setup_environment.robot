@@ -96,10 +96,10 @@ open bootstrap session
     END
     @{nodes}    get master servers name
     FOR    ${node}    IN    @{nodes}
-        open ssh session    ${node}
+        open ssh session    ${node}    ${node}
     END
     @{nodes}    get worker servers name
     FOR    ${node}    IN    @{nodes}
         Exit For Loop If    "${PLATFORM}"=="aws"
-        open ssh session    ${node}
+        open ssh session    ${node}    ${node}
     END

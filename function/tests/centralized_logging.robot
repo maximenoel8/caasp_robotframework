@@ -25,9 +25,8 @@ rsyslog is deployed
     sleep    30
 
 messages are log on peer
-    @{masters}    get master servers name
     FOR    ${component}    IN    @{components}
-        execute command with ssh    /usr/bin/logger -t ${component} ${MESSAGE}    alias=${masters[0]}
+        execute command with ssh    /usr/bin/logger -t ${component} ${MESSAGE}    alias=bootstrap_master_1
     END
     sleep    30
 
