@@ -101,5 +101,6 @@ open bootstrap session
     @{nodes}    get worker servers name
     FOR    ${node}    IN    @{nodes}
         Exit For Loop If    "${PLATFORM}"=="aws"
-        open ssh session    ${node}    ${node}
+        open ssh session    ${node}
     END
+                s
