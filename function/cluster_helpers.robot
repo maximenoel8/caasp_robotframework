@@ -10,8 +10,7 @@ wait nodes are ready
     Wait Until Keyword Succeeds    12min    10sec    kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
 
 wait reboot
-    Wait Until Keyword Succeeds    2min    20s    kubectl    cluster-info
-    wait pods ready
+    Wait Until Keyword Succeeds    600s    30s    kubectl    cluster-info
 
 wait pods ready
     [Arguments]    ${arguments}=${EMPTY}    ${cluster_number}=1
