@@ -43,7 +43,7 @@ kubectl
         Exit For Loop If    "${output}"!="${connection_error}"
         Sleep    3 min
     END
-    Run Keyword If    ""${status}""=="FAIL"    Fail    ${output}
+    Run Keyword If    "${status}"=="FAIL"    Fail    ${output}
     [Return]    ${output}
 
 skuba
