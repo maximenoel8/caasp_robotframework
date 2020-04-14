@@ -7,9 +7,11 @@ Resource          ../function/tools.robot
 Resource          ../parameters/tool_parameters.robot
 Resource          ../function/setup_environment.robot
 Resource          ../function/cluster_deployment.robot
+Resource          ../function/backup_and_restore/wordpress.robot
 
 *** Test Cases ***
 deploy cluster
+    [Tags]    upgrade
     Given cluster running
     And helm is installed
 
