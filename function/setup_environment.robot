@@ -103,4 +103,3 @@ open bootstrap session
         Exit For Loop If    "${PLATFORM}"=="aws"
         open ssh session    ${node}
     END
-                s
