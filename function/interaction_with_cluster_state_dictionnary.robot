@@ -175,9 +175,9 @@ _create cluster_state for aws
     ${length}    Get Length    ${aws_masters_key}
     ${length}    Evaluate    ${length}-1
     FOR    ${key}    IN    @{aws_masters_key}
-        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]["${key}"]}    True    ${ip_dictionnary["outputs"]["control_plane_private_dns"]["value"]["${key}"]}    cluster_number=${cluster_number}
         Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]["${key}"]}    ${cluster_number}
         ...    AND    Exit For Loop
+        add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]["${key}"]}    True    ${ip_dictionnary["outputs"]["control_plane_private_dns"]["value"]["${key}"]}    cluster_number=${cluster_number}
         ${count}    Evaluate    ${count}+1
     END
     ${count}    Set Variable    0
