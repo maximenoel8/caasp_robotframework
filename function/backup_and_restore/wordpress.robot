@@ -40,7 +40,7 @@ wordpress volumes are annotated to be backed up
 
 wordpress is up
     [Arguments]    ${cluster_number}=1
-    ${wordpress_pod_name}    wait podname    -l app.kubernetes.io/name=wordpress -n wordpress    ${cluster_number}
+    ${wordpress_pod_name}    wait podname    -l app.kubernetes.io/name=wordpress -n wordpress    ${cluster_number}    timeout=20m
     Set Test Variable    ${wordpress_pod_name}
     wordpress pv are patch
 
