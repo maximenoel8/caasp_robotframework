@@ -25,8 +25,9 @@ rsyslog is deployed
     sleep    30
 
 messages are log on peer
+    @{masters}    get master servers name
     FOR    ${component}    IN    @{components}
-        execute command with ssh    /usr/bin/logger -t ${component} ${MESSAGE}
+        execute command with ssh    /usr/bin/logger -t ${component} ${MESSAGE}    alias=${masters[0]}
     END
     sleep    30
 
@@ -38,7 +39,7 @@ logs should exist on rsyslog-server
     get journalctl log
     ${rsyslog_server}    wait podname    -l app=rsyslog-server
     ${centralized_log}    kubectl    exec ${rsyslog_server} -- cat /var/log/messages-tcp-rfc5424
-    ${podlogs}    Wait Until Keyword Succeeds    30    10    check message in rsyslog log    ${rsyslog_server}
+    ${podlogs}    Wait Until Keyword Succeeds    180    10    check message in rsyslog log    ${rsyslog_server}
     FOR    ${component}    IN    @{components}
         Should Contain    ${podlogs}    ${component}
     END
@@ -51,5 +52,5 @@ check message in rsyslog log
 
 teardown centralized log
     Run Keyword And Ignore Error    helm    delete --purge log-agent-rsyslog
-    Run Keyword And Ignore Error    kubectl    destroy --filename="${DATADIR}/centralized_logging/rsyslog/rsyslog-server-configmap-mtls-verify-peer.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-secret.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-deployment.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-service.yaml"
+    Run Keyword And Ignore Error    kubectl    delete --filename="${DATADIR}/centralized_logging/rsyslog/rsyslog-server-configmap-mtls-verify-peer.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-secret.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-deployment.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-service.yaml"
     [Teardown]    teardown_test

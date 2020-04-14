@@ -172,7 +172,7 @@ _create cluster_state for aws
     @{aws_masters_key}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]}
     @{aws_workers_key}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["nodes_private_dns"]["value"]}
     ${count}    Set Variable    0
-    ${length}    Get Length    ${ip_dictionnary["modules"][0]["outputs"]["ip_masters"]["value"]}
+    ${length}    Get Length    ${aws_masters_key}
     ${length}    Evaluate    ${length}-1
     FOR    ${key}    IN    @{aws_masters_key}
         add node to cluster state    ${CLUSTER_PREFIX}-${cluster_number}-master-${count}    ${ip_dictionnary["outputs"]["control_plane_public_ip"]["value"]["${key}"]}    True    ${ip_dictionnary["outputs"]["control_plane_private_dns"]["value"]["${key}"]}    cluster_number=${cluster_number}
