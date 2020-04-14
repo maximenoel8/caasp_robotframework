@@ -40,8 +40,9 @@ velero migrate wordpress from cluster 1 to 2
     And storageclass is deployed    cluster_number=1
     And storageclass is deployed    cluster_number=2
     And velero cli is installed
-    And velero server is deployed with volume snapshot for    minio    1
-    And velero server is deployed with volume snapshot for    minio    2
+    And aws bucket is setup
+    And velero server is deployed with volume snapshot for    aws    1
+    And velero server is deployed with volume snapshot for    aws    2
     And wordpress is deployed
     And file copy to wordpress pod
     And wordpress volumes are annotated to be backed up
