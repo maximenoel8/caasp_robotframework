@@ -96,7 +96,7 @@ open bootstrap session
     END
     @{nodes}    get master servers name
     FOR    ${node}    IN    @{nodes}
-        open ssh session    ${node}    ${node}
+        open ssh session    ${node}
     END
     @{nodes}    get worker servers name
     FOR    ${node}    IN    @{nodes}

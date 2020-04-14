@@ -11,9 +11,10 @@ Resource          ../function/backup_and_restore/wordpress.robot
 
 *** Test Cases ***
 deploy cluster
-    [Tags]    upgrade
+    [Tags]    upgrade    release    backup
     Given cluster running
     And helm is installed
+    [Teardown]    teardown deploy
 
 deploy double cluster
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL"    deploy cluster vms
@@ -37,3 +38,8 @@ deploy bare server
 
 load ip
     load vm ip
+
+*** Keywords ***
+teardown deploy
+    Run Keyword If Test Failed    Fatal Error
+    [Teardown]    teardown_test
