@@ -41,7 +41,7 @@ kubectl
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     FOR    ${i}    IN RANGE    1    5
         ${status}    ${output}    Run Keyword And Ignore Error    _kubectl configuration    ${arguments}    ${cluster_number}    ${screenshot}
-        ${status_connection}    ${output}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
+        ${status_connection}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
         Exit For Loop If    "${status_connection}"=="FAIL"
         Sleep    3 min
     END
