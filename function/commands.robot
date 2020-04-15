@@ -36,10 +36,12 @@ open ssh session
 
 kubectl
     [Arguments]    ${arguments}    ${cluster_number}=1    ${screenshot}=False
-    ${connection_error}    Set Variable    The connection to the server ${IP_LB_${cluster_number}}:6443 was refused - did you specify the right host or port?
+    Comment    ${connection_error}    Set Variable    connection to the server (([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]):6443 was refused
+    ${connection_error}    Set Variable    connection to the server ${IP_LB_${cluster_number}}:6443 was refused
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     FOR    ${i}    IN RANGE    1    5
         ${status}    ${output}    Run Keyword And Ignore Error    _kubectl configuration    ${arguments}    ${cluster_number}    ${screenshot}
+        ${output}    Convert To String    ${output}
         Exit For Loop If    "${output}"!="${connection_error}"
         Sleep    3 min
     END
@@ -119,3 +121,4 @@ _kubectl configuration
     ${output}    ${rc}    execute command localy    kubectl ${arguments}    False
     Run Keyword if    ${rc}!=0 and not ${screenshot}    screenshot cluster status
     Should Be Equal As Integers    ${rc}    0    ${output}    values=False
+    [Return]    ${output}

@@ -7,7 +7,7 @@ Library           Collections
 *** Keywords ***
 wait nodes are ready
     [Arguments]    ${nodes}=${EMPTY}    ${cluster_number}=1
-    Wait Until Keyword Succeeds    12min    10sec    kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
+    kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
 
 wait reboot
     Wait Until Keyword Succeeds    600s    30s    kubectl    cluster-info
