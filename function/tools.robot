@@ -37,8 +37,8 @@ _check nfs server install, configure and running
 storageclass is deployed
     [Arguments]    ${cluster_number}=1
     Run Keyword If    "${PLATFORM}"=="vmware" and ${cluster_number}==1    nfs server is deployed
-    Run Keyword If    "${PLATFORM}"=="vmware" or "${PLATFORM}"=="openstack"    nfs client is deployed    cluster_number=1
-    Run Keyword If    "${PLATFORM}"=="aws"    deploy storagedefault on aws    cluster_number=1
+    Run Keyword If    "${PLATFORM}"=="vmware" or "${PLATFORM}"=="openstack"    nfs client is deployed    cluster_number=${cluster_number}
+    Run Keyword If    "${PLATFORM}"=="aws"    deploy storagedefault on aws    cluster_number=${cluster_number}
 
 deploy storagedefault on aws
     [Arguments]    ${cluster_number}

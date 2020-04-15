@@ -155,12 +155,12 @@ wait until node version are the same
 
 get pod list and try restart crashpod
     [Arguments]    ${cluster_number}
-    FOR    ${i}    IN RANGE    1    5
+    FOR    ${i}    IN RANGE    1    10
         ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
         @{pods}    Split To Lines    ${output}
         ${status}    restart CrashLoopBack pod    ${pods}    ${cluster_number}
         Exit For Loop If    ${status}
-        Sleep    15
+        Sleep    20
     END
     [Return]    ${pods}
 
