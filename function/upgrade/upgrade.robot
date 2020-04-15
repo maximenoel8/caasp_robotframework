@@ -25,7 +25,7 @@ skuba addon upgrade
 skuba upgrade node
     [Arguments]    ${server_name}
     ${server_ip}    get node ip from CS    ${server_name}
-    skuba    node upgrade plan ${server_name}    ssh=True
+    Wait Until Keyword Succeeds    2min    10sec    skuba    node upgrade plan ${server_name}    ssh=True
     Wait Until Keyword Succeeds    30min    30s    skuba    node upgrade apply -t ${server_ip} -u sles -s    ssh=True    timeout=10min
     Comment    ${status}    ${output}    Run Keyword And Ignore Error    skuba    node upgrade apply -t ${server_ip} -u sles -s    ssh=True    timeout=10min
     Comment    ${status_connection}    Run Keyword If    "${status}"=="FAIL"    check string contain    ${output}    connect: connection refused
