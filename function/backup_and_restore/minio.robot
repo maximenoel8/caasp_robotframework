@@ -27,8 +27,8 @@ minio is deployed and setup
     Run Keyword If    "${status}"=="FAIL"    install and start minio server on master0
     Run Keyword If    "${status}"=="FAIL"    install minio client localy
     Run Keyword If    "${status}"=="FAIL"    mc configure minio server
-    Set Global Variable    ${BUCKET_MASTER}    ${BUCKET_MASTER}-minio
-    Run Keyword If    "${status}"=="FAIL"    setup minio bucket with minio client    minio    ${BUCKET_MASTER}
+    Set Global Variable    ${bucket}    ${BUCKET_MASTER}-minio
+    Run Keyword If    "${status}"=="FAIL"    setup minio bucket with minio client    minio    ${bucket}
 
 setup minio bucket with minio client
     [Arguments]    ${provider}    ${bucket_name}
@@ -49,5 +49,5 @@ mc configure minio server
 aws bucket is setup
     install minio client localy
     mc configure aws server
-    Set Global Variable    ${BUCKET_MASTER}    ${BUCKET_MASTER}-aws
-    setup minio bucket with minio client    s3    ${BUCKET_MASTER}
+    Set Global Variable    ${bucket}    ${BUCKET_MASTER}-aws
+    setup minio bucket with minio client    s3    ${bucket}

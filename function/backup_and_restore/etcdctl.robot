@@ -14,7 +14,7 @@ etcd-backup job is executed
     kubectl    create -f ${LOGDIR}/snapshot_job.yaml
     wait job    etcd-backup -n kube-system    condition=complete
     SSHLibrary.Get File    ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db    ${LOGDIR}/etcd-snapshot-${cluster}.db
-    execute command with ssh    rm ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db
+    execute command with ssh    rm ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db    alias=bootstrap_master_1
 
 teardown etcdctl
     Run Keyword And Ignore Error    kubectl    delete jobs etcd-backup -n kube-system
@@ -26,15 +26,15 @@ configure etcd-backup job
     Copy File    ${DATADIR}/snapshot_job.yaml    ${LOGDIR}
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec containers 0 image    ${etcd_image}
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec volumes 1 hostPath path    ${etcd_snapshot_path}
-    yaml_editor.Remove Key    ${LOGDIR}/snapshot_job.yaml    spec template spec nodeSelector
-    Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec nodeName    ${CLUSTER_PREFIX}-${cluster_number}-master-0    True
+    Remove Key    ${LOGDIR}/snapshot_job.yaml    spec template spec nodeSelector
+    ${master_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0
+    Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec nodeName    ${master_name}    True
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec containers 0 command    removechar["/bin/sh"]
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec containers 0 args    removechar["-c", "etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key snapshot save /backup/etcd-snapshot-${cluster}.db"]
     remove string from file    ${LOGDIR}/snapshot_job.yaml    removechar
 
 install etcdctl on node
     [Arguments]    ${alias}
-    Run Keyword And Ignore Error    add devel repo    ${alias}
     execute command with ssh    sudo zypper -n in etcdctl    ${alias}
 
 restore etcd data on
@@ -45,7 +45,7 @@ restore etcd data on
     execute command with ssh    sudo ETCDCTL_API=3 etcdctl snapshot restore ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db\ --data-dir /var/lib/etcd --name ${CLUSTER_PREFIX}-${cluster_number}-${node} --initial-cluster ${CLUSTER_PREFIX}-${cluster_number}-${node}=https://${NODE_IP}:2380 \ --initial-advertise-peer-urls https://${NODE_IP}:2380    ${CLUSTER_PREFIX}-${cluster_number}-${node}
 
 get etcd cluster member list with etcdctl
-    [Arguments]    ${alias}=booststrap_master_1
+    [Arguments]    ${alias}=bootstrap_master_1
     ${output}    Wait Until Keyword Succeeds    2min    10sec    execute command with ssh    sudo ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \ --cacert=/etc/kubernetes/pki/etcd/ca.crt \ --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \ --key=/etc/kubernetes/pki/etcd/healthcheck-client.key member list    ${alias}
     [Return]    ${output}
 

@@ -38,11 +38,13 @@ kubectl
     [Arguments]    ${arguments}    ${cluster_number}=1    ${screenshot}=False
     Comment    ${connection_error}    Set Variable    connection to the server (([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]):6443 was refused
     ${connection_error}    Set Variable    connection to the server ${IP_LB_${cluster_number}}:6443 was refused
+    ${unable to connect}    Set Variable    Unable to connect to the server: EOF
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     FOR    ${i}    IN RANGE    1    5
         ${status}    ${output}    Run Keyword And Ignore Error    _kubectl configuration    ${arguments}    ${cluster_number}    ${screenshot}
         ${status_connection}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
-        Exit For Loop If    "${status_connection}"=="FAIL"
+        ${status_unable}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${unable to connect}
+        Exit For Loop If    "${status_connection}"=="FAIL" and "${status_unable}"=="FAIL"
         Sleep    3 min
     END
     Run Keyword If    "${status}"=="FAIL"    Fail    ${output}
