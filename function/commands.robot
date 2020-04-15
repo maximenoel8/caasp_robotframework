@@ -107,10 +107,11 @@ modify string in file
     END
 
 screenshot cluster status
-    Run Keyword And Ignore Error    kubectl    get pods -A    screenshot=True
-    Run Keyword And Ignore Error    kubectl    get svc -A    screenshot=True
-    Run Keyword And Ignore Error    kubectl    get pvc -A    screenshot=True
-    Run Keyword And Ignore Error    kubectl    get pv    screenshot=True
+    [Arguments]    ${cluster_number}=1
+    Run Keyword And Ignore Error    kubectl    get pods -A    screenshot=True    cluster_number=${cluster_number}
+    Run Keyword And Ignore Error    kubectl    get svc -A    screenshot=True    cluster_number=${cluster_number}
+    Run Keyword And Ignore Error    kubectl    get pvc -A    screenshot=True    cluster_number=${cluster_number}
+    Run Keyword And Ignore Error    kubectl    get pv    screenshot=True    cluster_number=${cluster_number}
 
 check string contain
     [Arguments]    ${string}    ${contain}
@@ -121,6 +122,6 @@ check string contain
 _kubectl configuration
     [Arguments]    ${arguments}    ${cluster_number}    ${screenshot}
     ${output}    ${rc}    execute command localy    kubectl ${arguments}    False
-    Run Keyword if    ${rc}!=0 and not ${screenshot}    screenshot cluster status
+    Run Keyword if    ${rc}!=0 and not ${screenshot}    screenshot cluster status    ${cluster_number}
     Should Be Equal As Integers    ${rc}    0    ${output}    values=False
     [Return]    ${output}

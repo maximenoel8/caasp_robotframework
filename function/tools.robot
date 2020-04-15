@@ -9,8 +9,8 @@ nfs client is deployed
     ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOSTRAP_MASTER_1}
     Set Global Variable    ${nfs_ip}
     Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
-    ${output}    kubectl    get pod -l app=nfs-client-provisioner -o name    ${cluster_number}
-    Run Keyword If    "${output}"=="${EMPTY}"    helm    install stable/nfs-client-provisioner --name nfs --set nfs.server="${server_ip}" --set nfs.path="${path}" --set storageClass.defaultClass=true --set storageClass.reclaimPolicy="${mode}"    ${cluster_number}
+    ${output}    kubectl    get pod -l app=nfs-client-provisioner -o name    cluster_number=${cluster_number}
+    Run Keyword If    "${output}"=="${EMPTY}"    helm    install stable/nfs-client-provisioner --name nfs --set nfs.server="${server_ip}" --set nfs.path="${path}" --set storageClass.defaultClass=true --set storageClass.reclaimPolicy="${mode}"    cluster_number=${cluster_number}
     wait pods ready    -l app=nfs-client-provisioner    ${cluster_number}
 
 nfs server is deployed
