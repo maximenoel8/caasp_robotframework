@@ -6,12 +6,13 @@ Resource          ../parameters/tool_parameters.robot
 *** Keywords ***
 nfs client is deployed
     [Arguments]    ${server_ip}=${NFS_IP}    ${path}=${NFS_PATH}    ${mode}=Delete    ${cluster_number}=1
-    ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOSTRAP_MASTER_1}
+    ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOTSTRAP_MASTER_1}
     Set Global Variable    ${nfs_ip}
     Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
+    Set Variable    ${server_ip}    ${nfs_ip}
     ${output}    kubectl    get pod -l app=nfs-client-provisioner -o name    cluster_number=${cluster_number}
     Run Keyword If    "${output}"=="${EMPTY}"    helm    install stable/nfs-client-provisioner --name nfs --set nfs.server="${server_ip}" --set nfs.path="${path}" --set storageClass.defaultClass=true --set storageClass.reclaimPolicy="${mode}"    cluster_number=${cluster_number}
-    wait pods ready    -l app=nfs-client-provisioner    ${cluster_number}
+    wait pods ready    -l app=nfs-client-provisioner    cluster_number=${cluster_number}
 
 nfs server is deployed
     ${exist}    ${configure}    ${run}    _check nfs server install, configure and running

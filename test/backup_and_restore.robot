@@ -64,6 +64,7 @@ Restore all master nodes - etcd cluster and data
     [Tags]    backup
     Given cluster running
     And helm is installed
+    And rsyslog is deployed
     And etcd-backup job is executed
     And install etcdctl on masters
     And stop etcd ressource on all masters
@@ -77,6 +78,7 @@ Restore all master nodes - etcd cluster and data
     and wait nodes are ready
     and delete etcd-backup job
     and wait pods ready
+    And check rsyslog is deployed
     [Teardown]    teardown etcdctl
 
 velero backup wordpress
