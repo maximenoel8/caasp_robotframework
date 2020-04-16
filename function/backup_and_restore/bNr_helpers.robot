@@ -29,13 +29,13 @@ load data in elasticsearch
     Set Test Variable    ${node_port}
     execute command localy    cd ${LOGDIR} && git clone https://github.com/oliver006/elasticsearch-test-data
     execute command localy    pip3 install -r ${LOGDIR}/elasticsearch-test-data/requirements.txt
-    execute command localy    python3 ${LOGDIR}/elasticsearch-test-data/es_test_data.py --es_url=http://${BOOSTRAP_MASTER_${cluster_number}}:${node_port}
+    execute command localy    python3 ${LOGDIR}/elasticsearch-test-data/es_test_data.py --es_url=http://${BOOTSTRAP_MASTER_${cluster_number}}:${node_port}
 
 redeploy elasticsearch has data
     [Arguments]    ${cluster_number}=1
     kubectl    delete svc expose-elasticsearch-master-0 -n kube-system
     ${node_port}    expose service    pod elasticsearch-master-0    9200    kube-system
-    ${output}    execute command localy    curl -XGET 'http://${BOOSTRAP_MASTER_${cluster_number}}:${node_port}/test_data/_count' | jq -r .count
+    ${output}    execute command localy    curl -XGET 'http://${BOOTSTRAP_MASTER_${cluster_number}}:${node_port}/test_data/_count' | jq -r .count
     Should Contain    ${output}    10000
 
 stop etcd ressource on

@@ -45,7 +45,7 @@ kubectl
         ${status_connection}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
         ${status_unable}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${unable to connect}
         Exit For Loop If    "${status_connection}"=="FAIL" and "${status_unable}"=="FAIL"
-        Sleep    3 min
+        Sleep    30sec
     END
     Run Keyword If    "${status}"=="FAIL"    Fail    ${output}
     [Return]    ${output}

@@ -71,7 +71,7 @@ authentication with WebUI user
 users has been added to
     [Arguments]    ${type}    ${cluster_number}=1
     Run Keyword If    "${type}"=="openldap"    _add user for ldap
-    ...    ELSE IF    "${type}"=="389ds"    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOSTRAP_MASTER_${cluster_number}}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
+    ...    ELSE IF    "${type}"=="389ds"    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOTSTRAP_MASTER_${cluster_number}}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
     ...    ELSE    Fail    Wrong value for ldap type
 
 dex is configured for

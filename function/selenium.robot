@@ -35,13 +35,13 @@ deploy selenium pod
     ${pod}    wait podname    -l app=selenium
     Wait Until Keyword Succeeds    2min    10sec    _check selenium grid up    ${pod}
     ${node port}    kubectl    get svc/selenium -o json | jq '.spec.ports[0].nodePort'
-    Set Global Variable    ${SELENIUM_URL}    http://${BOOSTRAP_MASTER_${cluster_number}}:${node port}/wd/hub
+    Set Global Variable    ${SELENIUM_URL}    http://${BOOTSTRAP_MASTER_${cluster_number}}:${node port}/wd/hub
 
 selenium_grafana
     [Arguments]    ${cluster_number}=1
     ${profile}    get_firefox_profile
-    Open Browser    url=http://${BOOSTRAP_MASTER_${cluster_number}}:${grafanaPort}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
-    SeleniumLibrary.Location Should Be    http://${BOOSTRAP_MASTER_${cluster_number}}:${grafanaPort}/login
+    Open Browser    url=http://${BOOTSTRAP_MASTER_${cluster_number}}:${grafanaPort}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
+    SeleniumLibrary.Location Should Be    http://${BOOTSTRAP_MASTER_${cluster_number}}:${grafanaPort}/login
     Wait Until Element Is Visible    username
     Input Text    username    admin
     Input Text    password    linux
@@ -52,8 +52,8 @@ selenium_grafana
 selenium_prometheus
     [Arguments]    ${cluster_number}=1
     ${profile}    get_firefox_profile
-    Open Browser    url=http://${BOOSTRAP_MASTER_${cluster_number}}:${prometheus_port}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
-    SeleniumLibrary.Location Should Be    http://${BOOSTRAP_MASTER_${cluster_number}}:${prometheus_port}/
+    Open Browser    url=http://${BOOTSTRAP_MASTER_${cluster_number}}:${prometheus_port}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
+    SeleniumLibrary.Location Should Be    http://${BOOTSTRAP_MASTER_${cluster_number}}:${prometheus_port}/
     Wait Until Page Contains    Metrics
     [Teardown]    Close All Browsers
 

@@ -4,6 +4,8 @@ Resource          ../../parameters/global_parameters.robot
 Library           ../../lib/yaml_editor.py
 Resource          ../cluster_helpers.robot
 Resource          ../interaction_with_cluster_state_dictionnary.robot
+Resource          ../setup_environment.robot
+Resource          ../tests/centralized_logging.robot
 
 *** Variables ***
 ${etcd_snapshot_path}    /home/${VM_USER}
@@ -18,7 +20,7 @@ etcd-backup job is executed
 
 teardown etcdctl
     Run Keyword And Ignore Error    kubectl    delete jobs etcd-backup -n kube-system
-    Run Keyword And Ignore Error    rsyslog is deleted
+    [Teardown]    teardown centralized log
 
 configure etcd-backup job
     [Arguments]    ${cluster_number}=1
@@ -42,7 +44,9 @@ restore etcd data on
     ${node_ip}    get node ip from CS    ${CLUSTER_PREFIX}-${cluster_number}-${node}
     Switch Connection    ${CLUSTER_PREFIX}-${cluster_number}-${node}
     Put File    ${LOGDIR}/etcd-snapshot-${cluster}.db    ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db
-    execute command with ssh    sudo ETCDCTL_API=3 etcdctl snapshot restore ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db\ --data-dir /var/lib/etcd --name ${CLUSTER_PREFIX}-${cluster_number}-${node} --initial-cluster ${CLUSTER_PREFIX}-${cluster_number}-${node}=https://${NODE_IP}:2380 \ --initial-advertise-peer-urls https://${NODE_IP}:2380    ${CLUSTER_PREFIX}-${cluster_number}-${node}
+    ${server_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-${node}
+    ${node_ip}    Set Variable If    "${PLATFORM}"=="aws"    ${server_name}    ${node_ip}
+    execute command with ssh    sudo ETCDCTL_API=3 etcdctl snapshot restore ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db\ --data-dir /var/lib/etcd --name ${server_name} --initial-cluster ${server_name}=https://${NODE_IP}:2380 \ --initial-advertise-peer-urls https://${NODE_IP}:2380    alias=bootstrap_master_${cluster_number}
 
 get etcd cluster member list with etcdctl
     [Arguments]    ${alias}=bootstrap_master_1
@@ -51,18 +55,21 @@ get etcd cluster member list with etcdctl
 
 install etcdctl on masters
     @{masters}    get master servers name
+    Get Connections
     FOR    ${master}    IN    @{masters}
         install etcdctl on node    ${master}
     END
 
 check master started in etcdctl list
     [Arguments]    ${node}    ${cluster_number}=1
-    Wait Until Keyword Succeeds    30sec    5sec    check master status in etcdctl is started    ${node}    ${cluster_number}
+    Wait Until Keyword Succeeds    2min    15sec    check master status in etcdctl is started    ${node}    ${cluster_number}
 
 add master to the etcd member list with etcdctl
     [Arguments]    ${master}    ${cluster_number}=1
     ${node_ip}    get node ip from CS    ${CLUSTER_PREFIX}-${cluster_number}-${master}
-    execute command with ssh    sudo ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \ --cacert=/etc/kubernetes/pki/etcd/ca.crt \ --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \ member add ${CLUSTER_PREFIX}-${cluster_number}-${master} --peer-urls=https://${NODE_IP}:2380
+    ${server_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-${master}
+    ${node_ip}    Set Variable If    "${PLATFORM}"=="aws"    ${server_name}    ${node_ip}
+    execute command with ssh    sudo ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \ --cacert=/etc/kubernetes/pki/etcd/ca.crt \ --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \ member add ${server_name} --peer-urls=https://${NODE_IP}:2380    alias=bootstrap_master_${cluster_number}
 
 delete etcd-backup job
     kubectl    delete job etcd-backup -n kube-system
@@ -71,7 +78,7 @@ delete etcd-backup job
 check master status in etcdctl is started
     [Arguments]    ${node}    ${cluster_number}=1
     ${output}    get etcd cluster member list with etcdctl
-    ${node}    Set Variable    ${CLUSTER_PREFIX}-${cluster_number}-${node}
+    ${node}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-${node}
     @{lines}    Split To Lines    ${output}
     FOR    ${line}    IN    @{lines}
         ${line}    Remove String    ${line}    ${SPACE}

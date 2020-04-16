@@ -15,7 +15,7 @@ set global ip variable
     Log Dictionary    ${cluster_state}
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        Set Global Variable    ${BOOSTRAP_MASTER_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
+        Set Global Variable    ${BOOTSTRAP_MASTER_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
         Set Global Variable    ${WORKSTATION_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["workstation"]}
         Set Global Variable    ${IP_LB_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["lb"]["ip"]}
     END
@@ -91,7 +91,7 @@ create cluster folder
 open bootstrap session
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        open ssh session    ${BOOSTRAP_MASTER_${cluster_number}}    alias=bootstrap_master_${cluster_number}
+        open ssh session    ${BOOTSTRAP_MASTER_${cluster_number}}    alias=bootstrap_master_${cluster_number}
         open ssh session    ${WORKSTATION_${cluster_number}}    alias=skuba_station_${cluster_number}
     END
     @{nodes}    get master servers name

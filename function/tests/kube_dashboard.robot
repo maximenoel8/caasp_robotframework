@@ -9,7 +9,7 @@ kubernetes dashboard is deployed
     kubectl    apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended.yaml --wait
     wait deploy    kubernetes-dashboard -n kubernetes-dashboard
     ${node_port}    expose service    svc kubernetes-dashboard    8443    kubernetes-dashboard
-    Set Test Variable    ${dashboard_url}    https://${BOOSTRAP_MASTER_1}:${node_port}
+    Set Test Variable    ${dashboard_url}    https://${BOOTSTRAP_MASTER_1}:${node_port}
 
 fail to login authorized user without admin rights and list namespaces
     ${token_generic}    _get token for    kubernetes-dashboard    kubernetes-dashboard
