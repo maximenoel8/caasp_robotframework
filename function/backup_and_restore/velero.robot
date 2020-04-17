@@ -30,7 +30,8 @@ backup-location slave is set up
 
 create backup on
     [Arguments]    ${backup_name}    ${location}=default    ${args}=${EMPTY}
-    Set Suite Variable    ${backup_name}
+    ${random}    String.Generate Random String    4    [NUMBERS]
+    Set Suite Variable    ${backup_name}    ${backup_name}-${random}
     velero    backup create ${backup_name} ${args} --storage-location ${location}
 
 backup should be successfull
@@ -73,7 +74,9 @@ check restore finish
     Should Contain    ${output}    Phase: \ Completed
 
 teardown velero
+    [Arguments]    ${bucket_type}=default
     Run Keyword And Ignore Error    velero    delete backup --confirm ${backup_name}
+    Run Keyword And Ignore Error    Run Keyword If    "${bucket_type}"=="aws" or "${bucket_type}"=="minio"    execute command localy    ${LOGDIR}/mc rb --force \ ${bucket_type}/${bucket_name}
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
         Run Keyword And Ignore Error    helm    delete --purge velero    ${cluster_number}

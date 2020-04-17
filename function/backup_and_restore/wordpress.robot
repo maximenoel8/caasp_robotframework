@@ -7,7 +7,6 @@ Resource          ../../parameters/global_parameters.robot
 wordpress is deployed
     helm    install --name wordpress --namespace wordpress --set ingress.enabled=true,ingress.hosts[0].name=wordpress.jaws.jio.com --set service.type=NodePort --set service.nodePorts.http=30800 --set service.nodePorts.https=30880 --set wordpressUsername=admin --set wordpressPassword=password stable/wordpress
     wordpress is up
-    wordpress pv are patch
 
 wordpress is removed
     [Arguments]    ${cluster_number}=1

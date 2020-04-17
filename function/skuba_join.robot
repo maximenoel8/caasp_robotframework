@@ -46,12 +46,9 @@ cluster running
     Run Keyword If    ${cluster_number}==1    open bootstrap session
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    cluster is deployed
-    Run Keyword If    ${cluster_number}==1    wait nodes are ready
-    Run Keyword If    ${cluster_number}==1    wait pods ready
-    Run Keyword If    ${cluster_number}==1    wait cillium
-    Run Keyword If    ${cluster_number}!=1    wait nodes are ready    cluster_number=${cluster_number}
-    Run Keyword If    ${cluster_number}!=1    wait pods ready    cluster_number=${cluster_number}
-    Run Keyword If    ${cluster_number}!=1    wait cillium    cluster_number=${cluster_number}
+    wait nodes are ready    cluster_number=${cluster_number}
+    wait pods ready    cluster_number=${cluster_number}
+    wait cillium    cluster_number=${cluster_number}
     Run Keyword If    ${UPGRADE}    upgrade cluster
 
 replica dex and gangway are correctly distribued

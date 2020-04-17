@@ -36,7 +36,7 @@ open ssh session
 
 kubectl
     [Arguments]    ${arguments}    ${cluster_number}=1    ${screenshot}=False
-    Comment    ${connection_error}    Set Variable    connection to the server (([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]):6443 was refused
+    log    kubectl ${arguments}
     ${connection_error}    Set Variable    connection to the server ${IP_LB_${cluster_number}}:6443 was refused
     ${unable to connect}    Set Variable    Unable to connect to the server: EOF
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf

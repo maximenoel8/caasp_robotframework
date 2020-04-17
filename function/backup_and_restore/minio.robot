@@ -41,7 +41,7 @@ check minio is correctly deploy and have a bucket
     Should Be Equal As Strings    ${status}    PASS
 
 mc configure aws server
-    execute command localy    ${LOGDIR}/mc config host add s3 https://s3.amazonaws.com ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY} --api S3v4
+    execute command localy    ${LOGDIR}/mc config host add aws https://s3.amazonaws.com ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY} --api S3v4
 
 mc configure minio server
     execute command localy    ${LOGDIR}/mc config host add minio ${MINIO_MASTER_SERVER_URL} ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY}
@@ -50,4 +50,4 @@ aws bucket is setup
     install minio client localy
     mc configure aws server
     Set Global Variable    ${bucket}    ${BUCKET_MASTER}-aws
-    setup minio bucket with minio client    s3    ${bucket}
+    setup minio bucket with minio client    aws    ${bucket}

@@ -6,7 +6,8 @@ Resource          ../parameters/tool_parameters.robot
 *** Keywords ***
 nfs client is deployed
     [Arguments]    ${server_ip}=${NFS_IP}    ${path}=${NFS_PATH}    ${mode}=Delete    ${cluster_number}=1
-    ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOTSTRAP_MASTER_1}
+    Comment    ${nfs_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${PERMANENT_NFS_SERVER}    ${BOOTSTRAP_MASTER_1}
+    ${nfs_ip}    Set Variable    ${PERMANENT_NFS_SERVER}
     Set Global Variable    ${nfs_ip}
     Set Global Variable    ${nfs_path}    /home/${VM_USER}/nfs/pv_folder
     Set Variable    ${server_ip}    ${nfs_ip}
@@ -37,7 +38,7 @@ _check nfs server install, configure and running
 
 storageclass is deployed
     [Arguments]    ${cluster_number}=1
-    Run Keyword If    "${PLATFORM}"=="vmware" and ${cluster_number}==1    nfs server is deployed
+    Comment    Run Keyword If    "${PLATFORM}"=="vmware" and ${cluster_number}==1    nfs server is deployed
     Run Keyword If    "${PLATFORM}"=="vmware" or "${PLATFORM}"=="openstack"    nfs client is deployed    cluster_number=${cluster_number}
     Run Keyword If    "${PLATFORM}"=="aws"    deploy storagedefault on aws    cluster_number=${cluster_number}
 

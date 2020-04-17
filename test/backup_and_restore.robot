@@ -27,7 +27,7 @@ velero backup wordpress aws
     Sleep    10sec
     And wordpress is up
     Then check file exist in wordpress pod
-    [Teardown]    teardown velero
+    [Teardown]    teardown velero    aws
 
 velero migrate wordpress from cluster 1 to 2
     [Tags]    backup
@@ -52,7 +52,7 @@ velero migrate wordpress from cluster 1 to 2
     Sleep    10sec
     and wordpress is up    2
     then check file exist in wordpress pod    2
-    [Teardown]    teardown velero
+    [Teardown]    teardown velero    aws
 
 etcd-backup
     [Tags]    backup
@@ -100,7 +100,7 @@ velero backup wordpress
     Sleep    10sec
     And wordpress is up
     Then check file exist in wordpress pod
-    [Teardown]    teardown velero
+    [Teardown]    teardown velero    minio
 
 velero backup wordpress gcp
     [Tags]    backup
