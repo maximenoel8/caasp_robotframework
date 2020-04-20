@@ -70,6 +70,7 @@ setup environment
     Create Directory    ${LOGDIR}
     Set Environment Variable    HELM_HOME    ${WORKDIR}/helm
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}/admin.conf
+    execute command localy    chmod 0600 ${DATADIR}/id_shared
     ${SSH_PUB_KEY}    OperatingSystem.Get File    ${DATADIR}/id_shared.pub
     ${SSH_PUB_KEY}    Remove String    ${SSH_PUB_KEY}    \n
     Set Global Variable    ${SSH_PUB_KEY}

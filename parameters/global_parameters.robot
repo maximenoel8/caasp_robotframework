@@ -16,3 +16,4 @@ ${NUMBER_OF_CLUSTER}    1
 ${PERMANENT_NFS_SERVER}    10.84.72.33
 ${OLD}            False
 ${UPGRADE}        False
+${UPGRADE}        False

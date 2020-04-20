@@ -1,5 +1,6 @@
 selenium
-robotframework-seleniumlibrary
+pyyaml
 robotframework
+robotframework-seleniumlibrary
 robotframework-sshlibrary
 robotframework-jsonlibrary

@@ -46,7 +46,7 @@ kubectl
         ${status_connection}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
         ${status_unable}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${unable to connect}
         ${status_etcdserver}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${etcd timedout}
-        Exit For Loop If    "${status_connection}"=="FAIL" and "${status_unable}"=="FAIL" and "${status_etcdserver}"==FAIL
+        Exit For Loop If    "${status_connection}"=="FAIL" and "${status_unable}"=="FAIL" and "${status_etcdserver}"=="FAIL"
         Sleep    30sec
     END
     Run Keyword If    "${status}"=="FAIL"    Fail    ${output}

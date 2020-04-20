@@ -2,16 +2,20 @@
 
 ## Installation
 
-sudo pip install -r requirements.txt
+Installed python requirements : 
+- sudo pip install -r requirements.txt
+
 You need to have this tools installed : 
 - openldap2-client
 - kubectl ( 1.17.3 )
 - helm ( 2.16.1 )
-- custom terraform 0.11 ( from caasp pattern )
+- custom terraform 0.12.19 ( from caasp pattern )
 
 ## Setup environment
 Configure ${CAASP_KEY} in parametes/env.robot by adding your SSC key
+
 Configure your vmware and openstack setting in env.robot
+
 For backup and restore test, configure your aws identification key
 
 
@@ -32,9 +36,9 @@ robot --test Caasp\ Robotframework.Test.Replica.dex_gangway_replicat -v MODE:DEV
 
 ## Configuration available
 
-You can change global variable by adding -v <variablename>:<new value>. Here some usefull variable
+You can change global variable by adding -v \<variablename\>:\<new value\>. Here some usefull variable
 
-- CLUSTER : give a specific name for the cluster directory, if the nn=ame match a running cluster it will use this cluster for the test
+- CLUSTER : give a specific name for the cluster directory, if the name match a running cluster it will use this cluster for the test
 - VM_USER : for aws, need to be change for ec2-user
 - MODE : 
     - by default use skuba from pattern
