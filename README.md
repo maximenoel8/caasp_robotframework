@@ -10,6 +10,7 @@ You need to have this tools installed :
 - kubectl ( 1.17.3 )
 - helm ( 2.16.1 )
 - custom terraform 0.12.19 ( from caasp pattern )
+- jq
 
 ## Setup environment
 Configure ${CAASP_KEY} in parametes/env.robot by adding your SSC key
