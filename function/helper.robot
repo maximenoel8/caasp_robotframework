@@ -1,3 +1,8 @@
+*** Settings ***
+Library           String
+Library           OperatingSystem
+Resource          commands.robot
+
 *** Keywords ***
 remove string from file
     [Arguments]    ${file}    ${string}
