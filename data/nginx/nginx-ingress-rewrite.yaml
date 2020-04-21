@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: fruit-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+        - backend:
+            serviceName: nginx-apple-service
+            servicePort: 80
+          path: /apple(/|$)(.*)
+        - backend:
+            serviceName: nginx-pear-service
+            servicePort: 80
+          path: /pear(/|$)(.*)

@@ -16,3 +16,9 @@ terraform apply
     ${args}    Set Variable If    "${PLATFORM}"=="libvirt"    -parallelism=1    ${EMPTY}
     execute command localy    eval `ssh-agent -s` && ssh-add ${DATADIR}/id_shared && cd ${TERRAFORMDIR}/${cluster} && terraform apply --auto-approve ${args}
     Copy File    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfstate    ${LOGDIR}/cluster${cluster_number}.json
+    [Teardown]    clean terraform variable    ${TERRAFORMDIR}/${cluster}
+
+clean terraform variable
+    [Arguments]    ${directory}
+    Run Keyword And Ignore Error    Remove File    ${directory}/terraform.ftvars.json
+    Run Keyword And Ignore Error    Remove File    ${directory}/registration.auto.tfvars
