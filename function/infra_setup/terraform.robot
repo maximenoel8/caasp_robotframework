@@ -20,5 +20,5 @@ terraform apply
 
 clean terraform variable
     [Arguments]    ${directory}
-    Run Keyword And Ignore Error    Remove File    ${directory}/terraform.ftvars.json
+    Run Keyword And Ignore Error    Remove File    ${directory}/terraform.tfvars.json
     Run Keyword And Ignore Error    Remove File    ${directory}/registration.auto.tfvars

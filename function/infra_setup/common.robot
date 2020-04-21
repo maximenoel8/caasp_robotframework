@@ -8,6 +8,7 @@ Resource          ../../parameters/env.robot
 Library           Process
 Resource          terraform.robot
 Library           ../../lib/convert_tvars_to_json.py
+Resource          ../helper.robot
 
 *** Keywords ***
 clone skuba locally
