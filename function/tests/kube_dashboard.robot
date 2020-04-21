@@ -1,7 +1,7 @@
 *** Settings ***
 Resource          ../cluster_helpers.robot
 Resource          ../commands.robot
-Resource          ../selenium.robot
+Resource          selenium.robot
 Resource          ../setup_environment.robot
 
 *** Keywords ***

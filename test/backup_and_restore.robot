@@ -1,10 +1,9 @@
 *** Settings ***
-Resource          ../function/skuba_join.robot
-Resource          ../function/backup_and_restore/velero.robot
-Resource          ../function/backup_and_restore/wordpress.robot
+Resource          ../function/tests/backup_and_restore/velero.robot
+Resource          ../function/tests/backup_and_restore/wordpress.robot
 Resource          ../function/setup_environment.robot
-Resource          ../function/backup_and_restore/etcdctl.robot
-Resource          ../function/backup_and_restore/bNr_helpers.robot
+Resource          ../function/tests/backup_and_restore/etcdctl.robot
+Resource          ../function/tests/backup_and_restore/bNr_helpers.robot
 Resource          ../function/tests/centralized_logging.robot
 
 *** Test Cases ***

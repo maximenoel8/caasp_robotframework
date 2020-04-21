@@ -18,3 +18,4 @@ ${OLD}            False
 ${UPGRADE}        False
 ${UPGRADE}        False
 ${KUBERNETES_VERSION}    ${EMPTY}
+&{cluster_state}

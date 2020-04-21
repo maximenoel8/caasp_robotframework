@@ -1,6 +1,6 @@
 *** Settings ***
-Resource          ../commands.robot
-Resource          ../cluster_helpers.robot
+Resource          ../../commands.robot
+Resource          ../../cluster_helpers.robot
 Resource          bNr_common.robot
 
 *** Keywords ***

@@ -1,12 +1,12 @@
 *** Settings ***
 Library           OperatingSystem
-Resource          ../commands.robot
+Resource          ../../commands.robot
 Resource          minio.robot
-Resource          ../cluster_helpers.robot
-Resource          ../../parameters/velero.robot
-Resource          ../../parameters/minio.robot
+Resource          ../../cluster_helpers.robot
+Resource          ../../../parameters/velero.robot
+Resource          ../../../parameters/minio.robot
 Resource          wordpress.robot
-Resource          ../setup_environment.robot
+Resource          ../../setup_environment.robot
 
 *** Variables ***
 

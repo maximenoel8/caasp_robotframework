@@ -2,8 +2,8 @@
 Library           SSHLibrary
 Library           OperatingSystem
 Resource          ../parameters/global_parameters.robot
-Resource          interaction_with_cluster_state_dictionnary.robot
 Resource          ../parameters/velero.robot
+Resource          ssh.robot
 
 *** Keywords ***
 execute command with ssh
@@ -25,14 +25,6 @@ execute command localy
     Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0    ${output}
     ...    ELSE    Return From Keyword    ${output}    ${rc}
     [Return]    ${output}
-
-open ssh session
-    [Arguments]    ${server}    ${alias}=default
-    ${server_ip}    Run Keyword If    "${alias}"=="default"    get node ip from CS    ${server}
-    ...    ELSE    Set Variable    ${server}
-    ${alias}    Set Variable If    "${alias}"=="default"    ${server}    ${alias}
-    Open Connection    ${server_ip}    alias=${alias}    timeout=20min
-    Login With Public Key    ${VM_USER}    data/id_shared
 
 kubectl
     [Arguments]    ${arguments}    ${cluster_number}=1    ${screenshot}=False
@@ -65,12 +57,6 @@ helm
     ${output}    execute command localy    helm ${arguments}
     [Return]    ${output}
 
-reinitialize skuba session
-    [Arguments]    ${cluster_number}=1
-    Switch Connection    skuba_station_${cluster_number}
-    Close Connection
-    open ssh session    ${WORKSTATION__${cluster_number}}    alias=skuba_station_${cluster_number}
-
 openssl
     [Arguments]    ${cmd}
     ${output}    execute command with ssh    openssl ${cmd}
@@ -82,48 +68,14 @@ velero
     ${output}    execute command localy    ${velero_path}velero ${argument}
     [Return]    ${output}
 
-remove string from file
-    [Arguments]    ${file}    ${string}
-    ${contents}=    OperatingSystem.Get File    ${file}
-    Remove File    ${file}
-    Create File    ${file}
-    @{lines}    Split To Lines    ${contents}
-    FOR    ${line}    IN    @{lines}
-        ${new_line}    String.Remove String    ${line}    ${string}
-        Append To File    ${file}    ${new_line}\n
-    END
-
-add devel repo
-    [Arguments]    ${alias}
-    execute command with ssh    sudo zypper ar -C -G -f http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/ caasp_devel    ${alias}
-
-modify string in file
-    [Arguments]    ${file}    ${se}    ${re}
-    ${contents}=    OperatingSystem.Get File    ${file}
-    Remove File    ${file}
-    Create File    ${file}
-    @{lines}    Split To Lines    ${contents}
-    FOR    ${line}    IN    @{lines}
-        ${new_line}    String.Replace String    ${line}    ${se}    ${re}
-        Append To File    ${file}    ${new_line}\n
-    END
-
-screenshot cluster status
-    [Arguments]    ${cluster_number}=1
-    Run Keyword And Ignore Error    kubectl    get pods -A    screenshot=True    cluster_number=${cluster_number}
-    Run Keyword And Ignore Error    kubectl    get svc -A    screenshot=True    cluster_number=${cluster_number}
-    Run Keyword And Ignore Error    kubectl    get pvc -A    screenshot=True    cluster_number=${cluster_number}
-    Run Keyword And Ignore Error    kubectl    get pv    screenshot=True    cluster_number=${cluster_number}
-
-check string contain
-    [Arguments]    ${string}    ${contain}
-    ${status_cmd}    ${outptu}    Run Keyword And Ignore Error    Should Contain    ${string}    ${contain}
-    ${status}    Set Variable If    "${status_cmd}"=="PASS"    True    False
-    [Return]    ${status}
-
 _kubectl configuration
     [Arguments]    ${arguments}    ${cluster_number}    ${screenshot}
     ${output}    ${rc}    execute command localy    kubectl ${arguments}    False
     Run Keyword if    ${rc}!=0 and not ${screenshot}    screenshot cluster status    ${cluster_number}
     Should Be Equal As Integers    ${rc}    0    ${output}    values=False
+    [Return]    ${output}
+
+skuba_write
+    [Arguments]    ${arguments}    ${debug}=10
+    ${output}    Write    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}
     [Return]    ${output}

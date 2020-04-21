@@ -1,5 +1,5 @@
 *** Settings ***
-Resource          ../commands.robot
+Resource          ../../commands.robot
 
 *** Keywords ***
 annotate volume to be backed up

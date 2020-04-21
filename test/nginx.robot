@@ -1,5 +1,5 @@
 *** Settings ***
-Resource          ../function/skuba_join.robot
+Resource          ../function/skuba_commands.robot
 Resource          ../function/tests/nginx.robot
 
 *** Test Cases ***

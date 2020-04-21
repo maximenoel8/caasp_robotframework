@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/tests/monitoring.robot
-Resource          ../function/skuba_join.robot
+Resource          ../function/skuba_commands.robot
 Resource          ../function/helm.robot
 
 *** Test Cases ***

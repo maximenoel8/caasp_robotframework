@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/tests/nginx.robot
-Resource          ../function/skuba_join.robot
+Resource          ../function/skuba_commands.robot
 
 *** Test Cases ***
 nginx container

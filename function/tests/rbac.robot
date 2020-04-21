@@ -4,7 +4,7 @@ Library           ../../lib/yaml_editor.py
 Resource          ../../parameters/389ds_parameters.robot
 Resource          ../cluster_helpers.robot
 Library           SSHLibrary
-Resource          ../selenium.robot
+Resource          selenium.robot
 Library           ../../lib/firefox_profile.py
 Resource          ../setup_environment.robot
 

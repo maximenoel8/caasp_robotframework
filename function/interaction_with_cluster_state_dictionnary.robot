@@ -5,7 +5,6 @@ Library           JSONLibrary
 Library           OperatingSystem
 
 *** Variables ***
-&{cluster_state}
 
 *** Keywords ***
 add node to cluster state

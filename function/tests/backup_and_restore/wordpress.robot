@@ -1,7 +1,7 @@
 *** Settings ***
-Resource          ../commands.robot
-Resource          ../cluster_helpers.robot
-Resource          ../../parameters/global_parameters.robot
+Resource          ../../commands.robot
+Resource          ../../cluster_helpers.robot
+Resource          ../../../parameters/global_parameters.robot
 
 *** Keywords ***
 wordpress is deployed

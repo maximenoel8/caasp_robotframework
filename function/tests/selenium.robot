@@ -1,7 +1,7 @@
 *** Settings ***
-Resource          commands.robot
-Resource          cluster_helpers.robot
-Library           ../lib/firefox_profile.py
+Resource          ../commands.robot
+Resource          ../cluster_helpers.robot
+Library           ../../lib/firefox_profile.py
 Library           SeleniumLibrary
 
 *** Keywords ***

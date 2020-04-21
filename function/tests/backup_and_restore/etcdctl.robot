@@ -1,11 +1,11 @@
 *** Settings ***
-Resource          ../commands.robot
-Resource          ../../parameters/global_parameters.robot
-Library           ../../lib/yaml_editor.py
-Resource          ../cluster_helpers.robot
-Resource          ../interaction_with_cluster_state_dictionnary.robot
-Resource          ../setup_environment.robot
-Resource          ../tests/centralized_logging.robot
+Resource          ../../commands.robot
+Resource          ../../../parameters/global_parameters.robot
+Library           ../../../lib/yaml_editor.py
+Resource          ../../cluster_helpers.robot
+Resource          ../../interaction_with_cluster_state_dictionnary.robot
+Resource          ../../setup_environment.robot
+Resource          ../centralized_logging.robot
 
 *** Variables ***
 ${etcd_snapshot_path}    /home/${VM_USER}

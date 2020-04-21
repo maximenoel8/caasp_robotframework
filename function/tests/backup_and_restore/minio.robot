@@ -1,7 +1,7 @@
 *** Settings ***
-Resource          ../commands.robot
+Resource          ../../commands.robot
 Library           Process
-Resource          ../../parameters/minio.robot
+Resource          ../../../parameters/minio.robot
 
 *** Variables ***
 

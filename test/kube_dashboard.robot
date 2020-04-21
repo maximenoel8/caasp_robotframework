@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/tests/kube_dashboard.robot
-Resource          ../function/skuba_join.robot
+Resource          ../function/skuba_commands.robot
 
 *** Test Cases ***
 kube dashboard

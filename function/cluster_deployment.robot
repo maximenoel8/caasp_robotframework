@@ -2,6 +2,7 @@
 Resource          interaction_with_cluster_state_dictionnary.robot
 Resource          commands.robot
 Resource          cluster_helpers.robot
+Resource          skuba_commands.robot
 
 *** Variables ***
 &{deployment_state}
@@ -56,42 +57,6 @@ _move node from waiting state to on going
     Append To List    ${deployment_state["${cluster}"]["on_going"]}    ${node}
     Log Dictionary    ${deployment_state}
     [Return]    ${node}
-
-start bootstrap
-    [Arguments]    ${node}    ${cluster}
-    ${cluster_number}    get cluster number    ${cluster}
-    open ssh session    ${WORKSTATION__${cluster_number}}    ${node}
-    ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
-    ${extra_args}    Set Variable If    "${mode}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
-    execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${node}
-    ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
-    ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
-    Create File    ${LOGDIR}/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
-
-join node
-    [Arguments]    ${node}    ${cluster}=cluster_1    ${ip}=auto    ${after_remove}=False
-    ${cluster_number}    get cluster number    ${cluster}
-    open ssh session    ${WORKSTATION_${cluster_number}}    ${node}
-    ${node exist}    check node exit in CS    ${node}    ${cluster_number}
-    ${node disable}    Run Keyword If    ${node exist}    check node disable    ${node}    ${cluster_number}
-    ${ip}    Run Keyword If    ${node exist} and "${ip}"=="auto"    get node ip from CS    ${node}    ${cluster_number}
-    ...    ELSE    Set Variable    ${ip}
-    ${type}    get node type    ${node}
-    ${skuba_name}    get node skuba name    ${node}    ${cluster_number}
-    Run Keyword If    ${node exist} and not ${node disable}    Fail    Worker already part of the cluster !
-    ...    ELSE IF    ${node exist} and ${node disable} and ${after_remove}    Run Keywords    unmask kubelet    ${ip}
-    ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${skuba_name}    True
-    ...    AND    wait nodes
-    ...    AND    wait pods
-    ...    AND    enable node in CS    ${node}
-    ...    ELSE IF    ${node exist} and ${node disable} and not ${after_remove}    initiale join    ${skuba_name}    ${ip}    ${type}
-    ...    ELSE    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${skuba_name}    True
-    ...    AND    add node to cluster state    ${node}    ${ip}
-
-initiale join
-    [Arguments]    ${node}    ${ip}    ${type}
-    ${output}    skuba_write    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${node}
-    Append To File    ${LOGDIR}/${node}    ${output}\n
 
 check if node is deployed
     [Arguments]    ${cluster}    ${node}
@@ -186,11 +151,6 @@ check state of all the cluster is done
     END
     [Return]    ${status}
 
-skuba_write
-    [Arguments]    ${arguments}    ${debug}=10
-    ${output}    Write    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}
-    [Return]    ${output}
-
 cluster is deployed
     create cluster deployment dictionnary
     ${waiting time}    _set deployment timeout
@@ -231,3 +191,16 @@ _set deployment timeout
         ${waiting time}    Evaluate    (${worker_number} + ${master_number}) * ( 300 / ${sleep_time} ) + ${waiting time}
     END
     [Return]    ${waiting time}
+
+cluster running
+    [Arguments]    ${cluster_number}=1
+    set infra env parameters
+    Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL" and ${cluster_number}==1    deploy cluster vms
+    load vm ip
+    Run Keyword If    ${cluster_number}==1    open bootstrap session
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    install skuba
+    Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    cluster is deployed
+    wait nodes are ready    cluster_number=${cluster_number}
+    wait pods ready    cluster_number=${cluster_number}
+    wait cillium    cluster_number=${cluster_number}
+    Run Keyword If    ${UPGRADE}    upgrade cluster
