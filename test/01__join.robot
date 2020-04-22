@@ -1,13 +1,11 @@
 *** Settings ***
 Resource          ../function/cluster_helpers.robot
 Resource          ../function/helm.robot
-Resource          ../function/skuba_commands.robot
 Resource          ../parameters/global_parameters.robot
 Resource          ../function/tools.robot
 Resource          ../parameters/tool_parameters.robot
 Resource          ../function/setup_environment.robot
 Resource          ../function/cluster_deployment.robot
-Resource          ../function/tests/backup_and_restore/wordpress.robot
 
 *** Test Cases ***
 deploy cluster

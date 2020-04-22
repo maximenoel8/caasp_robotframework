@@ -62,3 +62,9 @@ add CA to all server
         ${ip}    get node ip from CS    ${node}    ${cluster_number}
         add CA to server    ${ip}
     END
+
+get cluster number
+    [Arguments]    ${cluster}
+    ${out}    Split String    ${cluster}    _
+    ${cluster_number}    Set Variable    ${out[-1]}
+    [Return]    ${cluster_number}

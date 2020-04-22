@@ -1,6 +1,6 @@
 *** Settings ***
-Resource          ../function/skuba_commands.robot
 Resource          ../function/tests/centralized_logging.robot
+Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
 Centralized logging

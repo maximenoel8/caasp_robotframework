@@ -1,11 +1,10 @@
 *** Settings ***
 Resource          ../function/tests/backup_and_restore/velero.robot
 Resource          ../function/tests/backup_and_restore/wordpress.robot
-Resource          ../function/setup_environment.robot
 Resource          ../function/tests/backup_and_restore/etcdctl.robot
 Resource          ../function/tests/backup_and_restore/bNr_helpers.robot
 Resource          ../function/tests/centralized_logging.robot
-Resource          ../function/skuba_commands.robot
+Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
 velero backup wordpress aws

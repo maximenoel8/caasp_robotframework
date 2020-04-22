@@ -17,8 +17,9 @@ clone skuba locally
     execute command localy    cd ${WORKDIR}/skuba && git checkout ${GIT_BRANCH}
 
 copy terraform configuration from skuba folder
-    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
-        ${cluster_number}    evaluate    ${i}+1
+    log    ${NUMBER_OF_CLUSTER}
+    ${limit}    Evaluate    ${NUMBER_OF_CLUSTER}+1
+    FOR    ${cluster_number}    IN RANGE    1    ${limit}
         Copy Directory    ${TEMPLATE_TERRAFORM_DIR}/${PLATFORM}    ${TERRAFORMDIR}/cluster_${cluster_number}
     END
     Comment    Remove Directory    ${WORKDIR}/skuba    True
@@ -43,7 +44,7 @@ configure registration auto tfvars vmware
 clean cluster
     [Arguments]    ${cluster_name}=${EMPTY}
     Run Keyword If    "${cluster_name}"=="${EMPTY}"    clean all cluster
-    ...    ELSE    terraform destroy    ${cluster_name}
+    ...    ELSE    terraform destroy all cluster
 
 clean all cluster
     ${clusters_dir}    OperatingSystem.List Directories In Directory    ${CURDIR}/../../workdir

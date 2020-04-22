@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/tests/nginx.robot
-Resource          ../function/skuba_commands.robot
+Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
 nginx container

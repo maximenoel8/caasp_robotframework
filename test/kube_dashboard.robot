@@ -1,6 +1,6 @@
 *** Settings ***
 Resource          ../function/tests/kube_dashboard.robot
-Resource          ../function/skuba_commands.robot
+Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
 kube dashboard

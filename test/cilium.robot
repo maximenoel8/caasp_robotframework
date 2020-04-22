@@ -1,5 +1,5 @@
 *** Settings ***
-Resource          ../function/skuba_commands.robot
+Resource          ../function/cluster_deployment.robot
 Resource          ../function/tests/cilium.robot
 
 *** Test Cases ***

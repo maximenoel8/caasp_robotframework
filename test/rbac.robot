@@ -1,6 +1,5 @@
 *** Settings ***
-Resource          ../function/skuba_commands.robot
-Resource          ../function/helm.robot
+Resource          ../function/cluster_deployment.robot
 Resource          ../function/tests/rbac.robot
 
 *** Test Cases ***

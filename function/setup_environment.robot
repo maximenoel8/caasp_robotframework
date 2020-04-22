@@ -3,7 +3,7 @@ Library           String
 Resource          commands.robot
 Library           Process
 Resource          ../parameters/global_parameters.robot
-Resource          infra_setup/common.robot
+Resource          vms_deployment/common.robot
 
 *** Keywords ***
 set vm number

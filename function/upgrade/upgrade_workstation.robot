@@ -1,7 +1,7 @@
 *** Settings ***
 Resource          ../commands.robot
-Resource          ../skuba_tool_install.robot
 Resource          ../reboot.robot
+Resource          ../skuba_tool_install.robot
 
 *** Keywords ***
 _upgrade skuba from skuba repo

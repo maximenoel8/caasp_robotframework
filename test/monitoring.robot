@@ -1,7 +1,6 @@
 *** Settings ***
 Resource          ../function/tests/monitoring.robot
-Resource          ../function/skuba_commands.robot
-Resource          ../function/helm.robot
+Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
 monitoring
