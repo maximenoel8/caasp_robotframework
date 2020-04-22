@@ -28,11 +28,16 @@ robot -v PREFIX:<your name> -v NUMBER:<master:worker> -v PLATFORM:<openstack|vmw
 
 *Exemple:*
  ```
-robot --test Caasp\ Robotframework.Test.Rbac.389ds_authentication -v NUMBER:1:3 -v PLATFORM:vmware -v PREFIX:mnoel --outputdir=tmp .
+robot --test Caasp\ Robotframework.Test.Rbac.389ds_authentication -v NUMBER:1:3 -v PLATFORM:vmware -v PREFIX:myname --outputdir=tmp .
 ```
 *More advance example :*
 ```
-robot --test Caasp\ Robotframework.Test.Replica.dex_gangway_replicat -v MODE:DEV --variable PULL_REQUEST:951 -v PREFIX:mnoel -v NUMBER:1:3 -v PLATFORM:vmware --outputdir=tmp .
+robot --test Caasp\ Robotframework.Test.Replica.dex_gangway_replicat -v MODE:DEV --variable PULL_REQUEST:951 -v PREFIX:myname -v NUMBER:1:3 -v PLATFORM:vmware --outputdir=tmp .
+```
+
+*Executing tests by tags :*
+```
+pybot –include=release -v PREFIX:myname -v platform:aws -v number:1:2 ./
 ```
 
 ## Configuration available
@@ -45,8 +50,8 @@ You can change global variable by adding -v \<variablename\>:\<new value\>. Here
     - by default use skuba from pattern
     - DEV : will build skuba from github with devel option ( you can also specify a pull request number with PULL_REQUEST )
 - PREFIX : give a suffix to your cluster nodes names, could be your name
-- NUMBER : number of master and worker for the test separated by `:` 
-- PLATFORM : (vmware|openstack) specify a platform where to run the test 
+- NUMBER : number of master and worker for the test separated by `<master-number>:<worker-number>` 
+- PLATFORM : ( vmware | openstack | aws ) specify a platform where to run the test 
 - KEEP: keep cluster after test
 - NUMBER_OF_CLUSTER : by default one, deploy number of cluster in the same robot framework session ( will use NUMBER for both of it)
 - CHART_PULL_REQUEST : clone https://github.com/SUSE/kubernetes-charts-suse-com in LOGDIR and checkout to the pull request
