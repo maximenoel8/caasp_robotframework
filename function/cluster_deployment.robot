@@ -77,7 +77,7 @@ check if node is deployed
     ${expecting value}    Set Variable    ${${state}_expected_output}
     Switch Connection    ${node}
     ${console_output}    Read
-    Append To File    ${LOGDIR}/${node}    ${console_output}\n
+    Append To File    ${LOGDIR}/deployment/${node}    ${console_output}\n
     ${status_command}    ${output}    Run Keyword And Ignore Error    Should Contain    ${console_output}    ${expecting value}
     ${status_node}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    error joining node ${skuba_name}
     ${status_node_already exist}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    [join] failed to join the node with name "${skuba_name}"

@@ -3,7 +3,7 @@ Resource          ../function/cluster_deployment.robot
 Resource          ../function/tests/cilium.robot
 
 *** Test Cases ***
-Cilium: L3/L4 policy test
+Cilium: L3-L4 policy test
     [Tags]    release
     Given cluster running
     and deathstar is deployed

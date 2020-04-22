@@ -55,7 +55,7 @@ join node
 initiale join
     [Arguments]    ${node}    ${ip}    ${type}
     ${output}    skuba_write    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${node}
-    Append To File    ${LOGDIR}/${node}    ${output}\n
+    Append To File    ${LOGDIR}/deployment/${node}    ${output}\n
 
 start bootstrap
     [Arguments]    ${node}    ${cluster}
@@ -67,4 +67,4 @@ start bootstrap
     execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${node}
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
     ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
-    Create File    ${LOGDIR}/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
+    Create File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
