@@ -3,6 +3,12 @@ Resource          interaction_with_cluster_state_dictionnary.robot
 Resource          commands.robot
 Resource          cluster_helpers.robot
 Resource          skuba_commands.robot
+Resource          vms_deployment/main_keywork.robot
+Resource          helper.robot
+Resource          helm.robot
+Resource          tools.robot
+Resource          setup_environment.robot
+Resource          upgrade/upgrade.robot
 
 *** Variables ***
 &{deployment_state}
@@ -51,9 +57,13 @@ start new deployment
 
 _move node from waiting state to on going
     [Arguments]    ${cluster}
+    ${cluster_number}    get cluster number    ${cluster}
     ${state}    _get current state    ${cluster}
-    ${state}    Set Variable if    "${state}"=="bootstrap"    master    ${state}
-    ${node}    Remove From List    ${deployment_state["${cluster}"]["waiting_${state}"]}    0
+    ${boostrat_state}    Set Variable If    "${state}"=="bootstrap"    True    False
+    ${state}    Set Variable if    ${boostrat_state}    master    ${state}
+    ${index}    Run Keyword If    ${boostrat_state}    Get Index From List    ${deployment_state["${cluster}"]["waiting_${state}"]}    ${CLUSTER_PREFIX}-${cluster_number}-master-0
+    ...    ELSE    Set Variable    0
+    ${node}    Remove From List    ${deployment_state["${cluster}"]["waiting_${state}"]}    ${index}
     Append To List    ${deployment_state["${cluster}"]["on_going"]}    ${node}
     Log Dictionary    ${deployment_state}
     [Return]    ${node}
@@ -63,18 +73,21 @@ check if node is deployed
     [Timeout]
     ${state}    _get current state    ${cluster}
     ${cluster_number}=    get cluster number    ${cluster}
+    ${skuba_name}    get node skuba name    ${node}    ${cluster_number}
     ${expecting value}    Set Variable    ${${state}_expected_output}
     Switch Connection    ${node}
     ${console_output}    Read
     Append To File    ${LOGDIR}/${node}    ${console_output}\n
     ${status_command}    ${output}    Run Keyword And Ignore Error    Should Contain    ${console_output}    ${expecting value}
-    ${status_node}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    error joining node ${node}
-    ${status_node_already exist}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    [join] failed to join the node with name "${node}"
+    ${status_node}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    error joining node ${skuba_name}
+    ${status_node_already exist}    ${output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    [join] failed to join the node with name "${skuba_name}"
+    ${status_bootstrapping fail}    ${boostrap_output}    Run Keyword And Ignore Error    Should Not Contain    ${console_output}    error bootstrapping node
     Run Keyword If    "${status_node_already exist}"=="FAIL"    _move node from on going to done    ${cluster}    ${node}
     Run Keyword If    "${status_node}"=="FAIL"    _move node from ongoing to waiting    ${cluster}    ${node}
+    Run Keyword If    "${status_bootstrapping fail}"=="FAIL" and "${state}"=="bootstrap"    _move node from ongoing to waiting    ${cluster}    ${node}
+    ...    ELSE IF    "${status_bootstrapping fail}"=="FAIL"    Fail    ${boostrap_output}
     Should Not Contain    ${console_output}    invalid node name "${node}"
     Should Not Contain    ${console_output}    [join] failed to join the node with name "mnoel-cluster-itgx-1-worker-1"
-    Should Not Contain    ${console_output}    error bootstrapping node
     ${status}    Set Variable if    "${status_command}"=="PASS"    True    False
     Run Keyword If    ${status} and "${state}"=="bootstrap"    Run Keywords    _change deployment state    ${cluster}
     ...    AND    Get Directory    cluster    ${WORKDIR}/${cluster}    recursive=true
@@ -160,12 +173,6 @@ cluster is deployed
         Sleep    ${sleep_time}
     END
 
-get cluster number
-    [Arguments]    ${cluster}
-    ${out}    Split String    ${cluster}    _
-    ${cluster_number}    Set Variable    ${out[-1]}
-    [Return]    ${cluster_number}
-
 _check status is done
     [Arguments]    ${cluster}
     ${status}    Set Variable If    "${deployment_state["${cluster}"]["state"]}"=="done"    True    False
@@ -174,6 +181,7 @@ _check status is done
 _move node from ongoing to waiting
     [Arguments]    ${cluster}    ${node}
     ${state}    _get current state    ${cluster}
+    ${state}    Set Variable if    "${state}"=="bootstrap"    master    ${state}
     @{on_going}    Set Variable    ${deployment_state["${cluster}"]["on_going"]}
     ${index}    Get Index From List    ${on_going}    ${node}
     Run Keyword If    "${index}"=="-1"    Fail    ${node} Not found in on-going list
@@ -204,3 +212,20 @@ cluster running
     wait pods ready    cluster_number=${cluster_number}
     wait cillium    cluster_number=${cluster_number}
     Run Keyword If    ${UPGRADE}    upgrade cluster
+
+cluster is deployed temp
+    FOR    ${i}    IN RANGE    1    3
+        ${status}    ${output}    Run Keyword And Ignore Error    cluster is deployed
+        ${status_boostrapfail}    ${output}    Run Keyword And Ignore Error    Should Contain    ${output}    error bootstrapping node
+        ${bootstrap_status}    is deployment state equal to    bootstrap
+        Exit For Loop If    ( not ${bootstrap_status} and "${status_boostrapfail}"=="FAIL" ) or "${status}"=="PASS"
+    END
+
+is deployment state equal to
+    [Arguments]    ${state}
+    ${state_status}    Set Variable    False
+    FOR    ${i}    IN RANGE    1    ${NUMBER_OF_CLUSTER}
+        ${state_status}    Set Variable If    "${deployment_state["cluster_${i}"]["state"]}"=="${state}"    True    False
+        Exit For Loop If    ${state_status}
+    END
+    [Return]    ${state_status}
