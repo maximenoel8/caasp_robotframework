@@ -49,11 +49,6 @@ get ressource name
     ${ressource_name}    Set Variable If    ${length}==1    ${names[0]}    ${names}
     [Return]    ${ressource_name}
 
-check cluster exist
-    [Arguments]    ${cluster_number}=1
-    ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}/cluster_${cluster_number}
-    Set Global Variable    ${CLUSTER_STATUS}
-
 check replicat for
     [Arguments]    ${args}    ${number_replicat}
     ${ouput}    kubectl    describe pods ${args}
@@ -70,11 +65,6 @@ check_pod_log_contain
 wait deploy
     [Arguments]    ${arg}    ${timeout}=5m
     kubectl    wait deployment --for=condition=available --timeout=${timeout} ${arg}
-
-check cluster deploy
-    [Arguments]    ${cluster_number}=1
-    ${PLATFORM_DEPLOY}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster${cluster_number}.json
-    Set Global Variable    ${PLATFORM_DEPLOY}
 
 wait all pods are running
     [Arguments]    ${cluster_number}=1

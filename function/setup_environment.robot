@@ -69,3 +69,13 @@ create cluster folder
     ${random}    Generate Random String    4    [LOWER][NUMBERS]
     Set Global Variable    ${CLUSTER}    cluster-${random}
     Log    ${CLUSTER}    console=yes    level=HTML
+
+check cluster deploy
+    [Arguments]    ${cluster_number}=1
+    ${PLATFORM_DEPLOY}    ${output}    Run Keyword And Ignore Error    OperatingSystem.File Should Exist    ${LOGDIR}/cluster${cluster_number}.json
+    Set Global Variable    ${PLATFORM_DEPLOY}
+
+check cluster exist
+    [Arguments]    ${cluster_number}=1
+    ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}/cluster_${cluster_number}
+    Set Global Variable    ${CLUSTER_STATUS}
