@@ -15,6 +15,9 @@ etcd-backup job is executed
     configure etcd-backup job
     kubectl    create -f ${LOGDIR}/snapshot_job.yaml
     wait job    etcd-backup -n kube-system    condition=complete
+    log    ${etcd_snapshot_path}
+    execute command with ssh    sudo chown ${VM_USER}:users ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db    alias=bootstrap_master_1
+    Switch Connection    bootstrap_master_1
     SSHLibrary.Get File    ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db    ${LOGDIR}/etcd-snapshot-${cluster}.db
     execute command with ssh    rm ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db    alias=bootstrap_master_1
 

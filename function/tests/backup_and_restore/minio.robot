@@ -32,7 +32,7 @@ minio is deployed and setup
 
 setup minio bucket with minio client
     [Arguments]    ${provider}    ${bucket_name}
-    ${args}    Set Variable If    "${provider}"=="s3"    --region ${aws_region}    ${EMPTY}
+    ${args}    Set Variable If    "${provider}"=="aws"    --region ${aws_region}    ${EMPTY}
     execute command localy    ${LOGDIR}/mc mb ${args} -p ${provider}/${bucket_name}
 
 check minio is correctly deploy and have a bucket
@@ -49,5 +49,5 @@ mc configure minio server
 aws bucket is setup
     install minio client localy
     mc configure aws server
-    Set Global Variable    ${bucket}    ${BUCKET_MASTER}-aws
+    Set Global Variable    ${bucket}    ${BUCKET_MASTER}-aws-3
     setup minio bucket with minio client    aws    ${bucket}

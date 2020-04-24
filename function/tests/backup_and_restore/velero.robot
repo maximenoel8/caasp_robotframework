@@ -76,7 +76,7 @@ check restore finish
 teardown velero
     [Arguments]    ${bucket_type}=default
     Run Keyword And Ignore Error    velero    delete backup --confirm ${backup_name}
-    Run Keyword And Ignore Error    Run Keyword If    "${bucket_type}"=="aws" or "${bucket_type}"=="minio"    execute command localy    ${LOGDIR}/mc rb --force \ ${bucket_type}/${bucket_name}
+    Run Keyword And Ignore Error    Run Keyword If    "${bucket_type}"=="aws" or "${bucket_type}"=="minio"    execute command localy    ${LOGDIR}/mc rm --recursive --force ${bucket_type}/${bucket}
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
         Run Keyword And Ignore Error    helm    delete --purge velero    ${cluster_number}
