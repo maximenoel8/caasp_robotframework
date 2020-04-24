@@ -4,6 +4,7 @@ Resource          commands.robot
 Library           Process
 Resource          ../parameters/global_parameters.robot
 Resource          vms_deployment/common.robot
+Library           Collections
 
 *** Keywords ***
 set vm number
@@ -57,6 +58,8 @@ setup environment
     Set Global Variable    ${SSH_PUB_KEY}
     Set vm number
     Run Keyword Unless    "${CHART_PULL_REQUEST}"=="${EMPTY}"    get kubernetes charts
+    Run Keyword Unless    '${RPM}'=='${EMPTY}'    create registry dictionnary
+    Run Keyword Unless    "${RPM}"=="${EMPTY}"    create container repository file
 
 load vm ip
     ${status}    check cluster state exist
@@ -79,3 +82,26 @@ check cluster exist
     [Arguments]    ${cluster_number}=1
     ${CLUSTER_STATUS}    ${output}    Run Keyword And Ignore Error    OperatingSystem.Directory Should Exist    ${WORKDIR}/cluster_${cluster_number}
     Set Global Variable    ${CLUSTER_STATUS}
+
+create registry dictionnary
+    ${registries}    Split String    ${RPM}
+    ...    AND
+    ${length}    Get Length    ${registries}
+    FOR    ${i}    IN RANGE    0    ${length}
+        Set To Dictionary    ${INCIDENT_REPO}    INCIDENT${i}=${registries[0]}
+    END
+
+create container repository file
+    ${registries}    Split String    ${REGISTRY}
+    ...    AND
+    Create File    ${LOGDIR}/registries.conf
+    Append To File    ${LOGDIR}/registries.conf    unqualified-search-registries = ["docker.io"]\n
+    Append To File    ${LOGDIR}/registries.conf    \# Fallback registry for missing containers\n
+    Append To File    ${LOGDIR}/registries.conf    \n[[registry]]\n
+    Append To File    ${LOGDIR}/registries.conf    prefix = "registry.suse.com/caasp/v4" \n
+    Append To File    ${LOGDIR}/registries.conf    location = "registry.suse.com/caasp/v4"\n\n
+    FOR    ${reg}    IN    @{registries}
+        Append To File    ${LOGDIR}/registries.conf    \n[[registry.mirror]]\n
+        Append To File    ${LOGDIR}/registries.conf    location = "${reg}"\n
+        Append To File    ${LOGDIR}/registries.conf    insecure = true\n
+    END

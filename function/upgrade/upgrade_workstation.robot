@@ -27,11 +27,12 @@ _check reboot needed
 update workstation
 
 update package on workstation
-    ${output}    execute command with ssh    sudo zypper -n update
+    [Arguments]    ${args}=${EMPTY}    ${cluster_number}=1
+    ${output}    execute command with ssh    sudo zypper -n update ${args}    skuba_station_${cluster_number}
     ${reboot_needed}    _check reboot needed    ${output}
-    Run Keyword If    ${reboot_needed}    reboot or shutdown server    ${WORKSTATION_1}
-    Run Keyword If    ${reboot_needed}    wait server up    ${WORKSTATION_1}
-    reinitialize skuba session
+    Run Keyword If    ${reboot_needed}    reboot or shutdown server    ${WORKSTATION_${cluster_number}}
+    Run Keyword If    ${reboot_needed}    wait server up    ${WORKSTATION_${cluster_number}}
+    reinitialize skuba session    ${cluster_number}
 
 _enable update package
     execute command with ssh    sudo zypper mr -e SUSE-CAASP-4.0-Updates

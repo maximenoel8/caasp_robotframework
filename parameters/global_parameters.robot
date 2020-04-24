@@ -18,3 +18,6 @@ ${OLD}            False
 ${UPGRADE}        False
 ${KUBERNETES_VERSION}    ${EMPTY}
 &{cluster_state}
+&{INCIDENT_REPO}
+${RPM}            ${EMPTY}
+${REGISTRY}       ${EMPTY}

@@ -9,6 +9,7 @@ Library           Process
 Resource          terraform.robot
 Library           ../../lib/convert_tvars_to_json.py
 Resource          ../helper.robot
+Resource          set_repo.robot
 
 *** Keywords ***
 clone skuba locally
@@ -51,16 +52,6 @@ clean all cluster
     FOR    ${cluster_dir}    IN    @{clusters_dir}
         Run Keyword And Ignore Error    terraform destroy    ${cluster_dir}
     END
-
-set repo and packages
-    &{repos}    Create Dictionary    sle_server_pool=http://download.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP1/x86_64/product/    basesystem_pool=http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/product/    containers_pool=http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/product/    sle_server_updates=http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP1/x86_64/update/    basesystem_updates=http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/update/    containers_updates=http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/15-SP1/x86_64/update/    &{REPOS_LIST}
-    Run Keyword If    "${MODE}"=="DEV" or "${MODE}"=="STAGING"    Set To Dictionary    ${repos}    suse_ca=http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/
-    Run Keyword If    "${MODE}"=="DEV"    Set To Dictionary    ${repos}    caasp_devel=http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/
-    ...    ELSE IF    "${MODE}"=="STAGING"    Set To Dictionary    ${repos}    caasp_staging=http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/staging/
-    ...    ELSE IF    "${MODE}"=="RELEASE"    Set To Dictionary    ${repos}    caasp_release=http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/
-    Run Keyword If    "${MODE}"=="DEV"    Set To Dictionary    ${repos}    caasp_devel=http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/
-    Set Global Variable    ${REPOS_LIST}    ${repos}
-    Append To List    ${PACKAGES_LIST}    ca-certificates-suse
 
 configure terraform file common
     [Arguments]    ${vmware_dico}

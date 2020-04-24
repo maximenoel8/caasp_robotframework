@@ -132,8 +132,8 @@ _create cluster_state terraform 11 for
 
 get nodes name from CS
     [Arguments]    ${cluster_number}=1
-    @{masters}    get master servers name    cluster_number=1
-    @{workers}    get worker servers name    cluster_number=1
+    @{masters}    get master servers name    cluster_number=${cluster_number}
+    @{workers}    get worker servers name    cluster_number=${cluster_number}
     @{nodes}    Combine Lists    ${masters}    ${workers}
     [Return]    ${nodes}
 
@@ -209,6 +209,7 @@ check cluster state integrity
 _get node name
     [Arguments]    ${with_status}    ${type}    ${cluster_number}
     ${node_keys}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["${type}"]}
+    log    ${with_status}
     FOR    ${node}    IN    @{node_keys}
         BuiltIn.Exit For Loop If    "${with_status}"=="all"
         ${status}    Set Variable if    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${node}"]["disable"]}    disable    enable

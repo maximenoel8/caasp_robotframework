@@ -17,7 +17,7 @@ deploy cluster
 deploy double cluster
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL"    deploy cluster vms
     load vm ip
-    open bootstrap session
+    create ssh session with workstation and nodes
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    cluster is deployed
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL"    wait nodes are ready

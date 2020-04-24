@@ -18,7 +18,7 @@ configure terraform tfvars vmware
         Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
         Set To Dictionary    ${vmware_dico}    vsphere_datastore_cluster    LOCAL-DISKS-CLUSTER
         ${vmware_dico}    configure terraform file common    ${vmware_dico}
-        _change_vsphere_datastorage    ${cluster_number}
+        Comment    _change_vsphere_datastorage    ${cluster_number}
         _create tvars json file    ${vmware_dico}    ${cluster_number}
     END
 
@@ -32,4 +32,4 @@ _change_vsphere_datastorage
     [Arguments]    ${cluster_number}
     modify string in file    ${TERRAFORMDIR}/cluster_${cluster_number}/variables.tf    datastore    datastore_cluster
     modify string in file    ${TERRAFORMDIR}/cluster_${cluster_number}/master-instance.tf    datastore    datastore_cluster
-    modify string in file    ${TERRAFORMDIR}/cluster_${cluster_number}/worker-instance.tf     datastore    datastore_cluster
+    modify string in file    ${TERRAFORMDIR}/cluster_${cluster_number}/worker-instance.tf    datastore    datastore_cluster

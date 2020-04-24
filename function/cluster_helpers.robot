@@ -164,3 +164,14 @@ check pods running
     END
     ${pod}    Set Variable if    not ${status}    ${elements[0]}    ${EMPTY}
     [Return]    ${status}    ${pod}
+
+kured config
+    [Arguments]    ${args}    ${cluster_number}=1
+    Run Keyword If    "${args}"=="on"    kubectl    -n kube-system annotate ds kured weave.works/kured-node-lock-    ${cluster_number}
+    ...    ELSE IF    "${args}"=="off"    kubectl    -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":"manual"}'    ${cluster_number}
+    ...    ELSE    _patch kured    ${args}
+
+_patch kured
+    [Arguments]    ${args}
+    ${patch}    Set Variable    { "spec": { "template": { "spec": { "containers": [ { "name": "kured", "command": [ "/usr/bin/kured", "${args}" ] } ] } } } }
+    kubectl    -n kube-system patch ds kured -p "${patch}"

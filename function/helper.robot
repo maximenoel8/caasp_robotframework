@@ -68,3 +68,10 @@ get cluster number
     ${out}    Split String    ${cluster}    _
     ${cluster_number}    Set Variable    ${out[-1]}
     [Return]    ${cluster_number}
+
+run command on nodes
+    [Arguments]    ${cmd}    ${cluster_number}
+    @{nodes}    get nodes name from CS    ${cluster_number}
+    FOR    ${node}    IN    @{nodes}
+        execute command with ssh    ${cmd}    ${node}
+    END

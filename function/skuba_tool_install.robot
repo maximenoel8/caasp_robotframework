@@ -7,6 +7,8 @@ Resource          ../parameters/env.robot
 Resource          cluster_helpers.robot
 Resource          helm.robot
 Resource          interaction_with_cluster_state_dictionnary.robot
+Resource          upgrade/upgrade_workstation.robot
+Resource          helper.robot
 
 *** Keywords ***
 install skuba
@@ -25,6 +27,8 @@ _skuba from pattern
     execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
     Run Keyword If    ${OLD}    execute command with ssh    sudo zypper mr -d SUSE-CAASP-4.0-Updates    skuba_station_${cluster_number}
     execute command with ssh    sudo zypper -n in -t pattern SUSE-CaaSP-Management    skuba_station_${cluster_number}
+    Run Keyword If    '${RPM}'!='${EMPTY}'    add repo from incident and update    ${cluster_number}
+    Run Keyword If    '${REGISTRY}'!='${EMPTY}'    add container repo file to nodes    ${cluster_number}
 
 _skuba from repo
     [Arguments]    ${cluster_number}
@@ -41,10 +45,7 @@ _change skuba branch
 
 _disable firewall
     [Arguments]    ${cluster_number}
-    @{nodes}    get nodes name from CS
-    FOR    ${node}    IN    @{nodes}
-        execute command with ssh    sudo systemctl stop firewalld    ${node}
-    END
+    run command on nodes    sudo systemctl stop firewalld    ${cluster_number}
 
 _install go git make
     [Arguments]    ${cluster_number}
@@ -60,3 +61,36 @@ build skuba from repo
     ${args}    set variable if    "${MODE}"=="DEV"    ${EMPTY}    "${MODE}"=="STAGING"    staging    "${MODE}"=="RELEASE"    release
     execute command with ssh    cd ${skuba_folder} && \ make ${args}    skuba_station_${cluster_number}
     execute command with ssh    sudo ln -s /home/${VM_USER}/go/bin/skuba /usr/bin/    skuba_station_${cluster_number}
+
+add repo from incident and update
+    [Arguments]    ${cluster_number}
+    add vendor file    skuba_station_${cluster_number}
+    Comment    add vendor file to nodes    ${cluster_number}
+    ${incidents}    Get Dictionary Keys    ${INCIDENT_REPO}
+    FOR    ${incident}    IN    @{incidents}
+        Comment    execute command with ssh    sudo zypper ar -fG ${INCIDENT_REPO["${incident}"]} ${incident}    skuba_station_${cluster_number}
+        update package on workstation    -r ${incident}    cluster_number=${cluster_number}
+    END
+
+add container repo file to nodes
+    [Arguments]    ${cluster_number}
+    @{nodes}    get nodes name from CS    ${cluster_number}
+    FOR    ${node}    IN    @{nodes}
+        Switch Connection    ${node}
+        Put File    ${LOGDIR}/registries.conf    /home/${VM_USER}/registries.conf
+        execute command with ssh    sudo mkdir -p /etc/containers    ${node}
+        execute command with ssh    sudo cp /home/${VM_USER}/registries.conf /etc/containers/registries.conf    ${node}
+    END
+
+add vendor file
+    [Arguments]    ${node}
+    Switch Connection    ${node}
+    Put File    ${DATADIR}/vendors.conf    /home/${VM_USER}/vendors.conf
+    execute command with ssh    sudo cp /home/${VM_USER}/vendors.conf /etc/zypp/vendors.d/vendors.conf    ${node}
+
+add vendor file to nodes
+    [Arguments]    ${cluster_number}
+    @{nodes}    get nodes name from CS    ${cluster_number}
+    FOR    ${node}    IN    @{nodes}
+        add vendor file    ${node}
+    END
