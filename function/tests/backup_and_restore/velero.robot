@@ -7,6 +7,7 @@ Resource          ../../../parameters/velero.robot
 Resource          ../../../parameters/minio.robot
 Resource          wordpress.robot
 Resource          ../../setup_environment.robot
+Resource          ../../tools.robot
 
 *** Variables ***
 
@@ -76,6 +77,7 @@ check restore finish
 teardown velero
     [Arguments]    ${bucket_type}=default
     Run Keyword And Ignore Error    velero    delete backup --confirm ${backup_name}
+    Run Keyword And Ignore Error    wait until velero backup is deleted
     Run Keyword And Ignore Error    Run Keyword If    "${bucket_type}"=="aws" or "${bucket_type}"=="minio"    execute command localy    ${LOGDIR}/mc rm --recursive --force ${bucket_type}/${bucket}
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
@@ -125,3 +127,29 @@ _create azure credentials file
     Append To File    ${credential-velero-file}    AZURE_CLIENT_SECRET=${AZURE.client_secret}\n
     Append To File    ${credential-velero-file}    AZURE_RESOURCE_GROUP=${AZURE.resource_group}\n
     Append To File    ${credential-velero-file}    AZURE_CLOUD_NAME=${AZURE.cloud_name}\n
+
+deploy wordpress, deploy velero aws and create backup
+    And velero setup
+    And storageclass is deployed
+    And velero cli is installed
+    And aws bucket is setup
+    And velero server is deployed with volume snapshot for    aws
+    And wordpress is deployed
+    And file copy to wordpress pod
+    And wordpress volumes are annotated to be backed up
+    When create backup on    ${cluster}    args=--include-namespaces wordpress
+    Then backup should be successfull
+
+delete wordpress and restore with velero aws
+    And velero setup
+    Comment    When wordpress is removed
+    And create restore from backup    ${backup_name}
+    Sleep    10sec
+    And wordpress is up
+    Then check file exist in wordpress pod
+
+wait until velero backup is deleted
+    Wait Until Keyword Succeeds    5min    10s    check velero is deleted
+
+check velero is deleted
+    Run Keyword And Expect Error    1 != 0    velero    get backup | grep ${backup_name}
