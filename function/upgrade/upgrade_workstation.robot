@@ -2,6 +2,7 @@
 Resource          ../commands.robot
 Resource          ../reboot.robot
 Resource          ../skuba_tool_install.robot
+Resource          upgrade_nodes.robot
 
 *** Keywords ***
 _upgrade skuba from skuba repo
@@ -9,9 +10,13 @@ _upgrade skuba from skuba repo
     build skuba from repo    ${UPGRADE-COMMIT}    skuba_upgrade
 
 upgrade workstation
-    _enable update package
+    [Arguments]    ${cluster_number}
+    Run Keyword If    '${RPM}'!='${EMPTY}'    add repo from incident and update    ${cluster_number}
+    Run Keyword If    '${RPM}'!='${EMPTY}'    add repo to nodes    ${cluster_number}
+    Run Keyword If    '${REGISTRY}'!='${EMPTY}'    add container repo file to nodes    ${cluster_number}
+    Comment    _enable update package
     Comment    _upgrade skuba from skuba repo
-    update package on workstation
+    Comment    update package on workstation
 
 _delete current skuba
     ${path}    execute command with ssh    which skuba    skuba_station_${cluster_number}

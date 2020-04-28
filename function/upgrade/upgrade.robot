@@ -3,14 +3,9 @@ Resource          ../commands.robot
 Resource          ../interaction_with_cluster_state_dictionnary.robot
 Resource          upgrade_workstation.robot
 Resource          ../cluster_helpers.robot
+Resource          skuba_update.robot
 
 *** Keywords ***
-kured config
-    [Arguments]    ${mode}
-    Run Keyword If    "${mode}"=="on"    kubectl    -n kube-system annotate ds kured weave.works/kured-node-lock-
-    ...    ELSE IF    "${mode}"=="off"    kubectl    -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":"manual"}'
-    ...    ELSE    Log    to do
-
 skuba update nodes
     kured config    off
     @{nodes}    get nodes name from CS
@@ -19,14 +14,17 @@ skuba update nodes
     END
 
 skuba addon upgrade
-    skuba    addon upgrade plan    ssh=True
-    skuba    addon upgrade apply    ssh=True
+    [Arguments]    ${cluster_number}=1
+    skuba    addon upgrade plan    ssh=True    cluster_number=${cluster_number}
+    skuba    addon upgrade apply    ssh=True    cluster_number=${cluster_number}
+    wait nodes are ready    cluster_number=${cluster_number}
+    wait pods ready    cluster_number=${cluster_number}
 
 skuba upgrade node
-    [Arguments]    ${server_name}
-    ${server_ip}    get node ip from CS    ${server_name}
-    Wait Until Keyword Succeeds    2min    10sec    skuba    node upgrade plan ${server_name}    ssh=True
-    Wait Until Keyword Succeeds    30min    30s    skuba    node upgrade apply -t ${server_ip} -u sles -s    ssh=True    timeout=10min
+    [Arguments]    ${server_name}    ${cluster_number}=1
+    ${server_ip}    get node ip from CS    ${server_name}    cluster_number=${cluster_number}
+    Wait Until Keyword Succeeds    2min    10sec    skuba    node upgrade plan ${server_name}    ssh=True    cluster_number=${cluster_number}
+    Wait Until Keyword Succeeds    30min    30s    skuba    node upgrade apply -t ${server_ip} -u sles -s    ssh=True    timeout=10min    cluster_number=${cluster_number}
     Comment    ${status}    ${output}    Run Keyword And Ignore Error    skuba    node upgrade apply -t ${server_ip} -u sles -s    ssh=True    timeout=10min
     Comment    ${status_connection}    Run Keyword If    "${status}"=="FAIL"    check string contain    ${output}    connect: connection refused
     ...    ELSE    Set Variable    False
@@ -37,30 +35,34 @@ skuba upgrade node
     Comment    skuba    node upgrade apply -t ${server_ip} -u sles -s    ssh=True
 
 skuba upgrade all nodes
-    ${masters}    get master servers name
+    [Arguments]    ${cluster_number}=1
+    ${masters}    get master servers name    cluster_number=${cluster_number}
     FOR    ${master}    IN    @{masters}
-        skuba upgrade node    ${master}
-        wait reboot
+        skuba upgrade node    ${master}    cluster_number=${cluster_number}
+        wait reboot    cluster_number=${cluster_number}
     END
-    ${workers}    get worker servers name
+    ${workers}    get worker servers name    cluster_number=${cluster_number}
     FOR    ${worker}    IN    @{workers}
-        skuba upgrade node    ${worker}
+        skuba upgrade node    ${worker}    cluster_number=${cluster_number}
     END
-    wait until node version are the same
-    ${cluster_status}    skuba    cluster upgrade plan    ssh=True
-    Should Contain    ${cluster_status}    Congratulations! You are already at the latest version available
+    wait until node version are the same    cluster_number=${cluster_number}
 
 upgrade cluster
-    ${passed}    ${output}    Run Keyword And Ignore Error    upgrade workstation
+    [Arguments]    ${cluster_number}=1
+    ${passed}    ${output}    Run Keyword And Ignore Error    upgrade workstation    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
-    ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade
+    ${passed}    ${output}    Run Keyword And Ignore Error    skuba-update nodes    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
-    ${passed}    ${output}    Run Keyword And Ignore Error    skuba upgrade all nodes
+    ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
-    ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade
+    ${passed}    ${output}    Run Keyword And Ignore Error    skuba upgrade all nodes    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
-    ${passed}    ${output}    Run Keyword And Ignore Error    wait nodes are ready
+    ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
-    ${passed}    ${output}    Run Keyword And Ignore Error    wait pods ready
+    ${cluster_status}    skuba    cluster upgrade plan    ssh=True    cluster_number=${cluster_number}
+    Comment    Should Contain    ${cluster_status}    Congratulations! You are already at the latest version available
+    ${passed}    ${output}    Run Keyword And Ignore Error    wait nodes are ready    cluster_number=${cluster_number}
+    Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
+    ${passed}    ${output}    Run Keyword And Ignore Error    wait pods ready    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     [Teardown]    set global variable    ${UPGRADE}    False

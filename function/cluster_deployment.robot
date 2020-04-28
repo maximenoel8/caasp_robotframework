@@ -156,7 +156,7 @@ check state of all the cluster is done
     FOR    ${cluster}    IN    @{clusters}
         Log Dictionary    ${deployment_state}
         Continue For Loop If    "${deployment_state["${cluster}"]["state"]}"=="done"
-        Set Global Variable    RETRY_${cluster}    0
+        Set Global Variable    ${RETRY_${cluster}}    0
         check deployment status for cluster    ${cluster}
     END
     FOR    ${cluster}    IN    @{clusters}

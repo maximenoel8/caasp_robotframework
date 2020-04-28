@@ -69,5 +69,5 @@ start bootstrap
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
     ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
     Create File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
-    ${RETRY_${cluster}}    Evaluate    ${RETRY_${cluster}}+1
-    Set Global Variable    ${RETRY_${cluster}}
+    ${current_retry}    Evaluate    ${RETRY_${cluster}}+1
+    Set Global Variable    ${RETRY_${cluster}}    ${current_retry}
