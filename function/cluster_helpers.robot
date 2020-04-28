@@ -10,7 +10,8 @@ wait nodes are ready
     kubectl    wait nodes --all --for=condition=ready --timeout=10m ${nodes}    ${cluster_number}
 
 wait reboot
-    Wait Until Keyword Succeeds    600s    30s    kubectl    cluster-info
+    [Arguments]    ${cluster_number}=1
+    Wait Until Keyword Succeeds    600s    30s    kubectl    cluster-info    ${cluster_number}
 
 wait pods ready
     [Arguments]    ${arguments}=${EMPTY}    ${cluster_number}=1
@@ -115,7 +116,8 @@ restart CrashLoopBack pod
     [Return]    ${status}
 
 get node description
-    ${output}    kubectl    get nodes -o json
+    [Arguments]    ${cluster_number}=1
+    ${output}    kubectl    get nodes -o json    cluster_number=${cluster_number}
     Create File    ${LOGDIR}/node_description.json    ${output}
     ${node_json}    Load JSON From File    ${LOGDIR}/node_description.json
     Log Dictionary    ${node_json}
@@ -127,8 +129,8 @@ get node description
     [Return]    ${node description}
 
 check nodes version are equal
-    [Arguments]    ${fail_status}=False
-    ${dictionnary}    get node description
+    [Arguments]    ${fail_status}=False    ${cluster_number}=1
+    ${dictionnary}    get node description    cluster_number=${cluster_number}
     ${nodes}    Get Dictionary Keys    ${dictionnary}
     ${previous_version}    Set Variable    ${EMPTY}
     FOR    ${node}    IN    @{NODES}
@@ -141,7 +143,8 @@ check nodes version are equal
     [Return]    ${status}
 
 wait until node version are the same
-    Wait Until Keyword Succeeds    5min    15sec    check nodes version are equal    True
+    [Arguments]    ${cluster_number}=1
+    Wait Until Keyword Succeeds    5min    15sec    check nodes version are equal    True    cluster_number=${cluster_number}
 
 get pod list and try restart crashpod
     [Arguments]    ${cluster_number}
@@ -174,4 +177,4 @@ kured config
 _patch kured
     [Arguments]    ${args}
     ${patch}    Set Variable    { "spec": { "template": { "spec": { "containers": [ { "name": "kured", "command": [ "/usr/bin/kured", "${args}" ] } ] } } } }
-    kubectl    -n kube-system patch ds kured -p "${patch}"
+    kubectl    -n kube-system patch ds kured -p '${patch}'

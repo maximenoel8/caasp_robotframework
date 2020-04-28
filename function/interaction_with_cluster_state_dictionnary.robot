@@ -226,3 +226,9 @@ get node skuba name
 add workstation
     [Arguments]    ${ip}    ${cluster_number}
     Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]}    workstation=${ip}
+
+get number of nodes
+    [Arguments]    ${cluster_number}=1
+    ${nodes}    get nodes name from CS    ${cluster_number}
+    ${length}    Get Length    ${nodes}
+    [Return]    ${length}

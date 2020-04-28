@@ -27,8 +27,8 @@ _skuba from pattern
     execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
     Run Keyword If    ${OLD}    execute command with ssh    sudo zypper mr -d SUSE-CAASP-4.0-Updates    skuba_station_${cluster_number}
     execute command with ssh    sudo zypper -n in -t pattern SUSE-CaaSP-Management    skuba_station_${cluster_number}
-    Run Keyword If    '${RPM}'!='${EMPTY}'    add repo from incident and update    ${cluster_number}
-    Run Keyword If    '${REGISTRY}'!='${EMPTY}'    add container repo file to nodes    ${cluster_number}
+    Run Keyword If    '${RPM}'!='${EMPTY}' and not ${UPGRADE}    add repo from incident and update    ${cluster_number}
+    Run Keyword If    '${REGISTRY}'!='${EMPTY}' and not ${UPGRADE}    add container repo file to nodes    ${cluster_number}
 
 _skuba from repo
     [Arguments]    ${cluster_number}
@@ -64,11 +64,9 @@ build skuba from repo
 
 add repo from incident and update
     [Arguments]    ${cluster_number}
-    add vendor file    skuba_station_${cluster_number}
-    Comment    add vendor file to nodes    ${cluster_number}
+    Run Keyword If    ${UPGRADE}    _add repo from incident on    skuba_station_${cluster_number}
     ${incidents}    Get Dictionary Keys    ${INCIDENT_REPO}
     FOR    ${incident}    IN    @{incidents}
-        Comment    execute command with ssh    sudo zypper ar -fG ${INCIDENT_REPO["${incident}"]} ${incident}    skuba_station_${cluster_number}
         update package on workstation    -r ${incident}    cluster_number=${cluster_number}
     END
 
@@ -80,6 +78,7 @@ add container repo file to nodes
         Put File    ${LOGDIR}/registries.conf    /home/${VM_USER}/registries.conf
         execute command with ssh    sudo mkdir -p /etc/containers    ${node}
         execute command with ssh    sudo cp /home/${VM_USER}/registries.conf /etc/containers/registries.conf    ${node}
+        Run Keyword If    ${UPGRADE}    execute command with ssh    sudo systemctl restart crio    ${node}
     END
 
 add vendor file
@@ -93,4 +92,12 @@ add vendor file to nodes
     @{nodes}    get nodes name from CS    ${cluster_number}
     FOR    ${node}    IN    @{nodes}
         add vendor file    ${node}
+    END
+
+_add repo from incident on
+    [Arguments]    ${node}
+    add vendor file    ${node}
+    ${incidents}    Get Dictionary Keys    ${INCIDENT_REPO}
+    FOR    ${incident}    IN    @{incidents}
+        Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar -fG ${INCIDENT_REPO["${incident}"]} ${incident}    ${node}
     END

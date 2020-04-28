@@ -164,3 +164,11 @@ velero migration with azure
     and wordpress is up    2
     then check file exist in wordpress pod    2
     [Teardown]    teardown velero
+
+velero create backup before upgrade, upgrade and restaure
+    Given cluster running
+    helm is installed
+    Set Test Variable    ${backup_name}    cluster-0qne-5366
+    Comment    deploy wordpress, deploy velero aws and create backup
+    Comment    Run Keyword If    ${UPGRADE}    upgrade cluster
+    delete wordpress and restore with velero aws

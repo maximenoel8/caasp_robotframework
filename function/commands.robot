@@ -45,8 +45,8 @@ kubectl
     [Return]    ${output}
 
 skuba
-    [Arguments]    ${arguments}    ${ssh}=False    ${debug}=10    ${timeout}=15min
-    ${output}    Run Keyword If    ${ssh}    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}    timeout=${timeout}
+    [Arguments]    ${arguments}    ${ssh}=False    ${debug}=10    ${timeout}=15min    ${cluster_number}=1
+    ${output}    Run Keyword If    ${ssh}    execute command with ssh    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}    timeout=${timeout}    alias=skuba_station_${cluster_number}
     ...    ELSE    execute command localy    skuba ${arguments}
     [Return]    ${output}
 
