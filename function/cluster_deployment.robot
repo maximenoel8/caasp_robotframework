@@ -92,6 +92,7 @@ check if node is deployed
     Run Keyword If    ${status} and "${state}"=="bootstrap"    Run Keywords    _change deployment state    ${cluster}
     ...    AND    Get Directory    cluster    ${WORKDIR}/${cluster}    recursive=true
     ...    AND    wait nodes are ready    cluster_number=${cluster_number}
+    Run Keyword If    ${status}    Log    ${node} is added to the cluster    HTML
     Run Keyword If    ${status}    Close Connection
     [Return]    ${status}
 
@@ -152,11 +153,9 @@ check deployment status for cluster
 
 check state of all the cluster is done
     ${clusters}    Get Dictionary Keys    ${deployment_state}
-    Sleep    15 sec
     FOR    ${cluster}    IN    @{clusters}
         Log Dictionary    ${deployment_state}
         Continue For Loop If    "${deployment_state["${cluster}"]["state"]}"=="done"
-        Set Global Variable    ${RETRY_${cluster}}    0
         check deployment status for cluster    ${cluster}
     END
     FOR    ${cluster}    IN    @{clusters}

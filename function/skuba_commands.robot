@@ -60,7 +60,7 @@ initiale join
 start bootstrap
     [Arguments]    ${node}    ${cluster}
     ${cluster_number}    get cluster number    ${cluster}
-    Run Keyword If    ${RETRY_${cluster}} == 4    Fail    Bootstrap fail
+    _check bootstrap retry
     open ssh session    ${WORKSTATION__${cluster_number}}    ${node}
     ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
     ${extra_args}    Set Variable If    "${mode}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
@@ -69,5 +69,10 @@ start bootstrap
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
     ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
     Create File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
+
+_check bootstrap retry
+    ${status}    ${output}    Run Keyword And Ignore Error    Variable Should Exist    ${RETRY_${cluster}}
+    Run Keyword If    "${status}"=="FAIL"    Set Global Variable    ${RETRY_${cluster}}    0
+    Run Keyword If    ${RETRY_${cluster}} == 4    Fail    Bootstrap fail after 4 retry
     ${current_retry}    Evaluate    ${RETRY_${cluster}}+1
     Set Global Variable    ${RETRY_${cluster}}    ${current_retry}
