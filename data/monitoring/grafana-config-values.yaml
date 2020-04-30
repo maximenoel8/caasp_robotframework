@@ -3,7 +3,13 @@ adminPassword: linux
 
 # Configure persistent storage
 persistence:
-  enabled: false
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  ## Create a PersistentVolumeClaim of 10Gi
+  size: 10Gi
+  ## Use an existing PersistentVolumeClaim (my-pvc)
+  #existingClaim: my-pvc
 
 # Enable sidecar for provisioning
 sidecar:

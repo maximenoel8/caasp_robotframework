@@ -12,5 +12,6 @@ monitoring
     Then prometheus should be healthy
     And grafana should be healthy
     And prometheus dashboard should be accessible
-    And grafana dashboard should be accessible
+    When deploy dashboard
+    Then grafana dashboard should be accessible
     [Teardown]    cleaning monitoring

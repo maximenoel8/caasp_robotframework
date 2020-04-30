@@ -15,7 +15,7 @@ Resource          upgrade/upgrade.robot
 ${worker_deployment_limit}    4
 ${master_deployment_limit}    1
 ${bootstrap_deployment_limit}    1
-${bootstrap_expected_output}    [bootstrap] successfully bootstrapped
+${bootstrap_expected_output}    [bootstrap] successfully bootstrapped core add-ons
 ${master_expected_output}    [join] node successfully joined the cluster
 ${worker_expected_output}    [join] node successfully joined the cluster
 ${sleep_time}     10

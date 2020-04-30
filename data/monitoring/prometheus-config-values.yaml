@@ -15,7 +15,9 @@ pushgateway:
 # Prometheus configuration
 server:
   persistentVolume:
-    enabled: false
+    enabled: true
+    ## Create a PersistentVolumeClaim of 8Gi
+    size: 8Gi
 
 kubeStateMetrics:
   enable: true

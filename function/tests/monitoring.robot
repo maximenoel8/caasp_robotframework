@@ -6,7 +6,8 @@ Resource          ../setup_environment.robot
 
 *** Keywords ***
 grafana is deployed
-    helm    install --name grafana suse-charts/grafana --namespace monitoring --values ${DATADIR}/grafana-config-values.yaml
+    kubectl    apply -f ${DATADIR}/monitoring/grafana-datasources.yaml
+    helm    install --name grafana suse-charts/grafana --namespace monitoring --values ${DATADIR}/monitoring/grafana-config-values.yaml
     wait_deploy    -n monitoring grafana    15m
 
 Checking prometheus-server health
@@ -63,7 +64,8 @@ Expose grafana server
     Set Test Variable    ${grafanaPort}
 
 prometheus is deployed
-    helm    install --name prometheus suse-charts/prometheus --namespace monitoring --values ${DATADIR}/prometheus-config-values.yaml
+    helm    install --name prometheus suse-charts/prometheus --namespace monitoring --values ${DATADIR}/monitoring/prometheus-config-values.yaml
+    add certficate exporter
     wait_deploy    -n monitoring prometheus-server    15m
     wait_deploy    -n monitoring prometheus-alertmanager    15m
     wait_deploy    -n monitoring prometheus-kube-state-metrics    15m
@@ -77,3 +79,14 @@ cleaning monitoring
 
 grafana is deployed custom
     helm    install --name grafana --namespace monitoring --values ./grafana-config-values.yaml --set downloadDashboardsImage.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/curl --set downloadDashboardsImage.pullPolicy=Always --set initChownData.image.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/busybox --set initChownData.image.pullPolicy=Always --set sidecar.image=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/k8s-sidecar:0.1.75 --set sidecar.imagePullPolicy=Always grafana
+
+add certficate exporter
+    helm    install --name cert-exporter --namespace monitoring --set image.repository=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/cert-exporter ${LOGDIR}/kubernetes-charts-suse-com/stable/cert-exporter/ --wait
+    kubectl    label --overwrite secret oidc-dex-cert -n kube-system caasp.suse.com/skuba-addon=true
+    kubectl    label --overwrite secret oidc-gangway-cert -n kube-system caasp.suse.com/skuba-addon=true
+
+deploy dashboard
+    kubectl    apply -f https://raw.githubusercontent.com/jenting/caasp-monitoring/caasp-certs/grafana-dashboards-caasp-certificates.yaml
+
+reboot cert-exporter
+    kubectl    rollout restart deployment/cert-exporter-node -n monitoring
