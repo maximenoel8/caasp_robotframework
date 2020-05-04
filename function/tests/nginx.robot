@@ -37,9 +37,9 @@ nginx ingress is patched
     Sleep    10
 
 service should be accessible
-    execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:30443 | grep 'default backend - 404'
-    execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:30443/apple | grep apple
-    execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:30443/pear | grep pear
+    execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:32443 | grep 'default backend - 404'
+    execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:32443/apple | grep apple
+    execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:32443/pear | grep pear
 
 teardown nginx testcase
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-ingress-rewrite.yaml

@@ -7,6 +7,7 @@ monitoring
     [Tags]    release
     Given cluster running
     And helm is installed
+    And storageclass is deployed
     And prometheus is deployed
     And grafana is deployed
     Then prometheus should be healthy

@@ -64,8 +64,9 @@ Expose grafana server
     Set Test Variable    ${grafanaPort}
 
 prometheus is deployed
+    create monitoring certificate
     helm    install --name prometheus suse-charts/prometheus --namespace monitoring --values ${DATADIR}/monitoring/prometheus-config-values.yaml
-    add certficate exporter
+    add certificate exporter
     wait_deploy    -n monitoring prometheus-server    15m
     wait_deploy    -n monitoring prometheus-alertmanager    15m
     wait_deploy    -n monitoring prometheus-kube-state-metrics    15m
@@ -77,16 +78,26 @@ cleaning monitoring
     Run Keyword And Ignore Error    kubectl    delete namespace monitoring
     [Teardown]    teardown_test
 
-grafana is deployed custom
-    helm    install --name grafana --namespace monitoring --values ./grafana-config-values.yaml --set downloadDashboardsImage.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/curl --set downloadDashboardsImage.pullPolicy=Always --set initChownData.image.repository=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/busybox --set initChownData.image.pullPolicy=Always --set sidecar.image=registry.suse.de/devel/caasp/4.0/staging/4.1.2/suse_sle-15-sp1_update_products_casp40_update_containers/caasp/v4/k8s-sidecar:0.1.75 --set sidecar.imagePullPolicy=Always grafana
-
-add certficate exporter
-    helm    install --name cert-exporter --namespace monitoring --set image.repository=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/cert-exporter ${LOGDIR}/kubernetes-charts-suse-com/stable/cert-exporter/ --wait
+add certificate exporter
     kubectl    label --overwrite secret oidc-dex-cert -n kube-system caasp.suse.com/skuba-addon=true
     kubectl    label --overwrite secret oidc-gangway-cert -n kube-system caasp.suse.com/skuba-addon=true
+    helm    install --name cert-exporter --namespace monitoring --set image.repository=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/cert-exporter ${LOGDIR}/kubernetes-charts-suse-com/stable/cert-exporter/ --wait
 
 deploy dashboard
     kubectl    apply -f https://raw.githubusercontent.com/jenting/caasp-monitoring/caasp-certs/grafana-dashboards-caasp-certificates.yaml
 
 reboot cert-exporter
-    kubectl    rollout restart deployment/cert-exporter-node -n monitoring
+    kubectl    rollout restart deployment cert-exporter-addon -n monitoring
+    kubectl    rollout restart ds cert-exporter-node -n monitoring
+
+create monitoring certificate
+    ${dns}    Create List    prometheus.example.com    prometheus-alertmanager.example.com    grafana.example.com
+    ${ip}    Create List
+    ${SAN}    Create Dictionary    dns=${dns}    ip=${ip}
+    Run Keyword And Ignore Error    kubectl    create namespace monitoring
+    create custom certificate to    monitoring    ${SAN}    monitoring
+    kubectl    create secret generic -n monitoring prometheus-basic-auth --from-file=${WORKDIR}/auth
+
+reboot grafana
+    kubectl    rollout restart -n monitoring deployment grafana
+    wait_deploy    -n monitoring grafana    15m
