@@ -21,3 +21,4 @@ ${KUBERNETES_VERSION}    ${EMPTY}
 &{INCIDENT_REPO}
 ${RPM}            ${EMPTY}
 ${REGISTRY}       ${EMPTY}
+&{LB_REPO_LIST}

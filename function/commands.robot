@@ -33,13 +33,14 @@ kubectl
     ${unable to connect}    Set Variable    Unable to connect to the server: EOF
     ${etcd timedout}    Set Variable    Error from server: etcdserver: request timed out
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
-    FOR    ${i}    IN RANGE    1    5
+    ${retry}    Set Variable If    ${screenshot}    1    5
+    FOR    ${i}    IN RANGE    0    ${retry}
         ${status}    ${output}    Run Keyword And Ignore Error    _kubectl configuration    ${arguments}    ${cluster_number}    ${screenshot}
         ${status_connection}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
         ${status_unable}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${unable to connect}
         ${status_etcdserver}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${etcd timedout}
         Exit For Loop If    "${status_connection}"=="FAIL" and "${status_unable}"=="FAIL" and "${status_etcdserver}"=="FAIL"
-        Sleep    30sec
+        Run Keyword If    not ${screenshot}    Sleep    30sec
     END
     Run Keyword If    "${status}"=="FAIL"    Fail    ${output}
     [Return]    ${output}

@@ -4,6 +4,9 @@ Resource          cluster_helpers.robot
 Resource          reboot.robot
 Resource          helper.robot
 
+*** Variables ***
+${CP_vsphere}     True
+
 *** Keywords ***
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3
@@ -62,10 +65,7 @@ start bootstrap
     ${cluster_number}    get cluster number    ${cluster}
     _check bootstrap retry
     open ssh session    ${WORKSTATION__${cluster_number}}    ${node}
-    ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
-    ${extra_args}    Set Variable If    "${mode}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
-    Run Keyword And Ignore Error    execute command with ssh    rm -rf cluster    ${node}
-    execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${node}
+    init cluster    ${node}    ${cluster_number}
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
     ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
     Create File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
@@ -76,3 +76,20 @@ _check bootstrap retry
     Run Keyword If    ${RETRY_${cluster}} == 4    Fail    Bootstrap fail after 4 retry
     ${current_retry}    Evaluate    ${RETRY_${cluster}}+1
     Set Global Variable    ${RETRY_${cluster}}    ${current_retry}
+
+init cluster
+    [Arguments]    ${alias}    ${cluster_number}=1
+    ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
+    ${extra_args}    Set Variable If    "${platform}"=="vmware" and ${CP_vsphere}    --cloud-provider vsphere    ${EMPTY}
+    ${extra_args}    Set Variable If    "${mode}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
+    Run Keyword And Ignore Error    execute command with ssh    rm -rf cluster    ${alias}
+    execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${alias}
+    Run Keyword If    ${CP_vsphere}    _setup vsphere cloud configuration    ${cluster_number}
+
+_setup vsphere cloud configuration
+    [Arguments]    ${cluster_number}
+    Copy File    ${DATADIR}/vsphere.conf.template    ${LOGDIR}/vsphere.conf
+    modify string in file    ${LOGDIR}/vsphere.conf    <user>    ${vmware["VSPHERE_USER"]}
+    modify string in file    ${LOGDIR}/vsphere.conf    <password>    ${vmware["VSPHERE_PASSWORD"]}
+    modify string in file    ${LOGDIR}/vsphere.conf    <stack>    ${CLUSTER_PREFIX}-${cluster_number}
+    Put File    ${LOGDIR}/vsphere.conf    /home/${VM_USER}/cluster/cloud/vsphere/

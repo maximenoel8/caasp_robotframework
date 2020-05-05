@@ -88,7 +88,7 @@ dex is configured for
 
 clean 389ds server
     kubectl    delete -f "${DATADIR}/389dss"
-    teardown_test
+    [Teardown]    teardown_test
 
 openldap server is deployed
     helm    install --name ldap --set adminPassword=admin --set env.LDAP_DOMAIN=example.com stable/openldap

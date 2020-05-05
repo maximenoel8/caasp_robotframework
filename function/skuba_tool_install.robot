@@ -35,6 +35,7 @@ _skuba from repo
     _install go git make    ${cluster_number}
     build skuba from repo    ${SKUBA_PULL_REQUEST}    cluster_number=${cluster_number}
     Run Keyword if    "${PLATFORM}"=="vmware"    _disable firewall    ${cluster_number}
+    execute command with ssh    sudo zypper --non-interactive in kubernetes-client    alias=skuba_station_${cluster_number}
 
 _change skuba branch
     [Arguments]    ${commit}    ${folder}    ${cluster_number}
