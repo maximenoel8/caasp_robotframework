@@ -19,6 +19,9 @@ Configure your vmware and openstack setting in env.robot
 
 For backup and restore test, configure your aws identification key
 
+## Code Organization
+
+![alt text](code_organization.png "Code organization")
 
 ## Execute test
 
