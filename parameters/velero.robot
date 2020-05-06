@@ -15,3 +15,4 @@ ${aws_region}     eu-central-1
 ${gcp_credential_file}    suse-css-qa-dfb2316ddd52.json
 ${gcp_plugin_image}    registry.suse.com/caasp/v4/velero-plugin-for-gcp:1.0.1
 ${azure_plugin_image}    registry.suse.com/caasp/v4/velero-plugin-for-microsoft-azure:1.0.1
+${backup_name}    ${EMPTY}

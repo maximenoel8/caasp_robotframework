@@ -30,7 +30,7 @@ kubectl
     [Arguments]    ${arguments}    ${cluster_number}=1    ${screenshot}=False
     log    kubectl ${arguments}
     ${connection_error}    Set Variable    connection to the server ${IP_LB_${cluster_number}}:6443 was refused
-    ${unable to connect}    Set Variable    Unable to connect to the server: EOF
+    ${unable to connect}    Set Variable    Unable to connect to the server:
     ${etcd timedout}    Set Variable    Error from server: etcdserver: request timed out
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${retry}    Set Variable If    ${screenshot}    1    5

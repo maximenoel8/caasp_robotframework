@@ -33,7 +33,7 @@ configure etcd-backup job
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec volumes 1 hostPath path    ${etcd_snapshot_path}
     Remove Key    ${LOGDIR}/snapshot_job.yaml    spec template spec nodeSelector
     ${master_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0
-    Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec nodeName    ${master_name}    True
+    Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec nodeName    removechar"${master_name}"    True
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec containers 0 command    removechar["/bin/sh"]
     Modify Add Value    ${LOGDIR}/snapshot_job.yaml    spec template spec containers 0 args    removechar["-c", "etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key snapshot save /backup/etcd-snapshot-${cluster}.db"]
     remove string from file    ${LOGDIR}/snapshot_job.yaml    removechar

@@ -162,8 +162,9 @@ create cluster state for
     ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster${cluster_number}.json
     create first cluster_state level    ${cluster_number}
     Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
-    ...    ELSE IF    "${ip_dictionnary["terraform_version"]}"=="0.12.19" and not "${PLATFORM}"=="aws"    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
+    ...    ELSE IF    "${ip_dictionnary["terraform_version"]}"=="0.12.19" and not "${PLATFORM}"=="aws" and not "${PLATFORM}"=="vmware"    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${PLATFORM}"=="aws"    _create cluster_state for aws    ${ip_dictionnary}    ${cluster_number}
+    ...    ELSE IF    "${PLATFORM}"=="vmware"    _create_cluster_state_for_vmware    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE    Fail    Wrong platform file
 
 _create cluster_state for aws
@@ -232,3 +233,38 @@ get number of nodes
     ${nodes}    get nodes name from CS    ${cluster_number}
     ${length}    Get Length    ${nodes}
     [Return]    ${length}
+
+_create_cluster_state_for_vmware
+    [Arguments]    ${ip_dictionnary}    ${cluster_number}
+    @{masters}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
+    @{workers}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_workers"]["value"]}
+    ${count}    Set Variable    0
+    ${length}    Get Length    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
+    ${length}    Evaluate    ${length}-1
+    FOR    ${key}    IN    @{masters}
+        Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    ${cluster_number}
+        ...    AND    Exit For Loop
+        ${hostname}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    ${hostname}    cluster_number=${cluster_number}
+        ${count}    Evaluate    ${count}+1
+    END
+    FOR    ${key}    IN    @{workers}
+        ${hostname}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    ${hostname}    cluster_number=${cluster_number}
+    END
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["ip_load_balancer"]["value"]["${CLUSTER_PREFIX}-${cluster_number}-lb-0"]}
+    add lb to CS    ${IP_LB}    ${cluster_number}
+
+_get_hostname_vmware
+    [Arguments]    ${ip}
+    @{digits}    Split String    ${ip}    .
+    ${hostname}    Set Variable
+    FOR    ${digit}    IN    @{digits}
+        ${lt}    Get Length    ${digit}
+        ${first_digit}    Set Variable If    ${lt}==1    00${digit}
+        ...    ${lt}==2    0${digit}
+        ...    ${lt}==3    ${digit}
+        ${hostname}    Set Variable    ${hostname}${first_digit}
+    END
+    [Return]    ${hostname}

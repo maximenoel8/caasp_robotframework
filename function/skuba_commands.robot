@@ -4,9 +4,6 @@ Resource          cluster_helpers.robot
 Resource          reboot.robot
 Resource          helper.robot
 
-*** Variables ***
-${CP_vsphere}     True
-
 *** Keywords ***
 replica dex and gangway are correctly distribued
     ${dexreplicat}    Set Variable    3
@@ -21,9 +18,10 @@ replica dex and gangway are correctly distribued
 remove node
     [Arguments]    ${node_name}    ${shutdown_first}=False
     ${ip}    get node ip from CS    ${node_name}
+    ${skuba_node}    get node skuba name    ${node_name}
     Run Keyword If    ${shutdown_first}    reboot or shutdown server    ${ip}    shutdown
-    ${remove_output}    skuba    node remove --drain-timeout 2m ${node_name}    True
-    Should Contain    ${remove_output}    node ${node_name} successfully removed from the cluster
+    ${remove_output}    skuba    node remove --drain-timeout 5m ${skuba_node}    True
+    Should Contain    ${remove_output}    node ${skuba_node} successfully removed from the cluster
     ${nodes_output}    kubectl    get nodes -o name
     Should Not Contain    ${nodes_output}    ${node_name}
     wait pods ready
@@ -48,8 +46,8 @@ join node
     Run Keyword If    ${node exist} and not ${node disable}    Fail    Worker already part of the cluster !
     ...    ELSE IF    ${node exist} and ${node disable} and ${after_remove}    Run Keywords    unmask kubelet    ${ip}
     ...    AND    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${skuba_name}    True
-    ...    AND    wait nodes
-    ...    AND    wait pods
+    ...    AND    wait nodes are ready
+    ...    AND    wait pods ready
     ...    AND    enable node in CS    ${node}
     ...    ELSE IF    ${node exist} and ${node disable} and not ${after_remove}    initiale join    ${skuba_name}    ${ip}    ${type}
     ...    ELSE    Run Keywords    skuba    node join --role ${type} --user ${VM_USER} --sudo --target ${ip} ${skuba_name}    True

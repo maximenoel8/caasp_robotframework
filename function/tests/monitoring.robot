@@ -3,12 +3,14 @@ Resource          ../commands.robot
 Resource          ../cluster_helpers.robot
 Resource          selenium.robot
 Resource          ../setup_environment.robot
+Resource          certificate.robot
 
 *** Keywords ***
 grafana is deployed
     kubectl    apply -f ${DATADIR}/monitoring/grafana-datasources.yaml
     helm    install --name grafana suse-charts/grafana --namespace monitoring --values ${DATADIR}/monitoring/grafana-config-values.yaml
     wait_deploy    -n monitoring grafana    15m
+    kubectl    apply -f ${DATADIR}/monitoring/ingress-grafana.yaml
 
 Checking prometheus-server health
     ${output}    kubectl    logs -n monitoring -l "app=prometheus,component=server" -c prometheus-server
@@ -76,6 +78,7 @@ cleaning monitoring
     Run Keyword And Ignore Error    helm    delete prometheus --purge
     Run Keyword And Ignore Error    helm    delete grafana --purge
     Run Keyword And Ignore Error    kubectl    delete namespace monitoring
+    Run Keyword And Ignore Error    helm    del --purge cert-exporter
     [Teardown]    teardown_test
 
 add certificate exporter
@@ -96,7 +99,7 @@ create monitoring certificate
     ${SAN}    Create Dictionary    dns=${dns}    ip=${ip}
     Run Keyword And Ignore Error    kubectl    create namespace monitoring
     create custom certificate to    monitoring    ${SAN}    monitoring
-    kubectl    create secret generic -n monitoring prometheus-basic-auth --from-file=${WORKDIR}/auth
+    kubectl    create secret generic -n monitoring prometheus-basic-auth --from-file=${DATADIR}/monitoring/auth
 
 reboot grafana
     kubectl    rollout restart -n monitoring deployment grafana

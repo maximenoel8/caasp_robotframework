@@ -1,0 +1,21 @@
+[Global]
+user = "<user>"
+password = "<password>"
+port = "443"
+insecure-flag = "1"
+[VirtualCenter "jazz.qa.prv.suse.net"]
+datacenters = "PROVO"
+[Workspace]
+server = "jazz.qa.prv.suse.net"
+datacenter = "PROVO"
+default-datastore = "3PAR"
+resourcepool-path = "CaaSP_RP"
+folder = "<stack>-cluster"
+[Disk]
+scsicontrollertype = pvscsi
+[Network]
+public-network = "VM Network"
+[Labels]
+region = "test-vcp-regions"
+zone = "test-vcp-zones"
+
