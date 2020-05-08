@@ -3,10 +3,14 @@ Resource          ../commands.robot
 Resource          ../cluster_helpers.robot
 Resource          ../interaction_with_cluster_state_dictionnary.robot
 Resource          ../setup_environment.robot
+Resource          ../tools.robot
 
 *** Keywords ***
 nginx is deployed
-    helm    install --name nginx-ingress --namespace nginx-ingress suse-charts/nginx-ingress --values ${DATADIR}/nginx/nginx-ingress-config-values.yaml
+    [Arguments]    ${cluster_number}=1
+    ${output}    kubectl    get pod -l app=nginx-ingress -n nginx-ingress -o name    cluster_number=${cluster_number}
+    ${status}    ${_}    Run Keyword And Ignore Error    Should Not Be Empty    ${output}
+    Run Keyword If    "${status}"=="FAIL"    helm    install --name nginx-ingress --namespace nginx-ingress suse-charts/nginx-ingress --values ${DATADIR}/nginx/nginx-ingress-config-values.yaml    cluster_number=${cluster_number}
     wait deploy    -n nginx-ingress --all
 
 can access nginx server
@@ -34,7 +38,7 @@ resources pear and apple are deployed
 
 nginx ingress is patched
     kubectl    apply -f ${DATADIR}/nginx/nginx-ingress-rewrite.yaml --wait
-    Sleep    10
+    Sleep    5
 
 service should be accessible
     execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:32443 | grep 'default backend - 404'
@@ -46,3 +50,12 @@ teardown nginx testcase
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-apple.yaml
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-pear.yaml
     Run Keyword And Ignore Error    helm    delete nginx-ingress --purge
+
+update /etc/hosts
+    Copy File    /etc/hosts    ${LOGDIR}/hosts.backup
+    Copy File    ${LOGDIR}/hosts.backup    ${LOGDIR}/hosts
+    ${status}    ${output}    Run Keyword And Ignore Error    Should Match Regexp    ${BOOTSTRAP_MASTER_1}    ^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$
+    ${ip}    Run Keyword If    "${status}"=="FAIL"    resolv dns    ${BOOTSTRAP_MASTER_1}
+    ...    ELSE    Set Variable    ${BOOTSTRAP_MASTER_1}
+    Append To File    ${LOGDIR}/hosts    ${ip} \ \ \ k8s-dashboard.cluster.com prometheus.example.com prometheus-alertmanager.example.com grafana.example.com
+    execute command localy    sudo cp ${LOGDIR}/hosts /etc/hosts

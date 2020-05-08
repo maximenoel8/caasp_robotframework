@@ -23,3 +23,4 @@ ${RPM}            ${EMPTY}
 ${REGISTRY}       ${EMPTY}
 &{LB_REPO_LIST}
 ${CP_vsphere}     False
+${CONNEXION_UP}    False

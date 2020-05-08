@@ -122,7 +122,6 @@ velero backup wordpress gcp
     [Teardown]    teardown velero
 
 velero backup wordpress azure
-    [Tags]    backup
     Given cluster running
     And velero setup
     And helm is installed

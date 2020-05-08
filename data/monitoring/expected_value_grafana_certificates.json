@@ -1,0 +1,112 @@
+{
+  "kubernetes": {
+    "etcd-ca": {
+      "filename": "/etc/kubernetes/pki/etcd/ca.crt",
+      "issuer": "etcd-ca",
+      "expiration": "9 years, 12 months, 0 weeks",
+      "number": "master"
+    },
+    "front-proxy-ca": {
+      "filename": "/etc/kubernetes/pki/front-proxy-ca.crt",
+      "issuer": "front-proxy-ca",
+      "expiration": "9 years, 12 months, 0 weeks",
+      "number": "master"
+    },
+    "front-proxy-client": {
+      "filename": "/etc/kubernetes/pki/front-proxy-client.crt",
+      "issuer": "front-proxy-ca",
+      "expiration": "12 months, 0 weeks, 3 days",
+      "number": "master"
+    },
+    "kube-apiserver": {
+      "filename": "/etc/kubernetes/pki/apiserver.crt",
+      "issuer": "kubernetes",
+      "expiration": "12 months, 0 weeks, 3 days",
+      "number": "master"
+    },
+    "kube-apiserver-etcd-client": {
+      "filename": "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+      "issuer": "etcd-ca",
+      "expiration": "12 months, 0 weeks, 3 days",
+      "number": "master"
+    },
+    "kube-apiserver-kubelet-client": {
+      "filename": "/etc/kubernetes/pki/apiserver-kubelet-client.crt",
+      "issuer": "kubernetes",
+      "expiration": "12 months, 0 weeks, 3 days",
+      "number": "master"
+    },
+    "kube-etcd-healthcheck-client": {
+      "filename": "/etc/kubernetes/pki/etcd/healthcheck-client.crt",
+      "issuer": "etcd-ca",
+      "expiration": "12 months, 0 weeks, 3 days",
+      "number": "master"
+    },
+    "kubelet-ca": {
+      "filename": "/var/lib/kubelet/pki/kubelet-ca.crt",
+      "issuer": "kubelet-ca",
+      "expiration": "9 years, 12 months, 0 weeks",
+      "number": "all"
+    },
+    "kubernetes": {
+      "filename": "/etc/kubernetes/pki/ca.crt",
+      "issuer": "kubernetes",
+      "expiration": "9 years, 12 months, 0 weeks",
+      "number": "all"
+    },
+    "master": {
+      "filename": [
+        "/etc/kubernetes/pki/etcd/peer.crt",
+        "/etc/kubernetes/pki/etcd/server.crt",
+        "/var/lib/kubelet/pki/kubelet.crt"
+      ],
+      "issuer": [
+        "etcd-ca",
+        "kubelet-ca"
+      ],
+      "expiration": "12 months, 0 weeks, 3 days",
+      "number": "master"
+    },
+    "worker": {
+      "filename": [
+        "/var/lib/kubelet/pki/kubelet.crt"
+      ],
+      "issuer": [
+        "kubelet-ca"
+      ],
+      "expiration": "12 months, 0 weeks, 3 days",
+      "number": "worker"
+    }
+  },
+  "kubeconfig": {
+    "master": {
+      "cluster": {
+        "filename": [
+          "/etc/kubernetes/admin.conf",
+          "/etc/kubernetes/controller-manager.conf",
+          "/etc/kubernetes/scheduler.conf",
+          "/etc/kubernetes/kubelet.conf"
+        ],
+        "expiration": "9 years, 12 months, 0 weeks"
+      },
+      "user": {
+        "filename": [
+          "/etc/kubernetes/scheduler.conf",
+          "/etc/kubernetes/controller-manager.conf",
+          "/etc/kubernetes/admin.conf"
+        ],
+        "expiration": "12 months, 0 weeks, 3 days"
+      }
+    },
+    "worker": {
+      "cluster": {
+        "filename": [
+          "/etc/kubernetes/kubelet.conf"
+        ],
+        "expiration": "9 years, 12 months, 0 weeks"
+      }
+    }
+  },
+  "secret": {
+  }
+}

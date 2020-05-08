@@ -44,9 +44,9 @@ generate new certificate with CA signing request
     execute command localy    openssl x509 -req -CA ${WORKDIR}/cluster_1/pki/ca.crt -CAkey ${WORKDIR}/cluster_1/pki/ca.key -CAcreateserial -in ${LOGDIR}/certificate/${service}/${service}.csr -out ${LOGDIR}/certificate/${service}/${service}.crt -days 10 -extensions v3_req -extfile ${LOGDIR}/certificate/${service}/${service}.conf
 
 replace new secret
-    [Arguments]    ${service}
+    [Arguments]    ${service}    ${namespace}=kube-system
     kubectl    replace -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
-    kubectl    rollout restart deployment/${service} -n kube-system
+    kubectl    rollout restart deployment/${service} -n ${namespace}
 
 _encode file in base64
     [Arguments]    ${file}
@@ -87,7 +87,7 @@ create custom certificate to
     [Arguments]    ${service}    ${SAN}    ${namespace}    ${ca}=False
     execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
     create client config    ${service}    ${SAN}
-    Run Keyword If    ${ca}    create CA    ${service}
+    Comment    Run Keyword If    ${ca}    create CA    ${service}
     Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}
     ...    ELSE    generate new certificate without CA request    ${service}
     create certificate secret file    ${service}    ${DATADIR}/certificate/template-cert.yaml    ${namespace}    ${ca}
@@ -97,3 +97,10 @@ generate new certificate without CA request
     [Arguments]    ${service}
     execute command localy    openssl genrsa -out ${LOGDIR}/certificate/${service}/${service}.key 2048
     execute command localy    openssl req -x509 -key ${LOGDIR}/certificate/${service}/${service}.key -new -out ${LOGDIR}/certificate/${service}/${service}.crt -config ${LOGDIR}/certificate/${service}/${service}.conf -subj "/CN=${service}" -extensions v3_req
+
+replace certificate to service
+    [Arguments]    ${service}    ${namespace}
+    backup certificate configuration    ${service}
+    ${SAN}    get SAN ip and dns    ${service}
+    create custom certificate to    ${service}    ${SAN}    ${namespace}    True
+    replace new secret    ${service}

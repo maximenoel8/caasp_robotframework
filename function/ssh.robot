@@ -26,6 +26,7 @@ create ssh session with workstation and nodes
         create ssh session for masters    ${cluster_number}
         create ssh session for workers    ${cluster_number}
     END
+    Set Global Variable    ${CONNEXION_UP}    True
 
 create ssh session for masters
     [Arguments]    ${cluster_number}

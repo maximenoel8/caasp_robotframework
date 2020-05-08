@@ -7,7 +7,7 @@ kube dashboard
     [Tags]    release
     Given cluster running
     And kubernetes dashboard is deployed
-    and deploy selenium pod
+    And selenium is deployed
     Then fail to login authorized user without admin rights and list namespaces
     When create a service account for dashboard and grant access to kube-system namespace
     then login authorized user with admin rights and list namespaces

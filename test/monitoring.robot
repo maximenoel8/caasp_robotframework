@@ -1,6 +1,7 @@
 *** Settings ***
-Resource          ../function/tests/monitoring.robot
+Resource          ../function/tests/monitoring/monitoring.robot
 Resource          ../function/cluster_deployment.robot
+Resource          ../function/tests/nginx.robot
 
 *** Test Cases ***
 monitoring
@@ -8,6 +9,7 @@ monitoring
     Given cluster running
     And helm is installed
     And storageclass is deployed
+    And nginx is deployed
     And prometheus is deployed
     And grafana is deployed
     Then prometheus should be healthy

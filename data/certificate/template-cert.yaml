@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oidc-gangway-cert
+  namespace: kube-system
+  labels:
+    caasp.suse.com/skuba-addon: "true"
+type: kubernetes.io/tls
+data:
+  ca.crt: cat <TRUSTED_CA_CERT_PATH> | base64 | awk '{print}' ORS='' && echo
+  tls.crt: cat <SIGNED_OIDC_GANGWAY_SERVER_CERT_PATH> | base64 | awk '{print}' ORS='' && echo
+  tls.key: cat <SIGNED_OIDC_GANGWAY_SERVER_KEY_PATH> | base64 | awk '{print}' ORS='' && echo

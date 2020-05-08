@@ -1,9 +1,10 @@
 *** Settings ***
-Resource          ../commands.robot
-Resource          ../cluster_helpers.robot
-Resource          selenium.robot
-Resource          ../setup_environment.robot
-Resource          certificate.robot
+Resource          ../../commands.robot
+Resource          ../../cluster_helpers.robot
+Resource          grafana_dashboard.robot
+Resource          ../../setup_environment.robot
+Resource          ../certificate.robot
+Resource          ../selenium.robot
 
 *** Keywords ***
 grafana is deployed
@@ -48,13 +49,13 @@ prometheus should be healthy
     Checking prometheus-server health
 
 grafana dashboard should be accessible
-    Expose grafana server
-    deploy selenium pod
+    Comment    Expose grafana server
+    selenium is deployed
     selenium_grafana
 
 prometheus dashboard should be accessible
-    Expose prometheus server
-    deploy selenium pod
+    Comment    Expose prometheus server
+    selenium is deployed
     selenium_prometheus
 
 Expose prometheus server
@@ -75,10 +76,11 @@ prometheus is deployed
     wait_deploy    -n monitoring prometheus-pushgateway    15m
 
 cleaning monitoring
-    Run Keyword And Ignore Error    helm    delete prometheus --purge
-    Run Keyword And Ignore Error    helm    delete grafana --purge
-    Run Keyword And Ignore Error    kubectl    delete namespace monitoring
-    Run Keyword And Ignore Error    helm    del --purge cert-exporter
+    Comment    Run Keyword And Ignore Error    helm    delete prometheus --purge
+    Comment    Run Keyword And Ignore Error    helm    delete grafana --purge
+    Comment    Run Keyword And Ignore Error    kubectl    delete namespace monitoring
+    Comment    Run Keyword And Ignore Error    helm    del --purge cert-exporter
+    Run Keyword And Ignore Error    Close All Browsers
     [Teardown]    teardown_test
 
 add certificate exporter

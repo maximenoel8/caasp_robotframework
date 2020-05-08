@@ -3,6 +3,10 @@ Resource          ../commands.robot
 Resource          ../cluster_helpers.robot
 Library           ../../lib/firefox_profile.py
 Library           SeleniumLibrary
+Library           ../../lib/yaml_editor.py
+Resource          ../../parameters/selenium.robot
+Library           yaml
+Resource          ../tools.robot
 
 *** Keywords ***
 selenium_download
@@ -28,34 +32,12 @@ selenium_authentication
 
 deploy selenium pod
     [Arguments]    ${cluster_number}=1
-    ${status}    ${output}    Run Keyword And Ignore Error    kubectl    get deploy selenium
-    Run Keyword If    "${status}"=="FAIL"    kubectl    create deployment selenium --image=selenium/standalone-firefox:3.141.59-xenon
-    Run Keyword If    "${status}"=="FAIL"    kubectl    expose deployment selenium --port=4444 --type=NodePort
-    Run Keyword If    "${status}"=="FAIL"    wait deploy    selenium
-    ${pod}    wait podname    -l app=selenium
+    _configure selenium deployment    ${cluster_number}
+    _configure selenium service
+    kubectl    apply -f ${LOGDIR}/selenium    ${cluster_number}
+    wait deploy    selenium
+    ${pod}    wait podname    -l app=selenium    ${cluster_number}
     Wait Until Keyword Succeeds    2min    10sec    _check selenium grid up    ${pod}
-    ${node port}    kubectl    get svc/selenium -o json | jq '.spec.ports[0].nodePort'
-    Set Global Variable    ${SELENIUM_URL}    http://${BOOTSTRAP_MASTER_${cluster_number}}:${node port}/wd/hub
-
-selenium_grafana
-    [Arguments]    ${cluster_number}=1
-    ${profile}    get_firefox_profile
-    Open Browser    url=http://${BOOTSTRAP_MASTER_${cluster_number}}:${grafanaPort}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
-    SeleniumLibrary.Location Should Be    http://${BOOTSTRAP_MASTER_${cluster_number}}:${grafanaPort}/login
-    Wait Until Element Is Visible    username
-    Input Text    username    admin
-    Input Text    password    linux
-    Click Element    CSS:button[type=submit]
-    Wait Until Page Contains    Home Dashboard
-    [Teardown]    Close All Browsers
-
-selenium_prometheus
-    [Arguments]    ${cluster_number}=1
-    ${profile}    get_firefox_profile
-    Open Browser    url=http://${BOOTSTRAP_MASTER_${cluster_number}}:${prometheus_port}/    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
-    SeleniumLibrary.Location Should Be    http://${BOOTSTRAP_MASTER_${cluster_number}}:${prometheus_port}/
-    Wait Until Page Contains    Metrics
-    [Teardown]    Close All Browsers
 
 _check selenium grid up
     [Arguments]    ${selenium_node}
@@ -65,7 +47,8 @@ _check selenium grid up
 selenium_kube_dashboard
     [Arguments]    ${token}
     ${profile}    get_firefox_profile
-    Wait Until Keyword Succeeds    30sec    5sec    Open Browser    url=${dashboard_url}    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
+    Set Selenium Timeout    30sec
+    Open Browser    url=${dashboard_url}    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
     Wait Until Element Is Visible    xpath://div[contains(text(),"Kubernetes Dashboard")]
     Click Element    xpath://div[@class="mat-radio-label-content" and contains(text(), "Token")]
     Wait Until Element Is Visible    token
@@ -82,3 +65,33 @@ selenium_kube_dashboard
         log    ${namespace_name}
     END
     [Return]    ${access_namespace}
+
+_configure selenium deployment
+    [Arguments]    ${cluster_number}
+    execute command localy    rm -rf ${LOGDIR}/selenium
+    Copy Directory    ${DATADIR}/selenium    ${LOGDIR}
+    ${IP_bootstrap}    resolv dns    ${BOOTSTRAP_MASTER_${cluster_number}}
+    ${service}    OperatingSystem.Get File    ${LOGDIR}/selenium/selenium-deployment.yaml
+    ${service_dico}    yaml.Safe Load    ${service}
+    Set To Dictionary    ${service_dico["spec"]["template"]["spec"]["hostAliases"][0]}    hostnames=${hostnames}
+    Set To Dictionary    ${service_dico["spec"]["template"]["spec"]["hostAliases"][0]}    ip=${IP_bootstrap}
+    ${output}    yaml.Dump    ${service_dico}
+    Create File    ${LOGDIR}/selenium/selenium-deployment.yaml    ${output}
+
+_configure selenium service
+    ${service}    OperatingSystem.Get File    ${LOGDIR}/selenium/selenium-service.yaml
+    ${service_dico}    yaml.Safe Load    ${service}
+    Set To Dictionary    ${service_dico["spec"]["ports"][0]}    nodePort=${${node_port}}
+    ${output}    yaml.Dump    ${service_dico}
+    Create File    ${LOGDIR}/selenium/selenium-service.yaml    ${output}
+
+selenium is deployed
+    [Arguments]    ${cluster_number}=1
+    ${status}    ${output}    Run Keyword And Ignore Error    kubectl    get deploy selenium    ${cluster_number}
+    Run Keyword If    "${status}"=="FAIL"    deploy selenium pod    ${cluster_number}
+    Set Global Variable    ${SELENIUM_URL}    http://${BOOTSTRAP_MASTER_${cluster_number}}:${node port}/wd/hub
+
+get child webelements
+    [Arguments]    ${webelement}    ${css_selector}
+    ${child_element}    Call Method    ${webelement}    find_elements_by_css_selector    ${css_selector}
+    [Return]    ${child_element}

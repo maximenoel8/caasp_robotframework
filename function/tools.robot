@@ -50,3 +50,11 @@ deploy storagedefault on aws
 deploy storagedefault on vsphere
     [Arguments]    ${cluster_number}
     kubectl    apply -f ${DATADIR}/vsphere-default-storageclass.yaml    cluster_number=${cluster_number}
+
+resolv dns
+    [Arguments]    ${dns}
+    ${result}    execute command localy    nslookup ${dns}
+    ${results}    Split To Lines    ${result}
+    ${elements}    Split String    ${results[4]}
+    ${ip}    Set Variable    ${elements[1]}
+    [Return]    ${ip}

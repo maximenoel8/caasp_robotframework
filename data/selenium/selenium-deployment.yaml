@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium
+  labels:
+    app: selenium
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium
+  template:
+    metadata:
+      labels:
+        app: selenium
+    spec:
+      hostAliases:
+        - ip: "10.84.73.122"
+      containers:
+        - name: selenium
+          image: selenium/standalone-firefox:3.141.59-xenon
+          ports:
+            - containerPort: 4444
