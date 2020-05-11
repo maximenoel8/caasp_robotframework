@@ -21,7 +21,7 @@ execute command localy
     [Arguments]    ${cmd}    ${check_rc}=True
     ${rc}    ${output}    Run And Return Rc And Output    ${cmd}
     log    ${output}    repr=true    formatter=repr
-    Append To File    ${LOGDIR}/tests/${TEST NAME}.log    \n\nCommand :${cmd} output: \n${output} \n
+    Run Keyword And Ignore Error    Append To File    ${LOGDIR}/tests/${TEST NAME}.log    \n\nCommand :${cmd} output: \n${output} \n
     Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0    ${output}
     ...    ELSE    Return From Keyword    ${output}    ${rc}
     [Return]    ${output}

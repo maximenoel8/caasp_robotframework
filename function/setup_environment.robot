@@ -29,7 +29,6 @@ teardown_suite
 
 teardown_test
     Run Keyword And Ignore Error    dump cluster state
-    Run Keyword And Ignore Error    Close All Connections
     Run Keyword And Ignore Error    Process.Terminate All Processes
 
 get kubernetes charts
@@ -39,24 +38,8 @@ get kubernetes charts
     Run Keyword If    "${status}"=="FAIL"    execute command localy    cd ${LOGDIR}/kubernetes-charts-suse-com && git fetch origin pull/${CHART_PULL_REQUEST}/head:customise && git checkout customise
 
 setup environment
-    Run Keyword If    "${CLUSTER}"==""    create cluster folder
-    Log    ${CLUSTER}    console=yes    level=HTML
-    Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
-    Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
-    Set Global Variable    ${TEMPLATE_TERRAFORM_DIR}    ${CURDIR}/../terraform
     check cluster exist
     check cluster deploy
-    Set Global Variable    ${CLUSTERDIR}    ${WORKDIR}/cluster
-    Set Global Variable    ${DATADIR}    ${CURDIR}/../data
-    Set Global Variable    ${TERRAFORMDIR}    ${WORKDIR}/terraform
-    Set Global Variable    ${CLUSTER_PREFIX}    ${PREFIX}-${CLUSTER}
-    Create Directory    ${LOGDIR}
-    Set Environment Variable    HELM_HOME    ${WORKDIR}/helm
-    Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}/admin.conf
-    execute command localy    chmod 0600 ${DATADIR}/id_shared
-    ${SSH_PUB_KEY}    OperatingSystem.Get File    ${DATADIR}/id_shared.pub
-    ${SSH_PUB_KEY}    Remove String    ${SSH_PUB_KEY}    \n
-    Set Global Variable    ${SSH_PUB_KEY}
     Set vm number
     Run Keyword Unless    "${CHART_PULL_REQUEST}"=="${EMPTY}"    get kubernetes charts
     Run Keyword Unless    '${RPM}'=='${EMPTY}'    create registry dictionnary
@@ -106,3 +89,24 @@ create container repository file
         Append To File    ${LOGDIR}/registries.conf    location = "${reg}"\n
         Append To File    ${LOGDIR}/registries.conf    insecure = true\n
     END
+
+restore /etc/hosts
+    execute command localy    sudo cp ${LOGDIR}/hosts.backup /etc/hosts
+
+setup environment for suite
+    Run Keyword If    "${CLUSTER}"==""    create cluster folder
+    Log    ${CLUSTER}    console=yes    level=HTML
+    Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
+    Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
+    Set Global Variable    ${TEMPLATE_TERRAFORM_DIR}    ${CURDIR}/../terraform
+    Set Global Variable    ${CLUSTERDIR}    ${WORKDIR}/cluster
+    Set Global Variable    ${DATADIR}    ${CURDIR}/../data
+    Set Global Variable    ${TERRAFORMDIR}    ${WORKDIR}/terraform
+    Set Global Variable    ${CLUSTER_PREFIX}    ${PREFIX}-${CLUSTER}
+    Create Directory    ${LOGDIR}
+    Set Environment Variable    HELM_HOME    ${WORKDIR}/helm
+    Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}/admin.conf
+    execute command localy    chmod 0600 ${DATADIR}/id_shared
+    ${SSH_PUB_KEY}    OperatingSystem.Get File    ${DATADIR}/id_shared.pub
+    ${SSH_PUB_KEY}    Remove String    ${SSH_PUB_KEY}    \n
+    Set Global Variable    ${SSH_PUB_KEY}
