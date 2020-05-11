@@ -70,7 +70,9 @@ _configure selenium deployment
     [Arguments]    ${cluster_number}
     execute command localy    rm -rf ${LOGDIR}/selenium
     Copy Directory    ${DATADIR}/selenium    ${LOGDIR}
-    ${IP_bootstrap}    resolv dns    ${BOOTSTRAP_MASTER_${cluster_number}}
+    ${status}    ${output}    Run Keyword And Ignore Error    Should Match Regexp    ${BOOTSTRAP_MASTER_1}    ^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$
+    ${IP_bootstrap}    Run Keyword If    "${status}"=="FAIL"    resolv dns    ${BOOTSTRAP_MASTER_1}
+    ...    ELSE    Set Variable    ${BOOTSTRAP_MASTER_1}
     ${service}    OperatingSystem.Get File    ${LOGDIR}/selenium/selenium-deployment.yaml
     ${service_dico}    yaml.Safe Load    ${service}
     Set To Dictionary    ${service_dico["spec"]["template"]["spec"]["hostAliases"][0]}    hostnames=${hostnames}

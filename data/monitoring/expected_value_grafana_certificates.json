@@ -15,31 +15,31 @@
     "front-proxy-client": {
       "filename": "/etc/kubernetes/pki/front-proxy-client.crt",
       "issuer": "front-proxy-ca",
-      "expiration": "12 months, 0 weeks, 3 days",
+      "expiration": "12 months, 0 weeks, 4 days",
       "number": "master"
     },
     "kube-apiserver": {
       "filename": "/etc/kubernetes/pki/apiserver.crt",
       "issuer": "kubernetes",
-      "expiration": "12 months, 0 weeks, 3 days",
+      "expiration": "12 months, 0 weeks, 4 days",
       "number": "master"
     },
     "kube-apiserver-etcd-client": {
       "filename": "/etc/kubernetes/pki/apiserver-etcd-client.crt",
       "issuer": "etcd-ca",
-      "expiration": "12 months, 0 weeks, 3 days",
+      "expiration": "12 months, 0 weeks, 4 days",
       "number": "master"
     },
     "kube-apiserver-kubelet-client": {
       "filename": "/etc/kubernetes/pki/apiserver-kubelet-client.crt",
       "issuer": "kubernetes",
-      "expiration": "12 months, 0 weeks, 3 days",
+      "expiration": "12 months, 0 weeks, 4 days",
       "number": "master"
     },
     "kube-etcd-healthcheck-client": {
       "filename": "/etc/kubernetes/pki/etcd/healthcheck-client.crt",
       "issuer": "etcd-ca",
-      "expiration": "12 months, 0 weeks, 3 days",
+      "expiration": "12 months, 0 weeks, 4 days",
       "number": "master"
     },
     "kubelet-ca": {
@@ -64,7 +64,7 @@
         "etcd-ca",
         "kubelet-ca"
       ],
-      "expiration": "12 months, 0 weeks, 3 days",
+      "expiration": "12 months, 0 weeks, 4 days",
       "number": "master"
     },
     "worker": {
@@ -74,7 +74,7 @@
       "issuer": [
         "kubelet-ca"
       ],
-      "expiration": "12 months, 0 weeks, 3 days",
+      "expiration": "12 months, 0 weeks, 4 days",
       "number": "worker"
     }
   },
@@ -95,7 +95,7 @@
           "/etc/kubernetes/controller-manager.conf",
           "/etc/kubernetes/admin.conf"
         ],
-        "expiration": "12 months, 0 weeks, 3 days"
+        "expiration": "12 months, 0 weeks, 4 days"
       }
     },
     "worker": {
@@ -108,5 +108,38 @@
     }
   },
   "secret": {
-  }
+    "metrics-sever-cert": {
+      "ca.crt": {
+        "cn": "kubernetes",
+        "expiration": "9 years, 12 months, 0 weeks"
+      },
+      "tls.crt": {
+        "cn" : "metrics-server.kuber-system.svc",
+        "expiration": "12 months, 0 weeks, 4 days"
+      }
+    },
+    "oidc-dex-cert": {
+      "ca.crt": {
+        "cn": "kubernetes",
+        "expiration": "9 years, 12 months, 0 weeks"
+      },
+      "tls.crt": {
+        "cn" : "oidc-dex",
+        "expiration": "12 months, 0 weeks, 4 days"
+      }
+    },
+    "oidc-gangway-cert": {
+      "ca.crt": {
+        "cn": "kubernetes",
+        "expiration": "9 years, 12 months, 0 weeks"
+      },
+      "tls.crt": {
+        "cn" : "oidc-gangway",
+        "expiration": "12 months, 0 weeks, 4 days"
+      }
+    },
+    "issuer": "kubernetes",
+    "secret_namespace" : "kube-system"
+  },
+  "certificate_remove": 0
 }

@@ -2,6 +2,8 @@
 Resource          ../commands.robot
 Library           ../../lib/base64_encoder.py
 Library           ../../lib/yaml_editor.py
+Resource          ../cluster_helpers.robot
+Resource          monitoring/grafana_dashboard.robot
 
 *** Keywords ***
 backup certificate configuration
@@ -63,6 +65,8 @@ add custom certificate to
     generate new certificate with CA signing request    ${service}
     create certificate secret file    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${namespace}
     replace new secret    ${service}
+    wait pods ready
+    _modify expired date for secret    ${service}-cert    tls.crt    1 week, 2 days, 23 hours
 
 create CA
     [Arguments]    ${service}

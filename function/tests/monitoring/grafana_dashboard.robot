@@ -10,6 +10,7 @@ ${exp_7dT30d_grafana_panels_webelement}    ${EMPTY}
 ${exp_30d_grafana_panels_webelement}    ${EMPTY}
 ${expected_panels_number}    6
 @{expected_title}    Expiration within 7 days    Expiration within 7 and 30 days    Expiration after 30 days    Kubernetes and ETCD PKI Certs Expiry    Kubeconfig Certs Expiry    Secret PKI Certs Expiry
+&{expected_data_full}
 
 *** Keywords ***
 selenium_grafana
@@ -51,8 +52,6 @@ access certificate dashboard
         ${exp_30d_grafana_panels_webelement}    Set Variable If    "${panel_title}"=="Expiration after 30 days"    ${grafana_panel_element}    ${exp_30d_grafana_panels_webelement}
         Should Contain Any    ${panel_title}    @{expected_title}
     END
-    ${expected_data_full}    Load JSON From File    ${DATADIR}/monitoring/expected_value_grafana_certificates.json
-    Set Global Variable    ${expected_data_full}
     ${node_number}    get number of nodes    ${cluster_number}
     ${master_number}    get number of nodes    ${cluster_number}    master
     _test kubernetes and etcd pki certs expiry panel    ${kubernetes_etcd_certs_grafana_panels_webelemt}    ${node_number}    ${master_number}
@@ -77,7 +76,7 @@ _test expiration within 7 and 30 days panel
 _test expiration after 30 days panel
     [Arguments]    ${panel_webelement}    ${node_number}    ${master_number}
     ${certificate_number}    get child webelements    ${panel_webelement}    .singlestat-panel-value-container span
-    ${expected_number}    Evaluate    15 * ${master_number} + 4 * ${node_number} + 6
+    ${expected_number}    Evaluate    15 * ${master_number} + 4 * ${node_number} + 6 - ${expected_data_full["certificate_remove"]}
     ${certificate_number_text}    Get Text    ${certificate_number[0]}
     Should Not Be Equal As Integers    ${certificate_number_text}    0
     Should Be Equal As Integers    ${certificate_number_text}    ${expected_number}
@@ -104,8 +103,10 @@ _test kubeconfig certs expiry panel
 
 _test secret pki certs expiry panel
     [Arguments]    ${panel_webelement}    ${node_number}    ${master_number}
-    ${raw}    get child webelements    ${panel_webelement}    tbody tr
-    ${raw_number}    Get Length    ${raw}
+    @{raws}    get child webelements    ${panel_webelement}    tbody tr
+    FOR    ${element}    IN    @{raws}
+        _check value from json secrets    ${element}
+    END
 
 _check expiration value for kubernetes and etcd panel
     [Arguments]    ${raw}
@@ -114,7 +115,6 @@ _check expiration value for kubernetes and etcd panel
     ${lt}    Get Length    ${columns}
     Should Be Equal As Integers    ${lt}    5
     ${cn}    Get Text    ${columns[0]}
-    ${type}    Evaluate    type($cn).__name__
     ${status}    ${_}    Run Keyword And Ignore Error    Should Contain Any    ${cn}    @{nodes}
     Run Keyword If    "${status}"=="PASS"    _check value from json kubernetes and etcd for node cn    ${columns}
     Run Keyword If    "${status}"=="FAIL"    _check value from json kubernetes and etcd    ${columns}
@@ -150,8 +150,31 @@ _check value for kubeconfig
     ${filename}    Get Text    ${columns[0]}
     ${nodename}    Get Text    ${columns[1]}
     ${cert_type}    Get Text    ${columns[2]}
+    ${status}    ${output}    Run Keyword And Ignore Error    Element Should Be Visible    ${columns[3]}
+    Return From Keyword If    "${status}"=="FAIL"
     ${expiration}    Get Text    ${columns[3]}
     ${type}    get node type    ${nodename}
     Element Should Contain    ${columns[3]}    ${expected_data_full["kubeconfig"]["${type}"]["${cert_type}"]["expiration"]}
     Should Contain Any    ${filename}    @{expected_data_full["kubeconfig"]["${type}"]["${cert_type}"]["filename"]}
     Should Be Equal    ${expiration}    ${expected_data_full["kubeconfig"]["${type}"]["${cert_type}"]["expiration"]}
+
+_check value from json secrets
+    [Arguments]    ${values}
+    ${cn}    Get Text    ${values[0]}
+    ${issuer}    Get Text    ${values[1]}
+    ${keyname}    Get Text    ${values[3]}
+    ${secretname}    Get Text    ${values[4]}
+    ${secretnamespace}    Get Text    ${values[5]}
+    ${expiration}    Get Text    ${values[6]}
+    ${sub_dico}    Set Variable    ${expected_data_full["secret"]}
+    Should Be Equal    ${sub_dico["${secretname}"]["issuer"]}    ${issuer}
+    Should Be Equal    ${sub_dico["${secretname}"]["secret_namespace"]}    ${secretnamespace}
+    Should Be Equal    ${sub_dico["${secretname}"]["${keyname}"]["cn"]}    ${cn}
+    Should Be Equal    ${sub_dico["${secretname}"]["${keyname}"]["expiration"]}    ${expiration}
+
+_modify expired date for secret
+    [Arguments]    ${secretname}    ${keyname}    ${expiration}
+    Log Dictionary    ${expected_data_full}
+    Set To Dictionary    ${expected_data_full["secret"]["${secretname}"]["${keyname}"]}    expiration    ${expiration}
+    ${certificate_to_remove}    Evaluate    ${expected_data_full["certificate_remove"]} +1
+    Set To Dictionary    ${expected_data_full}    certificate_remove    ${${certificate_to_remove}}
