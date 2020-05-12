@@ -3,6 +3,7 @@ Resource          ../commands.robot
 Library           ../../lib/yaml_editor.py
 Resource          ../cluster_helpers.robot
 Resource          ../setup_environment.robot
+Resource          ../tools.robot
 
 *** Variables ***
 ${MESSAGE}        Sample component log entry.
@@ -23,12 +24,14 @@ rsyslog is deployed
     helm    install -n log-agent-rsyslog suse-charts/log-agent-rsyslog --values "${LOGDIR}/mtls-verify-peer-values.yaml"
     check rsyslog is deployed
     sleep    30
+    step    Rsyslog is deployed
 
 messages are log on peer
     FOR    ${component}    IN    @{components}
         execute command with ssh    /usr/bin/logger -t ${component} ${MESSAGE}    alias=bootstrap_master_1
     END
     sleep    30
+    step    Message are log on peer
 
 get journalctl log
     ${journalctl_output}    execute command with ssh    sudo journalctl --since -20m --no-pager
@@ -42,6 +45,7 @@ logs should exist on rsyslog-server
     FOR    ${component}    IN    @{components}
         Should Contain    ${podlogs}    ${component}
     END
+    step    Logs exist on rsyslog-server
     [Return]    ${centralized_log}
 
 check message in rsyslog log

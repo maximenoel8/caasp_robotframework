@@ -173,6 +173,7 @@ cluster is deployed
         Sleep    ${sleep_time}
     END
     kured config    off
+    step    cluster is successfully deploy
 
 _check status is done
     [Arguments]    ${cluster}
@@ -203,6 +204,7 @@ _set deployment timeout
 
 cluster running
     [Arguments]    ${cluster_number}=1
+    step    Preflight checks
     set infra env parameters
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL" and ${cluster_number}==1    deploy cluster vms
     load vm ip
@@ -213,6 +215,7 @@ cluster running
     wait pods ready    cluster_number=${cluster_number}
     wait cillium    cluster_number=${cluster_number}
     Run Keyword If    ${UPGRADE}    upgrade cluster
+    step    cluster is correctly running
 
 cluster is deployed temp
     FOR    ${i}    IN RANGE    1    3

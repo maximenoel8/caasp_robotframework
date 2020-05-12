@@ -32,6 +32,7 @@ selenium_authentication
 
 deploy selenium pod
     [Arguments]    ${cluster_number}=1
+    step    deploying selenium pod
     _configure selenium deployment    ${cluster_number}
     _configure selenium service
     kubectl    apply -f ${LOGDIR}/selenium    ${cluster_number}

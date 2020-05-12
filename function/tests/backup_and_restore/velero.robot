@@ -8,6 +8,7 @@ Resource          ../../../parameters/minio.robot
 Resource          wordpress.robot
 Resource          ../../setup_environment.robot
 Resource          ../../tools.robot
+Library           String
 
 *** Variables ***
 
@@ -37,6 +38,7 @@ create backup on
 
 backup should be successfull
     Wait Until Keyword Succeeds    5m    10s    check backup completed
+    step    Backup ${backup_name} has been correctly created
 
 create schedule backup on
     [Arguments]    ${location}
@@ -53,6 +55,7 @@ velero server is deployed with volume snapshot for
     ...    ELSE    Fail    Wrong provider bucket provider${bucket_provider}
     wait pods ready    -l name=velero -n velero    ${cluster_number}
     velero    client config set namespace=velero    ${cluster_number}
+    step    velero is deployed for ${bucket_provider}
 
 create restore from backup
     [Arguments]    ${backup_name}    ${cluster_number}=1
@@ -61,6 +64,7 @@ create restore from backup
     ${restore}    Split String    ${output}    \n
     ${restore_names}    Split String    ${restore[0]}    "
     Set Test Variable    ${restore_name}    ${restore_names[1]}
+    step    Restaure is executed
 
 velero setup
     Set Test Variable    ${credential-velero-file}    ${LOGDIR}/credentials-velero

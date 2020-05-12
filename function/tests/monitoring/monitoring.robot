@@ -9,6 +9,7 @@ Resource          ../selenium.robot
 *** Keywords ***
 grafana is deployed
     [Arguments]    ${cluster_number}=1
+    step    deploying grafana service
     ${output}    kubectl    get pod -l app=grafana -n monitoring -o name    cluster_number=${cluster_number}
     ${status}    ${_}    Run Keyword And Ignore Error    Should Not Be Empty    ${output}
     Run Keyword If    "${status}"=="FAIL"    deploy grafana    ${cluster_number}
@@ -53,6 +54,7 @@ grafana dashboard should be accessible
     selenium_grafana
 
 prometheus dashboard should be accessible
+    step    checking prometheus dashboard
     Comment    Expose prometheus server
     selenium is deployed
     selenium_prometheus
@@ -67,6 +69,7 @@ Expose grafana server
 
 prometheus is deployed
     [Arguments]    ${cluster_number}=1
+    step    deploying prometheus service
     ${output}    kubectl    get pod -l app=prometheus -n monitoring -o name    cluster_number=${cluster_number}
     ${status}    ${_}    Run Keyword And Ignore Error    Should Not Be Empty    ${output}
     Run Keyword If    "${status}"=="FAIL"    deploy prometheus    ${cluster_number}

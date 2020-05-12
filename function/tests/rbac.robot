@@ -10,6 +10,7 @@ Resource          ../setup_environment.robot
 
 *** Keywords ***
 389ds server is deployed
+    step    deploying 389ds service
     Remove Directory    ${LOGDIR}/389dss    true
     Copy Directory    ${DATADIR}/389dss    ${LOGDIR}/389dss
     Modify Add Value    ${LOGDIR}/389dss/389ds-deployment.yaml    spec template spec containers 0 image    ${DS_IMAGE}
@@ -18,6 +19,7 @@ Resource          ../setup_environment.robot
 
 authentication with skuba CI (group)
     [Arguments]    ${cluster_number}=1
+    step    checking authentification with CI ( group )
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
     kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
     Sleep    30
@@ -30,6 +32,7 @@ authentication with skuba CI (group)
 authentication with skuba CI (users)
     [Arguments]    ${cluster_number}=1
     [Timeout]    4 minutes
+    step    checking authentification with CI ( users )
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
@@ -50,6 +53,7 @@ authentication with skuba CI (users)
     Remove File    {LOGDIR}/euler.conf
 
 authentication with WebUI user
+    step    checking authentification with WebUI ( user )
     deploy selenium pod
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb || true
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
@@ -70,12 +74,14 @@ authentication with WebUI user
 
 users has been added to
     [Arguments]    ${type}    ${cluster_number}=1
+    step    Adding users to ${type}
     Run Keyword If    "${type}"=="openldap"    _add user for ldap
     ...    ELSE IF    "${type}"=="389ds"    execute command localy    LDAPTLS_REQCERT=allow ldapadd -v -H ldaps://${BOOTSTRAP_MASTER_${cluster_number}}:${DS_NODE_PORT} -D "${DS_ADMIN}" -f "${DATADIR}/ldap_389ds.ldif" -w "${DS_DM_PASSWORD}"
     ...    ELSE    Fail    Wrong value for ldap type
 
 dex is configured for
     [Arguments]    ${type}
+    step    configure dex to use ${type}
     kubectl    get cm oidc-dex-config -n kube-system -o yaml >"${LOGDIR}/dex-config.yaml"
     Copy File    ${LOGDIR}/dex-config.yaml    ${LOGDIR}/dex-config-ori.yaml
     Run Keyword If    "${type}"=="openldap"    _configure dex file config for openldap
@@ -87,10 +93,12 @@ dex is configured for
     wait pods ready    -l app=oidc-dex -n kube-system
 
 clean 389ds server
+    step    clean 389ds service
     kubectl    delete -f "${DATADIR}/389dss"
     [Teardown]    teardown_test
 
 openldap server is deployed
+    step    deploying openldap server
     helm    install --name ldap --set adminPassword=admin --set env.LDAP_DOMAIN=example.com stable/openldap
 
 _add user for ldap
@@ -128,6 +136,7 @@ _configure dex file config for openldap
     Modify Add Value    ${LOGDIR}/dex-config.yaml    data config.yaml | enablePasswordDB    false
 
 clean up openldap
+    step    clean ldap service
     helm    delete --purge ldap
     [Teardown]    teardown_test
 
@@ -137,6 +146,7 @@ _configure dex file config for static password
     Remove Key    ${LOGDIR}/dex-config.yaml    data config.yaml | connectors
 
 clean static password
+    step    clean static password
     kubectl    apply -f ${LOGDIR}/dex-config-ori.yaml --force
     kubectl    delete pod -n kube-system -l app=oidc-dex --wait
     wait pods ready    -l app=oidc-dex -n kube-system

@@ -9,9 +9,11 @@ Resource          helm.robot
 Resource          interaction_with_cluster_state_dictionnary.robot
 Resource          upgrade/upgrade_workstation.robot
 Resource          helper.robot
+Resource          tools.robot
 
 *** Keywords ***
 install skuba
+    step    installing skuba ...
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
         Run Keyword If    "${MODE}"=="${EMPTY}"    Skuba from pattern    ${cluster_number}
@@ -29,12 +31,14 @@ _skuba from pattern
     execute command with ssh    sudo zypper -n in -t pattern SUSE-CaaSP-Management    skuba_station_${cluster_number}
     Run Keyword If    '${RPM}'!='${EMPTY}' and not ${UPGRADE}    add repo from incident and update    ${cluster_number}
     Run Keyword If    '${REGISTRY}'!='${EMPTY}' and not ${UPGRADE}    add container repo file to nodes    ${cluster_number}
+    step    skuba is deployed with pattern
 
 _skuba from repo
     [Arguments]    ${cluster_number}
     _install go git make    ${cluster_number}
     build skuba from repo    ${SKUBA_PULL_REQUEST}    cluster_number=${cluster_number}
     execute command with ssh    sudo zypper --non-interactive in kubernetes-client    alias=skuba_station_${cluster_number}
+    step    skuba was build with ${MODE}
 
 _change skuba branch
     [Arguments]    ${commit}    ${folder}    ${cluster_number}

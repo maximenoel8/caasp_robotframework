@@ -2,17 +2,20 @@
 Resource          ../../commands.robot
 Resource          ../../cluster_helpers.robot
 Resource          ../../../parameters/global_parameters.robot
+Resource          ../../tools.robot
 
 *** Keywords ***
 wordpress is deployed
     helm    install --name wordpress --namespace wordpress --set ingress.enabled=true,ingress.hosts[0].name=wordpress.jaws.jio.com --set service.type=NodePort --set service.nodePorts.http=30800 --set service.nodePorts.https=30880 --set wordpressUsername=admin --set wordpressPassword=password stable/wordpress
     wordpress is up
+    step    wordpress is deployed with pv
 
 wordpress is removed
     [Arguments]    ${cluster_number}=1
     helm    delete --purge wordpress    ${cluster_number}
     kubectl    delete namespace wordpress    ${cluster_number}
     check wordpress pvc are deleted    ${cluster_number}
+    step    Wordpress has been removed
 
 check wordpress pvc are deleted
     [Arguments]    ${cluster_number}=1

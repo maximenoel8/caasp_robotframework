@@ -64,6 +64,7 @@ upgrade cluster
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     ${passed}    ${output}    Run Keyword And Ignore Error    wait pods ready    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
+    step    Successfully upgrade cluster
     [Teardown]    set global variable    ${UPGRADE}    False
 
 check upgrade completed

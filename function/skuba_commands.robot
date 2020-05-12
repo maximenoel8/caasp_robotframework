@@ -3,9 +3,11 @@ Resource          commands.robot
 Resource          cluster_helpers.robot
 Resource          reboot.robot
 Resource          helper.robot
+Resource          tools.robot
 
 *** Keywords ***
 replica dex and gangway are correctly distribued
+    step    check dex and gangway correctly are replicate
     ${dexreplicat}    Set Variable    3
     ${gangwayreplicat}    Set Variable    3
     Comment    TODO: add ready option
@@ -17,6 +19,7 @@ replica dex and gangway are correctly distribued
 
 remove node
     [Arguments]    ${node_name}    ${shutdown_first}=False
+    step    remove ${node_name} from cluster
     ${ip}    get node ip from CS    ${node_name}
     ${skuba_node}    get node skuba name    ${node_name}
     Run Keyword If    ${shutdown_first}    reboot or shutdown server    ${ip}    shutdown

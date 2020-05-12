@@ -6,6 +6,7 @@ Resource          ../../cluster_helpers.robot
 Resource          ../../interaction_with_cluster_state_dictionnary.robot
 Resource          ../../setup_environment.robot
 Resource          ../centralized_logging.robot
+Resource          ../../tools.robot
 
 *** Variables ***
 ${etcd_snapshot_path}    /home/${VM_USER}
@@ -20,6 +21,7 @@ etcd-backup job is executed
     Switch Connection    bootstrap_master_1
     SSHLibrary.Get File    ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db    ${LOGDIR}/etcd-snapshot-${cluster}.db
     execute command with ssh    rm ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db    alias=bootstrap_master_1
+    step    Etcd backup has been executed successfully
 
 teardown etcdctl
     Run Keyword And Ignore Error    kubectl    delete jobs etcd-backup -n kube-system
@@ -66,6 +68,7 @@ install etcdctl on masters
 check master started in etcdctl list
     [Arguments]    ${node}    ${cluster_number}=1
     Wait Until Keyword Succeeds    2min    15sec    check master status in etcdctl is started    ${node}    ${cluster_number}
+    step    ETCD was restaure successfully on ${node}
 
 add master to the etcd member list with etcdctl
     [Arguments]    ${master}    ${cluster_number}=1

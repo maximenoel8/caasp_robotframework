@@ -8,6 +8,7 @@ Resource          ../tools.robot
 *** Keywords ***
 nginx is deployed
     [Arguments]    ${cluster_number}=1
+    step    deploying nginx service
     ${output}    kubectl    get pod -l app=nginx-ingress -n nginx-ingress -o name    cluster_number=${cluster_number}
     ${status}    ${_}    Run Keyword And Ignore Error    Should Not Be Empty    ${output}
     Run Keyword If    "${status}"=="FAIL"    helm    install --name nginx-ingress --namespace nginx-ingress suse-charts/nginx-ingress --values ${DATADIR}/nginx/nginx-ingress-config-values.yaml    cluster_number=${cluster_number}
@@ -29,12 +30,15 @@ nginx is deployed old
     wait deploy    nginx
     ${node_port}    expose service    deployment nginx    80
     Set Test Variable    ${node_port}
+    step     nginx is deployed
 
 resources pear and apple are deployed
+    step    deploying pear and apple services
     kubectl    apply -f ${DATADIR}/nginx/nginx-pear.yaml --wait
     kubectl    apply -f ${DATADIR}/nginx/nginx-apple.yaml --wait
     wait pods ready    -l app=nginx-apple
     wait pods ready    -l app=nginx-pear
+    step     ressource pear and apple are deployed
 
 nginx ingress is patched
     kubectl    apply -f ${DATADIR}/nginx/nginx-ingress-rewrite.yaml --wait

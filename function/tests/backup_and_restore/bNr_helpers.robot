@@ -2,6 +2,7 @@
 Resource          ../../commands.robot
 Resource          ../../cluster_helpers.robot
 Resource          bNr_common.robot
+Resource          ../../tools.robot
 
 *** Keywords ***
 elasticsearch is deployed
@@ -61,3 +62,4 @@ purge etcd data on all masters
     FOR    ${master}    IN    @{masters}
         purge etcd data on    ${master}
     END
+    step    etcd is purged from all the master

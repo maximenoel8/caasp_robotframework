@@ -15,6 +15,7 @@ ${expected_panels_number}    6
 *** Keywords ***
 selenium_grafana
     [Arguments]    ${cluster_number}=1
+    step    checking grafana dashboard connexion
     ${profile}    get_firefox_profile
     Open Browser    url=https://grafana.example.com:32443    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
     SeleniumLibrary.Location Should Be    https://grafana.example.com:32443/login
@@ -36,6 +37,7 @@ selenium_prometheus
 
 access certificate dashboard
     [Arguments]    ${cluster_number}=1
+    step    checking certificates dashboard
     Go To    url=https://grafana.example.com:32443/dashboards
     Click Element    xpath://div[text()="SUSE CaaS Platform Certificates"]
     @{grafana_panels_webelements}    Get WebElements    css:grafana-panel

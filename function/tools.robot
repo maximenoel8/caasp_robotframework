@@ -14,6 +14,7 @@ nfs client is deployed
     ${output}    kubectl    get pod -l app=nfs-client-provisioner -o name    cluster_number=${cluster_number}
     Run Keyword If    "${output}"=="${EMPTY}"    helm    install stable/nfs-client-provisioner --name nfs --set nfs.server="${server_ip}" --set nfs.path="${path}" --set storageClass.defaultClass=true --set storageClass.reclaimPolicy="${mode}"    cluster_number=${cluster_number}
     wait pods ready    -l app=nfs-client-provisioner    cluster_number=${cluster_number}
+    step    Storage default class is setup for nfs
 
 nfs server is deployed
     ${exist}    ${configure}    ${run}    _check nfs server install, configure and running
@@ -46,10 +47,12 @@ storageclass is deployed
 deploy storagedefault on aws
     [Arguments]    ${cluster_number}
     kubectl    apply -f ${DATADIR}/storage-default.yaml    cluster_number=${cluster_number}
+    step    Storage default class is setup for aws
 
 deploy storagedefault on vsphere
     [Arguments]    ${cluster_number}
     kubectl    apply -f ${DATADIR}/vsphere-default-storageclass.yaml    cluster_number=${cluster_number}
+    step    Storage default class is setup for vsphere
 
 resolv dns
     [Arguments]    ${dns}
@@ -58,3 +61,8 @@ resolv dns
     ${elements}    Split String    ${results[4]}
     ${ip}    Set Variable    ${elements[1]}
     [Return]    ${ip}
+
+step
+    [Arguments]    ${message}
+    ${message}    Evaluate    "\\033[1;92m${message}\\033[0m"
+    Log    \n${message}    console=yes
