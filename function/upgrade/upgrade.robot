@@ -59,10 +59,24 @@ upgrade cluster
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
-    ${cluster_status}    skuba    cluster upgrade plan    ssh=True    cluster_number=${cluster_number}
-    Comment    Should Contain    ${cluster_status}    Congratulations! You are already at the latest version available
+    check upgrade completed    cluster_number=${cluster_number}
     ${passed}    ${output}    Run Keyword And Ignore Error    wait nodes are ready    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     ${passed}    ${output}    Run Keyword And Ignore Error    wait pods ready    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     [Teardown]    set global variable    ${UPGRADE}    False
+
+check upgrade completed
+    [Arguments]    ${cluster_number}=1
+    ${lastest_version}    execute command with ssh    skuba cluster images | tail -1 | cut -d' ' -f1    alias=skuba_station_${cluster_number}
+    ${skuba_output}    skuba    cluster upgrade plan    True    cluster_number=${cluster_number}
+    Should Contain    ${skuba_output}    Current Kubernetes cluster version: ${lastest_version}
+    Should Contain    ${skuba_output}    Latest Kubernetes version: ${lastest_version}
+    Should Contain    ${skuba_output}    All nodes match the current cluster version: ${lastest_version}
+    Should Contain    ${skuba_output}    Addons at the current cluster version ${lastest_version} are up to date.
+    ${nodes}    get nodes name from CS    cluster_number=${cluster_number}
+    FOR    ${node}    IN    @{nodes}
+        ${skuba_name}    get node skuba name    ${node}
+        ${output}    skuba    node upgrade plan ${skuba_name}    True    cluster_number=${cluster_number}
+        Should Contain    ${output}    Node ${skuba_name} is up to date
+    END
