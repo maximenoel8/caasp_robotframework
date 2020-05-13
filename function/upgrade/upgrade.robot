@@ -59,7 +59,6 @@ upgrade cluster
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     ${passed}    ${output}    Run Keyword And Ignore Error    skuba addon upgrade    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
-    check upgrade completed    cluster_number=${cluster_number}
     ${passed}    ${output}    Run Keyword And Ignore Error    wait nodes are ready    cluster_number=${cluster_number}
     Run Keyword If    "${passed}"=="FAIL"    Fatal Error    ${output}
     ${passed}    ${output}    Run Keyword And Ignore Error    wait pods ready    cluster_number=${cluster_number}
@@ -76,8 +75,17 @@ check upgrade completed
     Should Contain    ${skuba_output}    All nodes match the current cluster version: ${lastest_version}
     Should Contain    ${skuba_output}    Addons at the current cluster version ${lastest_version} are up to date.
     ${nodes}    get nodes name from CS    cluster_number=${cluster_number}
+    _check rpm are installed    skuba_station_${cluster_number}
     FOR    ${node}    IN    @{nodes}
         ${skuba_name}    get node skuba name    ${node}
         ${output}    skuba    node upgrade plan ${skuba_name}    True    cluster_number=${cluster_number}
         Should Contain    ${output}    Node ${skuba_name} is up to date
+        _check rpm are installed    ${node}
+    END
+
+_check rpm are installed
+    [Arguments]    ${node}
+    @{INCIDENTS}    Get Dictionary Keys    ${INCIDENT_REPO}
+    FOR    ${INCIDENT}    IN    @{INCIDENTS}
+        Run Keyword And Expect Error    1 != 0    execute command with ssh    zypper se -s -r ${INCIDENT} | grep -v pattern | grep ^v    ${node}
     END

@@ -81,3 +81,9 @@ skuba_write
     [Arguments]    ${arguments}    ${debug}=10
     ${output}    Write    eval `ssh-agent -s` && ssh-add /home/${VM_USER}/id_shared && cd cluster && skuba ${arguments} -v ${debug}
     [Return]    ${output}
+
+sonobuoy
+    [Arguments]    ${args}    ${cluster_number}=1
+    Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
+    ${output}    execute command localy    ${LOGDIR}/sonobuoy ${args}
+    [Return]    ${output}
