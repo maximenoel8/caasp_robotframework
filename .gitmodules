@@ -1,0 +1,4 @@
+[submodule "data/locust-kubernetes"]
+	path = data/locust-kubernetes
+	url = https://github.com/maximenoel8/locust-kubernetes.git
+	branch = master
