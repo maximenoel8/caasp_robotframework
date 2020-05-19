@@ -1,0 +1,19 @@
+wordpressUsername: admin
+wordpressPassword: password
+mariadb:
+  enabled: false
+externalDatabase:
+  host: mysql.wordpress.svc.cluster.local
+  user: my_user
+  password: my_password
+  database: my_database
+service:
+  type: NodePort
+  nodePorts:
+    http: 30880
+ingress:
+  extraHosts:
+    - name: wordpress.example.com
+  secrets:
+    - secretName: wordpress-tls
+

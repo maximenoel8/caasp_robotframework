@@ -1,0 +1,9 @@
+root:
+  password: secretpassword
+db:
+  name: my_database
+  user: my_user
+  password: my_password
+  injectSecretAsVolume: true
+replication:
+  enabled: false

@@ -3,18 +3,23 @@ Resource          ../../commands.robot
 Resource          ../../cluster_helpers.robot
 Resource          ../../../parameters/global_parameters.robot
 Resource          ../../tools.robot
+Resource          ../certificate.robot
 
 *** Keywords ***
 wordpress is deployed
-    helm    install --name wordpress --namespace wordpress --set ingress.enabled=true,ingress.hosts[0].name=wordpress.jaws.jio.com --set service.type=NodePort --set service.nodePorts.http=30800 --set service.nodePorts.https=30880 --set wordpressUsername=admin --set wordpressPassword=password stable/wordpress
+    deploy mysql
+    create wordpress certificate
+    helm    install --name wordpress --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values.yaml bitnami/wordpress
     wordpress is up
     step    wordpress is deployed with pv
 
 wordpress is removed
     [Arguments]    ${cluster_number}=1
-    helm    delete --purge wordpress    ${cluster_number}
-    kubectl    delete namespace wordpress    ${cluster_number}
-    check wordpress pvc are deleted    ${cluster_number}
+    Run Keyword And Ignore Error    helm    delete --purge wordpress    ${cluster_number}
+    Run Keyword And Ignore Error    helm    delete --purge mysql    ${cluster_number}
+    Run Keyword And Ignore Error    kubectl    delete namespace wordpress    ${cluster_number}
+    Run Keyword And Ignore Error    kubectl    delete -f ${LOGDIR}/hpa-avg-cpu-value.yaml
+    Run Keyword And Ignore Error    check wordpress pvc are deleted    ${cluster_number}
     step    Wordpress has been removed
 
 check wordpress pvc are deleted
@@ -61,3 +66,14 @@ wordpress pv are patch
         kubectl    patch pvc ${value[0]} -p '{"metadata":{"finalizers":null}}' -n wordpress
         kubectl    patch pv ${value[2]} -p '{"metadata":{"finalizers":null}}' -n wordpress
     END
+
+deploy mysql
+    step    Deploy mysql for wordpress
+    helm    install --name mysql \ --namespace wordpress -f ${DATADIR}/wordpress/mysql_values.yaml bitnami/mysql --wait
+
+create wordpress certificate
+    ${dns}    Create List    wordpress.example.com
+    ${ip}    Create List
+    ${SAN}    Create Dictionary    dns=${dns}    ip=${ip}
+    Run Keyword And Ignore Error    kubectl    create namespace wordpress
+    create custom certificate to    wordpress    ${SAN}    wordpress
