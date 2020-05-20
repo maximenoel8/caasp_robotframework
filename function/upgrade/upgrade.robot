@@ -75,12 +75,12 @@ check upgrade completed
     Should Contain    ${skuba_output}    All nodes match the current cluster version: ${lastest_version}
     Should Contain    ${skuba_output}    Addons at the current cluster version ${lastest_version} are up to date.
     ${nodes}    get nodes name from CS    cluster_number=${cluster_number}
-    _check rpm are installed    skuba_station_${cluster_number}
+    Comment    _check rpm are installed    skuba_station_${cluster_number}
     FOR    ${node}    IN    @{nodes}
         ${skuba_name}    get node skuba name    ${node}
         ${output}    skuba    node upgrade plan ${skuba_name}    True    cluster_number=${cluster_number}
         Should Contain    ${output}    Node ${skuba_name} is up to date
-        _check rpm are installed    ${node}
+        Comment    _check rpm are installed    ${node}
     END
 
 _check rpm are installed
