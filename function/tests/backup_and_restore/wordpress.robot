@@ -42,7 +42,7 @@ check file exist in wordpress pod
     Should Contain    ${output}    picture.png
 
 wordpress volumes are annotated to be backed up
-    kubectl    -n wordpress annotate pod/wordpress-mariadb-0 backup.velero.io/backup-volumes=data,config
+    kubectl    -n wordpress annotate pod/mysql-master-0 backup.velero.io/backup-volumes=data,config
     kubectl    -n wordpress annotate pod/${wordpress_pod_name} backup.velero.io/backup-volumes=wordpress-data
 
 wordpress is up

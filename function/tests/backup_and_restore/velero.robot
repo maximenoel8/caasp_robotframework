@@ -86,8 +86,7 @@ teardown velero
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
         Run Keyword And Ignore Error    helm    delete --purge velero    ${cluster_number}
-        Run Keyword And Ignore Error    helm    delete --purge wordpress    ${cluster_number}
-        Run Keyword And Ignore Error    kubectl    delete namespace wordpress    ${cluster_number}
+        Run Keyword And Ignore Error    wordpress is removed    ${cluster_number}
         Run Keyword And Ignore Error    Remove File    ${credential-velero-file}
     END
     [Teardown]    teardown_test
