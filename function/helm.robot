@@ -21,4 +21,5 @@ install helm
     kubectl    create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller    ${cluster_number}
     helm    init --tiller-image ${helm_image} --service-account tiller --wait    ${cluster_number}
     helm    repo add suse-charts https://kubernetes-charts.suse.com    ${cluster_number}
+    helm    repo add bitnami https://charts.bitnami.com/bitnami    ${cluster_number}
     step    helm is installed

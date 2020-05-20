@@ -87,5 +87,5 @@ _check rpm are installed
     [Arguments]    ${node}
     @{INCIDENTS}    Get Dictionary Keys    ${INCIDENT_REPO}
     FOR    ${INCIDENT}    IN    @{INCIDENTS}
-        Run Keyword And Expect Error    1 != 0    execute command with ssh    zypper se -s -r ${INCIDENT} | grep -v pattern | grep ^v    ${node}
+        Run Keyword And Expect Error    1 != 0    execute command with ssh    zypper se -s -r ${INCIDENT} | grep -v pattern | grep -v iproute2 | grep ^v    ${node}
     END
