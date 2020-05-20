@@ -9,7 +9,7 @@ open ssh session
     ${server_ip}    Run Keyword If    "${alias}"=="default"    get node ip from CS    ${server}    ${cluster_number}
     ...    ELSE    Set Variable    ${server}
     ${alias}    Set Variable If    "${alias}"=="default"    ${server}    ${alias}
-    Open Connection    ${server_ip}    alias=${alias}    timeout=60min
+    Open Connection    ${server_ip}    alias=${alias}
     Login With Public Key    ${VM_USER}    data/id_shared
 
 reinitialize skuba session

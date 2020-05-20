@@ -15,10 +15,11 @@ wordpress load test
     And wordpress is deployed
     And locust is deployed
     When run load testing    4000    40
-    Then fail rate should be inferior to    10
+    Then fail rate should be inferior to    15
     [Teardown]    wordpress is removed
 
 wordpress with hpa test
+    [Tags]    release
     Given cluster running
     And helm is installed
     And storageclass is deployed
