@@ -10,9 +10,11 @@ Resource          interaction_with_cluster_state_dictionnary.robot
 Resource          upgrade/upgrade_workstation.robot
 Resource          helper.robot
 Resource          tools.robot
+Resource          terraform_files_change.robot
 
 *** Keywords ***
 install skuba
+    [Arguments]    ${redeploy}=False
     step    installing skuba ...
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
@@ -22,6 +24,7 @@ install skuba
         Switch Connection    skuba_station_${cluster_number}
         Put File    data/id_shared    /home/${VM_USER}/    mode=0600
     END
+    Run keyword if    "${MODE}"=="${EMPTY}" and '${RPM}'!='${EMPTY}' and not ${UPGRADE} and not ${redeploy}    check terrafrom are updated and redeploy if not
 
 _skuba from pattern
     [Arguments]    ${cluster_number}

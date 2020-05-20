@@ -4,12 +4,15 @@ Resource          aws_setup.robot
 Resource          openstack_setup.robot
 Resource          libvirt_setup.robot
 Resource          ../tools.robot
+Resource          ../terraform_files_change.robot
 
 *** Keywords ***
 deploy cluster vms
+    [Arguments]    ${redeploy}=False
     Comment    clone skuba locally
     step    Deploying vm ...
-    copy terraform configuration from skuba folder
+    Run Keyword If    ${redeploy}    copy terraform from temporay
+    ...    ELSE    copy terraform configuration from skuba folder
     set repo and packages
     Run Keyword If    "${MODE}"=="${EMPTY}" or "${MODE}"=="RELEASE"    Run Keyword And Ignore Error    configure registration auto tfvars vmware
     Run Keyword If    "${PLATFORM}"=="vmware"    configure terraform tfvars vmware

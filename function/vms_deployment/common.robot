@@ -39,6 +39,7 @@ configure registration auto tfvars vmware
         ${cluster_number}    Evaluate    ${i}+1
         ${terraform_tvars}    OperatingSystem.Get File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars
         ${terraform_tvars}    Replace String    ${terraform_tvars}    \#caasp_registry_code = ""    caasp_registry_code = "${CAASP_KEY}"
+        Comment    ${terraform_tvars}    Replace String    ${terraform_tvars}    \#rmt_server_name = "rmt.example.com"    rmt_server_name = "saturn.qa.suse.cz"
         Create File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars    ${terraform_tvars}
     END
 
@@ -66,7 +67,7 @@ configure terraform file common
     @{authorized_keys}    Create List    ${SSH_PUB_KEY}
     Set To Dictionary    ${vmware_dico}    authorized_keys    ${authorized_keys}
     Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
-    Set To Dictionary    ${vmware_dico}    lb_repositories    ${LB_REPO_LIST}
+    Comment    Set To Dictionary    ${vmware_dico}    lb_repositories    ${LB_REPO_LIST}
     [Return]    ${vmware_dico}
 
 check terraform finish successfully

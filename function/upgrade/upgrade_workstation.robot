@@ -3,6 +3,7 @@ Resource          ../commands.robot
 Resource          ../reboot.robot
 Resource          ../skuba_tool_install.robot
 Resource          upgrade_nodes.robot
+Resource          ../terraform_files_change.robot
 
 *** Keywords ***
 _upgrade skuba from skuba repo
@@ -12,6 +13,7 @@ _upgrade skuba from skuba repo
 upgrade workstation
     [Arguments]    ${cluster_number}
     Run Keyword If    '${RPM}'!='${EMPTY}'    add repo from incident and update    ${cluster_number}
+    Run Keyword If    "${MODE}"=="${EMPTY}" and '${RPM}'!='${EMPTY}' and '${REGISTRY}'!='${EMPTY}'    check diff from current terraform files with updated workstation
     Run Keyword If    '${RPM}'!='${EMPTY}'    add repo to nodes    ${cluster_number}
     Run Keyword If    '${REGISTRY}'!='${EMPTY}'    add container repo file to nodes    ${cluster_number}
     Comment    _enable update package
