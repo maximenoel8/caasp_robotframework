@@ -154,7 +154,7 @@ _create cluster_state terraform 12 for
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    cluster_number=${cluster_number}
     END
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer
-    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["ip_load_balancer"]["value"]["${CLUSTER_PREFIX}-${cluster_number}-lb-0"]}
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["ip_load_balancer"]["value"]["${CLUSTER_PREFIX}-${cluster_number}-lb"]}
     add lb to CS    ${IP_LB}    ${cluster_number}
 
 create cluster state for
