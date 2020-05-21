@@ -51,7 +51,7 @@ clean cluster
 clean all cluster
     ${clusters_dir}    OperatingSystem.List Directories In Directory    ${CURDIR}/../../workdir
     FOR    ${cluster_dir}    IN    @{clusters_dir}
-        Run Keyword And Ignore Error    terraform destroy    ${cluster_dir}
+        Run Keyword And Ignore Error    terraform destroy    ${CURDIR}/../../workdir/${cluster_dir}/terraform/cluster_1
     END
 
 configure terraform file common

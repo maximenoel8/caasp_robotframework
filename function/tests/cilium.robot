@@ -6,7 +6,7 @@ Resource          ../tools.robot
 
 *** Variables ***
 ${POST_curlreq}    curl -sm10 -XPOST deathstar.default.svc.cluster.local/v1/request-landing
-${PUT_curlreq}    ${EMPTY}
+${PUT_curlreq}    curl -s -XPUT deathstar.default.svc.cluster.local/v1/exhaust-port
 
 *** Keywords ***
 deathstar is deployed
@@ -26,10 +26,11 @@ node is NOT able to land
     step    ${node} is NOT able to land
 
 clean cilium test
+    [Tags]    release
     step    clean cilium test
-    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/http-sw-app.yaml
-    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
-    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_l7_policy.yaml
+    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/http-sw-app.yaml
+    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
+    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_l7_policy.yaml
     [Teardown]    teardown_test
 
 l3 l4 policiy is deployed

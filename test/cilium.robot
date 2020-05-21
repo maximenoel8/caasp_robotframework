@@ -21,3 +21,4 @@ check L7 policy
     When l7 policy is deployed
     Then PUT request is denied    tiefighter
     And node is able to land    tiefighter
+    [Teardown]    clean cilium test
