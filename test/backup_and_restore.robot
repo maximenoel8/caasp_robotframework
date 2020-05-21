@@ -8,7 +8,7 @@ Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
 velero backup wordpress aws
-    [Tags]    backup
+    [Tags]    backup    release
     Given cluster running
     And velero setup
     And helm is installed
@@ -54,13 +54,13 @@ velero migrate wordpress from cluster 1 to 2
     [Teardown]    teardown velero    aws
 
 etcd-backup
-    [Tags]    backup
+    [Tags]    backup    release
     Given cluster running
     And etcd-backup job is executed
     [Teardown]    teardown etcdctl
 
 Restore all master nodes - etcd cluster and data
-    [Tags]    backup
+    [Tags]    backup    release
     Given cluster running
     And helm is installed
     And rsyslog is deployed

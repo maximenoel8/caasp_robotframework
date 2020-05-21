@@ -66,7 +66,7 @@ build skuba from repo
     Run Keyword If    "${MODE}"=="RELEASE"    execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64    skuba_station_${cluster_number}
     Run Keyword If    "${MODE}"=="RELEASE"    execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
     ${args}    set variable if    "${MODE}"=="DEV"    ${EMPTY}    "${MODE}"=="STAGING"    staging    "${MODE}"=="RELEASE"    release
-    execute command with ssh    cd ${skuba_folder} && \ make ${args}    skuba_station_${cluster_number}
+    execute command with ssh    cd ${skuba_folder} && make ${args}    skuba_station_${cluster_number}
     execute command with ssh    sudo ln -s /home/${VM_USER}/go/bin/skuba /usr/bin/    skuba_station_${cluster_number}
 
 add repo from incident and update

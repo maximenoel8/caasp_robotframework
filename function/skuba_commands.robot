@@ -4,6 +4,7 @@ Resource          cluster_helpers.robot
 Resource          reboot.robot
 Resource          helper.robot
 Resource          tools.robot
+Resource          ../parameters/vm_deployment.robot
 
 *** Keywords ***
 replica dex and gangway are correctly distribued
@@ -69,7 +70,7 @@ start bootstrap
     init cluster    ${node}    ${cluster_number}
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
     ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
-    Create File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
+    Append To File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
 
 _check bootstrap retry
     ${status}    ${output}    Run Keyword And Ignore Error    Variable Should Exist    ${RETRY_${cluster}}
@@ -81,11 +82,11 @@ _check bootstrap retry
 init cluster
     [Arguments]    ${alias}    ${cluster_number}=1
     ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
-    ${extra_args}    Set Variable If    "${platform}"=="vmware" and ${CP_vsphere}    --cloud-provider vsphere    ${EMPTY}
+    ${extra_args}    Set Variable If    "${platform}"=="vmware" and ${CPI_VSPHERE}    --cloud-provider vsphere    ${EMPTY}
     ${extra_args}    Set Variable If    "${mode}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
     Run Keyword And Ignore Error    execute command with ssh    rm -rf cluster    ${alias}
     execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${alias}
-    Run Keyword If    ${CP_vsphere}    _setup vsphere cloud configuration    ${cluster_number}
+    Run Keyword If    ${CPI_VSPHERE}    _setup vsphere cloud configuration    ${cluster_number}
 
 _setup vsphere cloud configuration
     [Arguments]    ${cluster_number}

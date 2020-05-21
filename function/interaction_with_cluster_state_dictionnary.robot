@@ -3,6 +3,7 @@ Library           Collections
 Library           String
 Library           JSONLibrary
 Library           OperatingSystem
+Resource          ../parameters/vm_deployment.robot
 
 *** Variables ***
 
@@ -161,12 +162,12 @@ create cluster state for
     [Arguments]    ${cluster_number}=1
     ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster${cluster_number}.json
     create first cluster_state level    ${cluster_number}
-    Comment    Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
+    Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${ip_dictionnary["terraform_version"]}"=="0.12.19" and not "${PLATFORM}"=="aws" and not "${PLATFORM}"=="vmware"    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${PLATFORM}"=="aws"    _create cluster_state for aws    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${PLATFORM}"=="vmware"    _create_cluster_state_for_vmware    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE    Fail    Wrong platform file
-    Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
+    Comment    Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${ip_dictionnary["terraform_version"]}"=="0.12.19" and not "${PLATFORM}"=="aws"    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${PLATFORM}"=="aws"    _create cluster_state for aws    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE    Fail    Wrong platform file
@@ -251,12 +252,14 @@ _create_cluster_state_for_vmware
     FOR    ${key}    IN    @{masters}
         Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    ${cluster_number}
         ...    AND    Exit For Loop
-        ${hostname}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}
+        ${hostname_octet}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}
+        ${hostname}    Set Variable If    ${DNS_HOSTNAME}    ${hostname_octet}    ${key}
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    ${hostname}    cluster_number=${cluster_number}
         ${count}    Evaluate    ${count}+1
     END
     FOR    ${key}    IN    @{workers}
-        ${hostname}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}
+        ${hostname_octet}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}
+        ${hostname}    Set Variable If    ${DNS_HOSTNAME}    ${hostname_octet}    ${key}
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    ${hostname}    cluster_number=${cluster_number}
     END
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer

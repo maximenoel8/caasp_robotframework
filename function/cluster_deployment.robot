@@ -165,7 +165,7 @@ check state of all the cluster is done
     [Return]    ${status}
 
 cluster is deployed
-    step     start deploying the cluster
+    step    start deploying the cluster
     create cluster deployment dictionnary
     ${waiting time}    _set deployment timeout
     FOR    ${temp}    IN RANGE    ${waiting time}

@@ -2,6 +2,7 @@
 Resource          commands.robot
 Resource          cluster_helpers.robot
 Resource          ../parameters/tool_parameters.robot
+Resource          ../parameters/vm_deployment.robot
 
 *** Keywords ***
 nfs client is deployed
@@ -40,8 +41,8 @@ _check nfs server install, configure and running
 storageclass is deployed
     [Arguments]    ${cluster_number}=1
     Comment    Run Keyword If    "${PLATFORM}"=="vmware" and ${cluster_number}==1    nfs server is deployed
-    Run Keyword If    ( "${PLATFORM}"=="vmware" and not ${CP_vsphere} ) or "${PLATFORM}"=="openstack"    nfs client is deployed    cluster_number=${cluster_number}
-    Run Keyword If    "${PLATFORM}"=="vmware" and ${CP_vsphere}    deploy storagedefault on vsphere    cluster_number=${cluster_number}
+    Run Keyword If    ( "${PLATFORM}"=="vmware" and not ${CPI_VSPHERE} ) or "${PLATFORM}"=="openstack"    nfs client is deployed    cluster_number=${cluster_number}
+    Run Keyword If    "${PLATFORM}"=="vmware" and ${CPI_VSPHERE}    deploy storagedefault on vsphere    cluster_number=${cluster_number}
     Run Keyword If    "${PLATFORM}"=="aws"    deploy storagedefault on aws    cluster_number=${cluster_number}
 
 deploy storagedefault on aws

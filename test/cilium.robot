@@ -3,7 +3,7 @@ Resource          ../function/cluster_deployment.robot
 Resource          ../function/tests/cilium.robot
 
 *** Test Cases ***
-Cilium: L3-L4 policy test
+check L3-L4 policy
     [Tags]    release
     Given cluster running
     and deathstar is deployed
@@ -13,3 +13,11 @@ Cilium: L3-L4 policy test
     then node is able to land    tiefighter
     and node is not able to land    xwing
     [Teardown]    clean cilium test
+
+check L7 policy
+    Given cluster running
+    and deathstar is deployed
+    Then PUT request create error    tiefighter
+    When l7 policy is deployed
+    Then PUT request is denied    tiefighter
+    And node is able to land    tiefighter

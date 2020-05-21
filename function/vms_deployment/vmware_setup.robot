@@ -1,8 +1,11 @@
 *** Settings ***
 Resource          common.robot
+Resource          ../../parameters/vm_deployment.robot
 
 *** Keywords ***
 configure terraform tfvars vmware
+    ${cpi_enable}    Set Variable If    ${CPI_VSPHERE}    true    false
+    ${hostname_from_dhcp}    Set Variable If    ${DNS_HOSTNAME}    true    false
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    evaluate    ${i}+1
         &{vmware_dico}    Convert Tvars To Dico    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfvars.example
@@ -16,8 +19,8 @@ configure terraform tfvars vmware
         Set To Dictionary    ${vmware_dico}    worker_cpus    ${8}
         Set To Dictionary    ${vmware_dico}    worker_memory    ${16384}
         Set To Dictionary    ${vmware_dico}    vsphere_datastore_cluster    LOCAL-DISKS-CLUSTER
-        Comment    Set To Dictionary    ${vmware_dico}    cpi_enable    ${true}
-        Comment    Set To Dictionary    ${vmware_dico}    hostname_from_dhcp    ${false}
+        Set To Dictionary    ${vmware_dico}    cpi_enable    ${${cpi_enable}}
+        Set To Dictionary    ${vmware_dico}    hostname_from_dhcp    ${${hostname_from_dhcp}}
         ${vmware_dico}    configure terraform file common    ${vmware_dico}
         Comment    _change_vsphere_datastorage    ${cluster_number}
         _create tvars json file    ${vmware_dico}    ${cluster_number}
