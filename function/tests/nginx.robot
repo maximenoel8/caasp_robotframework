@@ -30,7 +30,7 @@ nginx is deployed old
     wait deploy    nginx
     ${node_port}    expose service    deployment nginx    80
     Set Test Variable    ${node_port}
-    step     nginx is deployed
+    step    nginx is deployed
 
 resources pear and apple are deployed
     step    deploying pear and apple services
@@ -38,7 +38,7 @@ resources pear and apple are deployed
     kubectl    apply -f ${DATADIR}/nginx/nginx-apple.yaml --wait
     wait pods ready    -l app=nginx-apple
     wait pods ready    -l app=nginx-pear
-    step     ressource pear and apple are deployed
+    step    ressource pear and apple are deployed
 
 nginx ingress is patched
     kubectl    apply -f ${DATADIR}/nginx/nginx-ingress-rewrite.yaml --wait

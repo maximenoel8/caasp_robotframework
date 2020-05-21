@@ -8,3 +8,4 @@ nginx container
     Given cluster running
     And nginx is deployed old
     Then can access nginx server
+    [Teardown]    teardown nginx testcase
