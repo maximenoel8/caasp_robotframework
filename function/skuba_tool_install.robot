@@ -24,7 +24,7 @@ install skuba
         Switch Connection    skuba_station_${cluster_number}
         Put File    data/id_shared    /home/${VM_USER}/    mode=0600
     END
-    Run keyword if    "${MODE}"=="${EMPTY}" and '${RPM}'!='${EMPTY}' and not ${UPGRADE} and not ${redeploy}    check terrafrom are updated and redeploy if not
+    Run keyword if    "${MODE}"=="${EMPTY}" and '${RPM}'!='${EMPTY}' and not ${UPGRADE} and not ${redeploy} and ${CHECK_TERRAFORM}    check terrafrom are updated and redeploy if not
 
 _skuba from pattern
     [Arguments]    ${cluster_number}
