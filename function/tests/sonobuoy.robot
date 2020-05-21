@@ -1,5 +1,6 @@
 *** Settings ***
 Resource          ../commands.robot
+Resource          ../tools.robot
 
 *** Keywords ***
 install sonobuoy
@@ -11,6 +12,7 @@ install sonobuoy
     execute command localy    tar -xvf ${LOGDIR}/sonobuoy_${values}_linux_386.tar.gz -C ${LOGDIR}
 
 run sonobuoy
+    step    run sonobuoy
     install sonobuoy
     sonobuoy    run --mode=certified-conformance --ssh-key="${DATADIR}/id_shared" --ssh-user=sles --wait
 
