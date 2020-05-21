@@ -16,6 +16,6 @@ scsicontrollertype = pvscsi
 [Network]
 public-network = "VM Network"
 [Labels]
-region = "test-vcp-regions"
-zone = "test-vcp-zones"
+region = "vcp-provo"
+zone = "vcp-cluster-jazz"
 
