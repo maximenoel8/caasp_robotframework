@@ -1,12 +1,9 @@
 *** Variables ***
-${VM_USER}        sles
 ${CLUSTER}        ${EMPTY}
 ${MODE}           ${EMPTY}
 ${SKUBA_PULL_REQUEST}    ${EMPTY}
 ${PREFIX}         robotframework
-${GIT_BRANCH}     release-caasp-4.1.0
 ${PLATFORM}       vmware
-${NUMBER}         1:2
 ${KEEP}           False
 ${LOGDIR}         ${EMPTY}
 ${CHART_PULL_REQUEST}    ${EMPTY}
@@ -22,6 +19,5 @@ ${KUBERNETES_VERSION}    ${EMPTY}
 ${RPM}            ${EMPTY}
 ${REGISTRY}       ${EMPTY}
 &{LB_REPO_LIST}
-${CP_vsphere}     False
-${CONNEXION_UP}    False
+${CONNEXION_UP}    False    # Create ssh session will be done only once during the tests
 ${CHECK_TERRAFORM}    True
