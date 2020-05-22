@@ -30,6 +30,7 @@ teardown_suite
 teardown_test
     Run Keyword And Ignore Error    dump cluster state
     Run Keyword And Ignore Error    Process.Terminate All Processes
+    Run Keyword And Ignore Error    Close All Connections
 
 get kubernetes charts
     [Arguments]    ${pull_request}=${EMPTY}
