@@ -21,11 +21,6 @@ variable "vsphere_network" {
 variable "vsphere_resource_pool" {
 }
 
-variable "vsphere_hardware_version" {
-  default     = null
-  description = "Hardware version of the virtual machine."
-}
-
 variable "authorized_keys" {
   type        = list(string)
   default     = []
@@ -115,12 +110,39 @@ variable "master_disk_size" {
   description = "Size of the root disk in GB on master node"
 }
 
-variable "cpi_enable" {
-  default     = false
-  description = "Enable CPI integration with vSphere"
+#### To be moved to separate vsphere.tf? ####
+
+provider "vsphere" {
 }
 
-variable "hostname_from_dhcp" {
-  default     = true
-  description = "Set node's hostname from DHCP server"
+data "vsphere_resource_pool" "pool" {
+  name          = var.vsphere_resource_pool
+  datacenter_id = data.vsphere_datacenter.dc.id
 }
+
+data "vsphere_datastore" "datastore" {
+  count         = var.vsphere_datastore == "null" ||  var.vsphere_datastore == null ? 0 : 1
+  name          = var.vsphere_datastore
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
+
+data "vsphere_datastore_cluster" "datastore" {
+  count         = var.vsphere_datastore_cluster == "null" ||  var.vsphere_datastore_cluster == null ? 0 : 1
+  name          = var.vsphere_datastore_cluster
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
+
+data "vsphere_datacenter" "dc" {
+  name = var.vsphere_datacenter
+}
+
+data "vsphere_network" "network" {
+  name          = var.vsphere_network
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
+
+data "vsphere_virtual_machine" "template" {
+  name          = var.template_name
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
+
