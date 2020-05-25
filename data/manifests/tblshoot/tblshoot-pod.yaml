@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: tblshoot
+  name: tblshoot
+  namespace: default
+spec:
+  containers:
+    - name: tblshoot
+      command:
+        - tail
+        - -f
+        - /dev/null
+      image: docker.io/spiarh/tblshoot-large:latest
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 80
+  restartPolicy: Always

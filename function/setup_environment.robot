@@ -75,6 +75,7 @@ create registry dictionnary
     FOR    ${i}    IN RANGE    0    ${length}
         Set To Dictionary    ${INCIDENT_REPO}    INCIDENT${i}=${registries[0]}
     END
+    Set Global Variable    ${INCIDENT_REPO}
 
 create container repository file
     ${registries}    Split String    ${REGISTRY}
@@ -111,3 +112,4 @@ setup environment for suite
     ${SSH_PUB_KEY}    OperatingSystem.Get File    ${DATADIR}/id_shared.pub
     ${SSH_PUB_KEY}    Remove String    ${SSH_PUB_KEY}    \n
     Set Global Variable    ${SSH_PUB_KEY}
+    setup environment

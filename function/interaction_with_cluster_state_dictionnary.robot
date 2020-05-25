@@ -276,3 +276,13 @@ _get_hostname_vmware
         ${hostname}    Set Variable    ${hostname}${first_digit}
     END
     [Return]    ${hostname}
+
+get all nodes skuba_name from CS
+    [Arguments]    ${cluster_number}=1
+    @{nodes}    get nodes name from CS    cluster_number=${cluster_number}
+    ${skuba_names}    Create List
+    FOR    ${node}    IN    @{nodes}
+        ${skuba_name}    get node skuba name    ${node}
+        Append To List    ${skuba_names}    ${skuba_name}
+    END
+    [Return]    ${skuba_names}

@@ -1,0 +1,16 @@
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+description: "Deny everything"
+metadata:
+  name: "ingress-egress-deny-all"
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: httpbin
+      app: tblshoot
+  egress:
+    - {}
+  ingress:
+    - {}

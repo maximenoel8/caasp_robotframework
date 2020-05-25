@@ -1,0 +1,54 @@
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+description: "Allow GET and DELETE"
+metadata:
+  name: "httpbin-allow-delete-get-put-l7"
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: httpbin
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: tblshoot
+      fromPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+          rules:
+            http:
+              - method: "GET"
+                path: "/anything/allowed"
+              - method: "DELETE"
+                path: "/anything/allowed"
+              - method: "PUT"
+                path: "/anything/allowed"
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+description: "Allow GET and DELETE"
+metadata:
+  name: "tblshoot-allow-delete-get-put-l7"
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: tblshoot
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app: httpbin
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+          rules:
+            http:
+              - method: "GET"
+                path: "/anything/allowed"
+              - method: "DELETE"
+                path: "/anything/allowed"
+              - method: "PUT"
+                path: "/anything/allowed"
