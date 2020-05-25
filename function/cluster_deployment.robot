@@ -175,6 +175,7 @@ cluster is deployed
     END
     kured config    off
     step    cluster is successfully deploy
+    Set Global Variable    ${CLUSTER_STATUS}    PASS
 
 _check status is done
     [Arguments]    ${cluster}

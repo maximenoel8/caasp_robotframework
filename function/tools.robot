@@ -67,3 +67,11 @@ step
     [Arguments]    ${message}
     ${message}    Evaluate    "\\033[1;92m${message}\\033[0m"
     Log    \n${message}    console=yes
+
+deploy httpbin
+    kubectl    apply -f ${DATADIR}/manifests/httpbin
+    wait pods ready    -l app=httpbin
+
+deploy tblshoot
+    kubectl    apply -f ${DATADIR}/manifests/tblshoot
+    wait pods ready    -l app=tblshoot
