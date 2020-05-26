@@ -1,5 +1,7 @@
 *** Settings ***
 Resource          ../commands.robot
+Resource          ../cluster_helpers.robot
+Resource          ../setup_environment.robot
 
 *** Keywords ***
 coredns replicats should be ${replicat}
@@ -14,14 +16,14 @@ coredns replicats should be ${replicat}
 
 dns traffic is forbidden
     [Arguments]    ${name}    ${ip}
-    ${output}    When resolve ${name} should contains ${ip}
+    ${output}    When resolve ${name} request
     Should Contain    ${output}    ;; connection timed out; no servers could be reached
-    ${output}    When reverse resolving ${ip}
+    ${output}    When reverse resolving ${ip} request
     Should Contain    ${output}    ;; connection timed out; no servers could be reached
 
 dns traffic is allowed
     [Arguments]    ${name}    ${ip}
-    When resolve ${name} should contains ${ip}
+    When resolve ${name} should contain ${ip}
     When reverse resolving ${ip} should contain ${name}
 
 resolve ${name} request
@@ -46,6 +48,21 @@ reverse resolving ${ip} should contain ${name}
     ${output}    When reverse resolving ${ip} request
     Then Should Contain    ${output}    ${name}
 
-get ${service} service ip
-    ${ip}    kubectl    get svc ${service} -ojsonpath={.spec.clusterIP}
-    [Return]    ${ip}
+deploy dnsutils-netcat
+    kubectl    apply -f ${DATADIR}/manifests/dnsutils/dnsutils-netcat-pod.yaml
+
+dnsutils-netcat should be deployed successfully
+    wait pods ready    dnsutils-netcat
+
+deploy dnsutils-netcat service
+    ${output}    kubectl    apply -f ${DATADIR}/manifests/dnsutils/dnsutils-netcat-service.yaml
+    Should Contain    ${output}    service/dnsutils-netcat
+    Should Contain Any    ${output}    created    unchanged
+
+deploy dnsutils-netcat service headless
+    ${output}    kubectl    apply -f ${DATADIR}/manifests/dnsutils/dnsutils-netcat-service-headless.yaml
+    Should Contain    ${output}    service/dnsutils-netcat-headless
+    Should Contain Any    ${output}    created    unchanged
+
+teardown coredns
+    Run Keyword And Ignore Error    kubectl    delete -f ${DATADIR}/manifests/dnsutils

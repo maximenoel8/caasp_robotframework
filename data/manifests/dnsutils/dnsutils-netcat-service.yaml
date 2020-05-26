@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dnsutils-netcat
+  name: dnsutils-netcat
+  namespace: default
+spec:
+  clusterIP: 10.100.100.100
+  ports:
+    - name: nc
+      port: 1111
+      protocol: TCP
+      targetPort: 1111
+  selector:
+    app: dnsutils-netcat
+  type: ClusterIP

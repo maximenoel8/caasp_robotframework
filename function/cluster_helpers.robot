@@ -178,3 +178,8 @@ _patch kured
     [Arguments]    ${args}
     ${patch}    Set Variable    { "spec": { "template": { "spec": { "containers": [ { "name": "kured", "command": [ "/usr/bin/kured", "${args}" ] } ] } } } }
     kubectl    -n kube-system patch ds kured -p '${patch}'
+
+get ${service} service ip
+    ${ip}    kubectl    get svc ${service} -ojsonpath={.spec.clusterIP}
+    Should Match Regexp    ${ip}    ^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$
+    [Return]    ${ip}

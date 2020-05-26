@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dnsutils-netcat
+  name: dnsutils-netcat-headless
+  namespace: default
+spec:
+  ports:
+    - name: nc
+      port: 1111
+      protocol: TCP
+      targetPort: 1111
+  selector:
+    app: dnsutils-netcat

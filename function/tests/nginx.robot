@@ -54,6 +54,7 @@ teardown nginx testcase
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-apple.yaml
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-pear.yaml
     Run Keyword And Ignore Error    helm    delete nginx-ingress --purge
+    [Teardown]    teardown_test
 
 update /etc/hosts
     Copy File    /etc/hosts    ${LOGDIR}/hosts.backup
