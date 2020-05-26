@@ -21,6 +21,7 @@ deploy cluster vms
     ...    ELSE    Fail    Wrong platform
     run terraform
     step    vms are deployed
+    Set Global Variable    ${PLATFORM_DEPLOY}    PASS
 
 set infra env parameters
     Set vmware env variables
