@@ -85,7 +85,7 @@ cleaning monitoring
 add certificate exporter
     kubectl    label --overwrite secret oidc-dex-cert -n kube-system caasp.suse.com/skuba-addon=true
     kubectl    label --overwrite secret oidc-gangway-cert -n kube-system caasp.suse.com/skuba-addon=true
-    helm    install --name cert-exporter --namespace monitoring --set image.repository=registry.suse.de/devel/caasp/4.0/containers/containers/caasp/v4/cert-exporter ${LOGDIR}/kubernetes-charts-suse-com/stable/cert-exporter/ --wait
+    helm    install --name cert-exporter --namespace monitoring suse-charts/cert-exporter --wait
 
 certificates dashboard is deployed
     kubectl    apply -f https://raw.githubusercontent.com/jenting/caasp-monitoring/caasp-certs/grafana-dashboards-caasp-certificates.yaml

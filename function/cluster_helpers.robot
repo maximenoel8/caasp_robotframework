@@ -70,11 +70,11 @@ wait deploy
 wait all pods are running
     [Arguments]    ${cluster_number}=1
     ${pods}    get pod list and try restart crashpod    ${cluster_number}
-    FOR    ${i}    IN RANGE    1    90
+    FOR    ${i}    IN RANGE    1    60
         ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
         ${status}    ${pod}    check pods running    ${output}
         Exit For Loop If    ${status}
-        Sleep    15
+        Sleep    10
     END
     Run Keyword If    not ${status}    Fail    Pod ${pod} not running
     Comment    FOR    ${element}    IN    @{pods}

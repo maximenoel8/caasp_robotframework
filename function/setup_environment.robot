@@ -44,7 +44,7 @@ setup environment
     Set vm number
     Run Keyword Unless    "${CHART_PULL_REQUEST}"=="${EMPTY}"    get kubernetes charts
     Run Keyword Unless    '${RPM}'=='${EMPTY}'    create registry dictionnary
-    Run Keyword Unless    "${RPM}"=="${EMPTY}"    create container repository file
+    Run Keyword Unless    "${REGISTRY}"=="${EMPTY}"    create container repository file
 
 load vm ip
     ${status}    check cluster state exist
