@@ -25,6 +25,7 @@ etcd-backup job is executed
 
 teardown etcdctl
     Run Keyword And Ignore Error    kubectl    delete jobs etcd-backup -n kube-system
+    Run Keyword If Test Failed    Fatal Error
     [Teardown]    teardown centralized log
 
 configure etcd-backup job
