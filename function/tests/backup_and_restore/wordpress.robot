@@ -69,7 +69,8 @@ wordpress pv are patch
 
 deploy mysql
     step    Deploy mysql for wordpress
-    helm    install --name mysql \ --namespace wordpress -f ${DATADIR}/wordpress/mysql_values.yaml bitnami/mysql --wait
+    helm    install --name mysql \ --namespace wordpress -f ${DATADIR}/wordpress/mysql_values.yaml bitnami/mysql
+    wait podname    -l app=mysql -n wordpress
 
 create wordpress certificate
     ${dns}    Create List    wordpress.example.com

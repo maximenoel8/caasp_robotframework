@@ -155,4 +155,4 @@ wait until velero backup is deleted
     Wait Until Keyword Succeeds    5min    10s    check velero is deleted
 
 check velero is deleted
-    Run Keyword And Expect Error    1 != 0    velero    get backup | grep ${backup_name}
+    Run Keyword And Expect Error    *    velero    get backup | grep ${backup_name}

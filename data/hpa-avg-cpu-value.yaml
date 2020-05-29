@@ -17,10 +17,10 @@ spec:
         target:
           type: AverageValue
           averageValue: 500m
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 45
-      policies:
-        - type: Percent
-          value: 100
-          periodSeconds: 5
+  #behavior:
+   # scaleDown:
+    #  stabilizationWindowSeconds: 45
+     # policies:
+      #  - type: Percent
+       #   value: 100
+        #  periodSeconds: 5
