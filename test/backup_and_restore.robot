@@ -60,8 +60,7 @@ etcd-backup
     [Teardown]    teardown etcdctl
 
 Restore all master nodes - etcd cluster and data
-    [Tags]    backup    release
-    Given cluster running
+    [Tags]    backup
     And helm is installed
     And rsyslog is deployed
     And etcd-backup job is executed

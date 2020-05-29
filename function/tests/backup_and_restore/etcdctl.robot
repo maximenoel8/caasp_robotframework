@@ -68,7 +68,7 @@ install etcdctl on masters
 
 check master started in etcdctl list
     [Arguments]    ${node}    ${cluster_number}=1
-    Wait Until Keyword Succeeds    2min    15sec    check master status in etcdctl is started    ${node}    ${cluster_number}
+    Wait Until Keyword Succeeds    4min    15sec    check master status in etcdctl is started    ${node}    ${cluster_number}
     step    ETCD was restaure successfully on ${node}
 
 add master to the etcd member list with etcdctl
