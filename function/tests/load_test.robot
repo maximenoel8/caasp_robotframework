@@ -73,7 +73,7 @@ hpa is apply on
     Modify Add Value    ${LOGDIR}/hpa-avg-cpu-value.yaml    spec scaleTargetRef kind    Deployment
     Modify Add Value    ${LOGDIR}/hpa-avg-cpu-value.yaml    spec scaleTargetRef name    ${service}
     Modify Add Value    ${LOGDIR}/hpa-avg-cpu-value.yaml    spec metrics 0 resource target averageValue    500m
-    Modify Add Value    ${LOGDIR}/hpa-avg-cpu-value.yaml    spec behavior scaleDown stabilizationWindowSeconds    ${30}
+    Comment    Modify Add Value    ${LOGDIR}/hpa-avg-cpu-value.yaml    spec behavior scaleDown stabilizationWindowSeconds    ${30}
     kubectl    apply -f ${LOGDIR}/hpa-avg-cpu-value.yaml
 
 number of pods for should be sup to
