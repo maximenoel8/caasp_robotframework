@@ -6,6 +6,18 @@ Resource          ../function/tools.robot
 Resource          ../parameters/tool_parameters.robot
 Resource          ../function/setup_environment.robot
 Resource          ../function/cluster_deployment.robot
+Resource          ../function/tests/certificate.robot
+Resource          ../function/tests/monitoring/grafana_dashboard.robot
+Resource          ../function/tests/selenium.robot
+Resource          ../function/tests/nginx.robot
+Resource          ../function/tests/backup_and_restore/wordpress.robot
+Resource          ../function/tests/load_test.robot
+Resource          ../function/terraform_files_change.robot
+Resource          ../function/airgaped/container_registry.robot
+Resource          ../function/tests/backup_and_restore/etcdctl.robot
+Resource          ../function/tests/backup_and_restore/bNr_helpers.robot
+Resource          ../function/airgaped/common_airgaped.robot
+Library           ../lib/ssh_proxy.py
 
 *** Test Cases ***
 deploy cluster
@@ -33,6 +45,24 @@ deploy bare server
     set infra env parameters
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL" and ${cluster_number}==1    deploy cluster vms
     load vm ip
+
+airgapped offline server
+    load vm ip
+    create ssh session with workstation and nodes
+    generate certificates
+    install mirror server
+    populate rmt and docker repo offline for    http://download.suse.de/ibs/SUSE:/Maintenance:/15196/SUSE_Updates_SUSE-CAASP_4.0_x86_64/
+
+airgapped online server
+    load vm ip
+    create ssh session with workstation and nodes
+    generate certificates
+    install mirror server
+    enable customize rpm    http://download.suse.de/ibs/SUSE:/Maintenance:/15196/SUSE_Updates_SUSE-CAASP_4.0_x86_64/
+    sync and mirror online
+    export rpm repository
+    copy docker images with skopeo    official=False    custom_filter=15196
+    backup docker images
 
 load ip
     load vm ip
