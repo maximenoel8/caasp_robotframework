@@ -69,9 +69,10 @@ add custom certificate to
     _modify expired date for secret    ${service}-cert    tls.crt    1 week, 2 days, 23 hours
 
 create CA
-    [Arguments]    ${service}
+    [Arguments]    ${service}    ${CN}=kubernetes-customize
+    execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
     execute command localy    openssl genrsa -out ${LOGDIR}/certificate/${service}/ca.key 2048
-    execute command localy    openssl req -key ${LOGDIR}/certificate/${service}/ca.key -new -x509 -days 10 -sha256 -config ${DATADIR}/certificate/ca.conf -out ${LOGDIR}/certificate/${service}/ca.crt -subj "/CN=kubernetes-customize"
+    execute command localy    openssl req -key ${LOGDIR}/certificate/${service}/ca.key -new -x509 -days 10 -sha256 -config ${DATADIR}/certificate/ca.conf -out ${LOGDIR}/certificate/${service}/ca.crt -subj "/CN=${CN}"
 
 create certificate secret file
     [Arguments]    ${service}    ${file}    ${namespace}    ${ca}=True

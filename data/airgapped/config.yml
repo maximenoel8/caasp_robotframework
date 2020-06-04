@@ -1,0 +1,21 @@
+version: 0.1
+log:
+  fields:
+    service: registry
+storage:
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+http:
+  addr: 0.0.0.0:5000
+  headers:
+    X-Content-Type-Options: [nosniff]
+  tls:
+    certificate: /etc/rmt/ssl/rmt-server.crt
+    key: /etc/rmt/ssl/rmt-server.key
+health:
+  storagedriver:
+    enabled: true
+    interval: 10s
+threshold: 3

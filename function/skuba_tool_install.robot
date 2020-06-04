@@ -11,6 +11,7 @@ Resource          upgrade/upgrade_workstation.robot
 Resource          helper.robot
 Resource          tools.robot
 Resource          terraform_files_change.robot
+Resource          airgaped/common_airgaped.robot
 
 *** Keywords ***
 install skuba
@@ -18,6 +19,8 @@ install skuba
     step    installing skuba ...
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
+        Run Keyword If    ${AIRGAPPED}    Run Keywords    add airgapped certificate to nodes
+        ...    AND    add mirror dns to nodes
         Run Keyword If    "${MODE}"=="${EMPTY}"    Skuba from pattern    ${cluster_number}
         ...    ELSE    _skuba from repo    ${cluster_number}
         Run Keyword if    "${PLATFORM}"=="vmware"    _disable firewall    ${cluster_number}
@@ -71,7 +74,7 @@ build skuba from repo
 
 add repo from incident and update
     [Arguments]    ${cluster_number}
-    Run Keyword If    ${UPGRADE}    _add repo from incident on    skuba_station_${cluster_number}
+    Run Keyword If    ${UPGRADE} or ${AIRGAPPED}    _add repo from incident on    skuba_station_${cluster_number}
     ${incidents}    Get Dictionary Keys    ${INCIDENT_REPO}
     FOR    ${incident}    IN    @{incidents}
         update package on workstation    -r ${incident}    cluster_number=${cluster_number}

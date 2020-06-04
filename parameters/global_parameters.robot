@@ -20,4 +20,6 @@ ${RPM}            ${EMPTY}
 ${REGISTRY}       ${EMPTY}
 &{LB_REPO_LIST}
 ${CONNEXION_UP}    False    # Create ssh session will be done only once during the tests
-${CHECK_TERRAFORM}    True
+${CHECK_TERRAFORM}    False
+${AIRGAPPED}      False
+${AIRGAPPED_IP}    ${EMPTY}

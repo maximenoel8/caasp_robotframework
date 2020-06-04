@@ -21,6 +21,7 @@ configure terraform tfvars vmware
         Set To Dictionary    ${vmware_dico}    vsphere_datastore_cluster    LOCAL-DISKS-CLUSTER
         Set To Dictionary    ${vmware_dico}    cpi_enable    ${${cpi_enable}}
         Set To Dictionary    ${vmware_dico}    hostname_from_dhcp    ${${hostname_from_dhcp}}
+        Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
         ${vmware_dico}    configure terraform file common    ${vmware_dico}
         Comment    _change_vsphere_datastorage    ${cluster_number}
         _create tvars json file    ${vmware_dico}    ${cluster_number}

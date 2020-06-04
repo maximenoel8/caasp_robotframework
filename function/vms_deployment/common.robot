@@ -66,7 +66,7 @@ configure terraform file common
     Set To Dictionary    ${vmware_dico}    packages    ${PACKAGES_LIST}
     @{authorized_keys}    Create List    ${SSH_PUB_KEY}
     Set To Dictionary    ${vmware_dico}    authorized_keys    ${authorized_keys}
-    Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
+    Comment    Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
     Comment    Set To Dictionary    ${vmware_dico}    lb_repositories    ${LB_REPO_LIST}
     [Return]    ${vmware_dico}
 

@@ -39,7 +39,7 @@ update package on workstation
     ${reboot_needed}    _check reboot needed    ${output}
     Run Keyword If    ${reboot_needed}    reboot or shutdown server    ${WORKSTATION_${cluster_number}}
     Run Keyword If    ${reboot_needed}    wait server up    ${WORKSTATION_${cluster_number}}
-    reinitialize skuba session    ${cluster_number}
+    Run Keyword If    ${reboot_needed}    reinitialize skuba session    ${cluster_number}
 
 _enable update package
     execute command with ssh    sudo zypper mr -e SUSE-CAASP-4.0-Updates

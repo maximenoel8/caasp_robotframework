@@ -30,7 +30,12 @@ prompt                         = no
 
 [v3_ca]
 basicConstraints               = critical, CA:true
+nsComment                      = "RMT Generated CA Certificate"
 nsCertType                     = sslCA
 keyUsage                       = cRLSign, keyCertSign
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid:always,issuer
 
-[req_distinguished_name]
+###############################################
+[ req_distinguished_name ]
+CN                             = RMT Certificate Authority (010084072149.vm.prv.caasp.suse.net)
