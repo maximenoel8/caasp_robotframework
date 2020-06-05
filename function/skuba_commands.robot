@@ -81,9 +81,9 @@ _check bootstrap retry
 
 init cluster
     [Arguments]    ${alias}    ${cluster_number}=1
-    ${extra_args}    Set Variable If    "${platform}"=="aws"    --cloud-provider aws    ${EMPTY}
-    ${extra_args}    Set Variable If    "${platform}"=="vmware" and ${CPI_VSPHERE}    --cloud-provider vsphere    ${EMPTY}
-    ${extra_args}    Set Variable If    "${mode}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
+    ${extra_args}    Set Variable If    "${PLATFORM}"=="aws"    --cloud-provider aws    ${EMPTY}
+    ${extra_args}    Set Variable If    "${PLATFORM}"=="vmware" and ${CPI_VSPHERE}    --cloud-provider vsphere    ${extra_args}
+    ${extra_args}    Set Variable If    "${MODE}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
     Run Keyword And Ignore Error    execute command with ssh    rm -rf cluster    ${alias}
     execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${alias}
     Run Keyword If    ${CPI_VSPHERE}    _setup vsphere cloud configuration    ${cluster_number}
