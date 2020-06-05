@@ -108,13 +108,13 @@
     }
   },
   "secret": {
-    "metrics-sever-cert": {
+    "metrics-server-cert": {
       "ca.crt": {
         "cn": "kubernetes",
         "expiration": "9 years, 12 months, 0 weeks"
       },
       "tls.crt": {
-        "cn" : "metrics-server.kuber-system.svc",
+        "cn" : "metrics-server.kube-system.svc",
         "expiration": "12 months, 0 weeks, 4 days"
       }
     },

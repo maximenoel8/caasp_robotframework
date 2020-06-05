@@ -286,3 +286,16 @@ get all nodes skuba_name from CS
         Append To List    ${skuba_names}    ${skuba_name}
     END
     [Return]    ${skuba_names}
+
+get node type from skuba name
+    [Arguments]    ${skuba_name}
+    @{nodes}    get nodes name from CS
+    ${type}    Set Variable    None
+    FOR    ${node}    IN    @{nodes}
+        ${name}    get node skuba name    ${node}
+        Continue For Loop If    "${skuba_name}"!="${name}"
+        ${type}    get node type    ${node}
+        Exit For Loop If    "${skuba_name}"=="${name}"
+    END
+    Run Keyword If    "${type}"=="None"    Fail    Skuba name ${skuba_name} doesn't exist
+    [Return]    ${type}

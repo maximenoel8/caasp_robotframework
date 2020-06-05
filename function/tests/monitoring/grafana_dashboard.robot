@@ -112,14 +112,14 @@ _test secret pki certs expiry panel
 
 _check expiration value for kubernetes and etcd panel
     [Arguments]    ${raw}
-    ${nodes}    get nodes name from CS
     @{columns}    get child webelements    ${raw}    td
     ${lt}    Get Length    ${columns}
     Should Be Equal As Integers    ${lt}    5
     ${cn}    Get Text    ${columns[0]}
-    ${status}    ${_}    Run Keyword And Ignore Error    Should Contain Any    ${cn}    @{nodes}
-    Run Keyword If    "${status}"=="PASS"    _check value from json kubernetes and etcd for node cn    ${columns}
-    Run Keyword If    "${status}"=="FAIL"    _check value from json kubernetes and etcd    ${columns}
+    @{known_cns}    Get Dictionary Keys    ${expected_data_full["kubernetes"]}
+    ${status}    ${_}    Run Keyword And Ignore Error    Should Contain Any    ${cn}    @{known_cns}
+    Run Keyword If    "${status}"=="FAIL"    _check value from json kubernetes and etcd for node cn    ${columns}
+    Run Keyword If    "${status}"=="PASS"    _check value from json kubernetes and etcd    ${columns}
 
 _check value from json kubernetes and etcd
     [Arguments]    ${values}
@@ -135,7 +135,7 @@ _check value from json kubernetes and etcd
 _check value from json kubernetes and etcd for node cn
     [Arguments]    ${values}
     ${cn}    Get Text    ${values[0]}
-    ${type}    get node type    ${cn}
+    ${type}    get node type from skuba name    ${cn}
     ${sub_dico}    Set Variable    ${expected_data_full["kubernetes"]["${type}"]}
     ${filename}    Get Text    ${values[1]}
     Should Contain Any    ${filename}    @{sub_dico["filename"]}
@@ -155,22 +155,23 @@ _check value for kubeconfig
     ${status}    ${output}    Run Keyword And Ignore Error    Element Should Be Visible    ${columns[3]}
     Return From Keyword If    "${status}"=="FAIL"
     ${expiration}    Get Text    ${columns[3]}
-    ${type}    get node type    ${nodename}
+    ${type}    get node type from skuba name    ${nodename}
     Element Should Contain    ${columns[3]}    ${expected_data_full["kubeconfig"]["${type}"]["${cert_type}"]["expiration"]}
     Should Contain Any    ${filename}    @{expected_data_full["kubeconfig"]["${type}"]["${cert_type}"]["filename"]}
     Should Be Equal    ${expiration}    ${expected_data_full["kubeconfig"]["${type}"]["${cert_type}"]["expiration"]}
 
 _check value from json secrets
-    [Arguments]    ${values}
+    [Arguments]    ${raw}
+    ${values}    get child webelements    ${raw}    td
     ${cn}    Get Text    ${values[0]}
     ${issuer}    Get Text    ${values[1]}
-    ${keyname}    Get Text    ${values[3]}
-    ${secretname}    Get Text    ${values[4]}
-    ${secretnamespace}    Get Text    ${values[5]}
-    ${expiration}    Get Text    ${values[6]}
+    ${keyname}    Get Text    ${values[2]}
+    ${secretname}    Get Text    ${values[3]}
+    ${secretnamespace}    Get Text    ${values[4]}
+    ${expiration}    Get Text    ${values[5]}
     ${sub_dico}    Set Variable    ${expected_data_full["secret"]}
-    Should Be Equal    ${sub_dico["${secretname}"]["issuer"]}    ${issuer}
-    Should Be Equal    ${sub_dico["${secretname}"]["secret_namespace"]}    ${secretnamespace}
+    Should Be Equal    ${sub_dico["issuer"]}    ${issuer}
+    Should Be Equal    ${sub_dico["secret_namespace"]}    ${secretnamespace}
     Should Be Equal    ${sub_dico["${secretname}"]["${keyname}"]["cn"]}    ${cn}
     Should Be Equal    ${sub_dico["${secretname}"]["${keyname}"]["expiration"]}    ${expiration}
 
