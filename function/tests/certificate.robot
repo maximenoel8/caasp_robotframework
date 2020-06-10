@@ -4,6 +4,8 @@ Library           ../../lib/base64_encoder.py
 Library           ../../lib/yaml_editor.py
 Resource          ../cluster_helpers.robot
 Resource          monitoring/grafana_dashboard.robot
+Library           DateTime
+Library           ../../lib/openssl_library.py
 
 *** Keywords ***
 backup certificate configuration
@@ -15,13 +17,7 @@ backup certificate configuration
 
 get SAN ip and dns
     [Arguments]    ${service}
-    ${ip_status}    ${ip_value}    Run Keyword And Ignore Error    execute command localy    openssl x509 -noout -text -in ${LOGDIR}/certificate/${service}/backup/${service}.crt | grep -oP '(?<=IP Address:)[^,]+'
-    ${dns_status}    ${dns_value}    Run Keyword And Ignore Error    execute command localy    openssl x509 -noout -text -in ${LOGDIR}/certificate/${service}/backup/${service}.crt | grep -oP '(?<=DNS:)[^,]+'
-    @{san_ip}    Run Keyword If    "${ip_status}"=="PASS"    Split To Lines    ${ip_value}
-    ...    ELSE    Create List
-    @{san_dns}    Run Keyword If    "${dns_status}"=="PASS"    Split To Lines    ${dns_value}
-    ...    ELSE    Create List
-    ${SAN}    Create Dictionary    dns=${san_dns}    ip=${san_ip}
+    ${SAN}    get_san_from_cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
     Log Dictionary    ${SAN}
     [Return]    ${SAN}
 
@@ -40,10 +36,9 @@ create client config
     END
 
 generate new certificate with CA signing request
-    [Arguments]    ${service}
-    execute command localy    openssl genrsa -out ${LOGDIR}/certificate/${service}/${service}.key 2048
-    execute command localy    openssl req -key ${LOGDIR}/certificate/${service}/${service}.key \ -new -sha256 -out ${LOGDIR}/certificate/${service}/${service}.csr -config ${LOGDIR}/certificate/${service}/${service}.conf -subj "/CN=${service}"
-    execute command localy    openssl x509 -req -CA ${WORKDIR}/cluster_1/pki/ca.crt -CAkey ${WORKDIR}/cluster_1/pki/ca.key -CAcreateserial -in ${LOGDIR}/certificate/${service}/${service}.csr -out ${LOGDIR}/certificate/${service}/${service}.crt -days 10 -extensions v3_req -extfile ${LOGDIR}/certificate/${service}/${service}.conf
+    [Arguments]    ${service}    ${san}    ${expired_date}=6 days, 23 hours
+    ${start_date}    ${end_date}    generate start_date and end_date    ${expired_date}
+    generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${WORKDIR}/cluster_1/pki/ca.crt    ${WORKDIR}/cluster_1/pki/ca.key    ${start_date}    ${end_date}    ${san}
 
 replace new secret
     [Arguments]    ${service}    ${namespace}=kube-system
@@ -57,16 +52,14 @@ _encode file in base64
     [Return]    ${encode_value}
 
 add custom certificate to
-    [Arguments]    ${service}    ${namespace}=kube-system
+    [Arguments]    ${service}    ${expired_date}=6 days, 23 hours    ${namespace}=kube-system
     backup certificate configuration    ${service}
     ${san}    get SAN ip and dns    ${service}
-    Comment    create CA    ${service}
-    create client config    ${service}    ${san}
-    generate new certificate with CA signing request    ${service}
+    generate new certificate with CA signing request    ${service}    ${san}    ${expired_date}
     create certificate secret file    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${namespace}
     replace new secret    ${service}
     wait pods ready
-    _modify expired date for secret    ${service}-cert    tls.crt    1 week, 2 days, 23 hours
+    _modify expired date for secret    ${service}-cert    tls.crt    ${expired_date}
 
 create CA
     [Arguments]    ${service}    ${CN}=kubernetes-customize
@@ -92,16 +85,15 @@ create custom certificate to
     [Arguments]    ${service}    ${SAN}    ${namespace}    ${ca}=False
     execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
     create client config    ${service}    ${SAN}
-    Comment    Run Keyword If    ${ca}    create CA    ${service}
-    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}
-    ...    ELSE    generate new certificate without CA request    ${service}
+    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}
+    ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}
     create certificate secret file    ${service}    ${DATADIR}/certificate/template-cert.yaml    ${namespace}    ${ca}
     kubectl    apply -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
 
 generate new certificate without CA request
-    [Arguments]    ${service}
-    execute command localy    openssl genrsa -out ${LOGDIR}/certificate/${service}/${service}.key 2048
-    execute command localy    openssl req -x509 -key ${LOGDIR}/certificate/${service}/${service}.key -new -out ${LOGDIR}/certificate/${service}/${service}.crt -config ${LOGDIR}/certificate/${service}/${service}.conf -subj "/CN=${service}" -extensions v3_req
+    [Arguments]    ${service}    ${san}    ${expired_date}=6 days, 23 hours
+    ${start_date}    ${end_date}    generate start_date and end_date    ${expired_date}
+    generate_self_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${start_date}    ${end_date}    ${san}
 
 replace certificate to service
     [Arguments]    ${service}    ${namespace}
@@ -109,3 +101,12 @@ replace certificate to service
     ${SAN}    get SAN ip and dns    ${service}
     create custom certificate to    ${service}    ${SAN}    ${namespace}    True
     replace new secret    ${service}
+
+generate start_date and end_date
+    [Arguments]    ${expired_time}
+    ${expired_time}    String.Remove String    ${expired_time}    ,
+    ${start_date} =    Get Current Date    UTC    exclude_millis=yes    result_format=%Y%m%d%H%M%S
+    ${end_date} =    Add Time To Date    ${start_date}    ${expired_time}    exclude_millis=yes    result_format=%Y%m%d%H%M%S
+    ${start_date} =    Set Variable    ${start_date[2:]}Z
+    ${end_date} =    Set Variable    ${end_date[2:]}Z
+    [Return]    ${start_date}    ${end_date}
