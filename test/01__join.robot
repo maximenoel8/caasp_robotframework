@@ -6,7 +6,6 @@ Resource          ../function/tools.robot
 Resource          ../parameters/tool_parameters.robot
 Resource          ../function/setup_environment.robot
 Resource          ../function/cluster_deployment.robot
-Resource          ../function/tests/certificate.robot
 Resource          ../function/tests/monitoring/grafana_dashboard.robot
 Resource          ../function/tests/selenium.robot
 Resource          ../function/tests/nginx.robot
@@ -21,7 +20,7 @@ Library           ../lib/ssh_proxy.py
 
 *** Test Cases ***
 deploy cluster
-    [Tags]    upgrade    release    backup
+    [Tags]    upgrade    release    backup    join
     Given cluster running
     And helm is installed
     [Teardown]    teardown deploy
