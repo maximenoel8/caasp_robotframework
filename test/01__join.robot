@@ -16,7 +16,6 @@ Resource          ../function/airgaped/container_registry.robot
 Resource          ../function/tests/backup_and_restore/etcdctl.robot
 Resource          ../function/tests/backup_and_restore/bNr_helpers.robot
 Resource          ../function/airgaped/common_airgaped.robot
-Library           ../lib/ssh_proxy.py
 
 *** Test Cases ***
 deploy cluster
