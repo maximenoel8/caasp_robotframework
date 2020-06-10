@@ -4,6 +4,7 @@ robotframework
 robotframework-seleniumlibrary
 robotframework-sshlibrary
 robotframework-jsonlibrary
+robotframework-requests
 pyopenssl
 pyasn1~=0.4.8
 ipaddress
