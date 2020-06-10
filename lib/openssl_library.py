@@ -76,8 +76,8 @@ def _load_key(KEY_FILE):
 def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, CA_key_file, start_date, end_date, SAN):
     logging.debug(SAN)
 
-    cacert = _load_certificate(CERT_FILE)
-    cakey = _load_key(KEY_FILE)
+    cacert = _load_certificate(CA_cert_file)
+    cakey = _load_key(CA_key_file)
 
     psec = _create_key_pair()
     # a certificate signing request (csr)
@@ -143,7 +143,46 @@ def get_san_from_cert(CERT_FILE):
     logging.debug(result)
     return result
 
-#
+
+def get_expiry_date(CERT_FILE):
+    cert = _load_certificate(CERT_FILE)
+    logging.debug(cert.get_notAfter().decode())
+    return cert.get_notAfter().decode()
+
+
+def verify_certificate_chain(cert_path, trusted_certs):
+    # Download the certificate from the url and load the certificate
+    certificate = _load_certificate(cert_path)
+
+    # Create a certificate store and add your trusted certs
+    try:
+        store = crypto.X509Store()
+
+        # Assuming the certificates are in PEM format in a trusted_certs list
+        for _cert in trusted_certs:
+            client_certificate = _load_certificate(_cert)
+            store.add_cert(client_certificate)
+
+        # Create a certificate context using the store and the downloaded certificate
+        store_ctx = crypto.X509StoreContext(store, certificate)
+
+        # Verify the certificate, returns None if it can validate the certificate
+        logging.debug(store_ctx.verify_certificate())
+
+        return True
+
+    except Exception as e:
+        print(e)
+        return False
+
+
+def get_issuer(CERT_FILE):
+    cert = _load_certificate(CERT_FILE)
+    subject = cert.get_issuer()
+    subject_str = "".join("/{0:s}={1:s}".format(name.decode(), value.decode()) for name, value in subject.get_components())
+    logging.debug(subject_str)
+    return subject_str
+
 # dic = {
 #     "dns": [],
 #     "ip": ["10.1.1.1", "5.4.7.6"]
