@@ -6,6 +6,7 @@ Resource          ../cluster_helpers.robot
 Resource          monitoring/grafana_dashboard.robot
 Library           DateTime
 Library           ../../lib/openssl_library.py
+Library           OperatingSystem
 
 *** Keywords ***
 backup certificate configuration
@@ -110,3 +111,81 @@ generate start_date and end_date
     ${start_date} =    Set Variable    ${start_date[2:]}Z
     ${end_date} =    Set Variable    ${end_date[2:]}Z
     [Return]    ${start_date}    ${end_date}
+
+deploy reloader
+    helm    repo add stakater https://stakater.github.io/stakater-charts
+    helm    repo update
+    helm    install stakater/reloader --name reloader --namespace kube-system
+    wait deploy    reloader-reloader -n kube-system
+
+deploy cert-manager
+    helm    repo add jetstack https://charts.jetstack.io
+    helm    repo update
+    helm    install jetstack/cert-manager --name cert-manager --namespace kube-system --version v0.15.0 --set installCRDs=true
+    wait deploy    cert-manager -n kube-system
+
+annotate dex gangway and metrics secret for reload
+    kubectl    -n kube-system annotate deploy/oidc-dex secret.reloader.stakater.com/reload=oidc-dex-cert --overwrite
+    kubectl    -n kube-system annotate deploy/oidc-gangway secret.reloader.stakater.com/reload=oidc-gangway-cert --overwrite
+    kubectl    -n kube-system annotate deploy/metrics-server secret.reloader.stakater.com/reload=metrics-server-cert --overwrite
+
+create kubernetes CA issuer secret
+    [Arguments]    ${cluster_number}=1
+    kubectl    create secret tls kubernetes-ca --cert=${CLUSTERDIR}_${cluster_number}/pki/ca.crt --key=${CLUSTERDIR}_${cluster_number}/pki/ca.key -n kube-system    ${cluster_number}
+    Wait Until Keyword Succeeds    2 min    5 sec    kubectl    apply -f ${DATADIR}/manifests/certificate/issuer.yaml    ${cluster_number}
+
+create certificate rotation manifest
+    [Arguments]    ${service}    ${common_name}    ${SAN}    ${duration}=8760    ${renew_before}=720
+    ${dns_list}    Set Variable    ${SAN["dns"]}
+    ${ip_list}    Set Variable    ${SAN["ip"]}
+    ${lt_dns}    Get Length    ${dns_list}
+    ${lt_ip}    Get Length    ${ip_list}
+    ${manifest}    OperatingSystem.Get File    ${DATADIR}/manifests/certificate/template-certificate.yaml
+    ${manifest_dictionnary}    Safe Load    ${manifest}
+    Set To Dictionary    ${manifest_dictionnary["metadata"]}    name=${service}-cert
+    Set To Dictionary    ${manifest_dictionnary["spec"]}    secretName=${service}-cert
+    Set To Dictionary    ${manifest_dictionnary["spec"]}    commonName=${common_name}
+    Set To Dictionary    ${manifest_dictionnary["spec"]}    duration=${duration}
+    Set To Dictionary    ${manifest_dictionnary["spec"]}    renewBefore=${renew_before}
+    Run Keyword If    ${lt_ip} > 0    Set To Dictionary    ${manifest_dictionnary["spec"]}    ipAddresses=${ip_list}
+    Run Keyword If    ${lt_dns} > 0    Set To Dictionary    ${manifest_dictionnary["spec"]}    dnsNames=${dns_list}
+    ${manifest_stream}    Dump    ${manifest_dictionnary}
+    Create File    ${LOGDIR}/${service}-certificate.yaml    ${manifest_stream}
+
+create and apply rotation certificate manifest for
+    [Arguments]    ${service}    ${duration}=8760h    ${renew_before}=720h
+    backup certificate configuration    ${service}
+    ${SAN}    get SAN ip and dns    ${service}
+    ${common_name}    Set Variable If    "${service}"=="metrics-server"    metrics-server.kube-system.svc    ${service}
+    create certificate rotation manifest    ${service}    ${common_name}    ${SAN}    ${duration}    ${renew_before}
+    kubectl    apply -f ${LOGDIR}/${service}-certificate.yaml
+
+check expired date for ${service} is sup to ${time}
+    backup certificate configuration    ${service}
+    ${certificate_time}    get_expiry_date    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    ${convert_time}    Convert Date    ${certificate_time}    date_format=%Y%m%d%H%M%SZ
+    ${current_time}    DateTime.Get Current Date    UTC
+    ${expired_time}    DateTime.Subtract Date From Date    ${convert_time}    ${current_time}
+    ${result}    DateTime.Subtract Time From Time    ${expired_time}    ${time}
+    Should Be True    ${result} > 0
+
+clean cert-manager
+    Run Keyword And Ignore Error    helm    delete --purge reloader
+    Run Keyword And Ignore Error    helm    delete --purge cert-manager
+    Run Keyword And Ignore Error    kubectl    delete -f ${DATADIR}/manifests/certificate/issuer.yaml
+    Run Keyword And Ignore Error    kubectl    delete secret kubernetes-ca -n kube-system
+
+kubelet server certificate should be signed by kubelet-ca for each node
+    ${master}    get master servers name    enable
+    ${workers}    get worker servers name    enable
+    ${nodes}    Combine Lists    ${master}    ${workers}
+    FOR    ${node}    IN    @{nodes}
+        ${ip}    get node ip from CS    ${node}
+        check kubelet server certificate is signed by kubelet-ca    ${ip}
+    END
+
+check kubelet server certificate is signed by kubelet-ca
+    [Arguments]    ${server_ip}    ${cluster_number}=1
+    ${output}    openssl    s_client -connect ${server_ip}:10250 -CAfile /home/${VM_USER}/cluster/pki/kubelet-ca.crt <<< "Q"
+    Should Contain    ${output}    issuer=/CN=kubelet-ca
+    Should Contain    ${output}    Verify return code: 0 (ok)

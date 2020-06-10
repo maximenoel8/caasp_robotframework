@@ -1,0 +1,24 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: metrics-server-cert
+  namespace: kube-system
+spec:
+  secretName: metrics-server-cert
+  duration: 12h # 1 year
+  renewBefore: 2h # 1 month
+  organization:
+  - system:masters
+  commonName: metrics-server.kube-system.svc
+  isCA: false
+  keySize: 2048
+  keyAlgorithm: rsa
+  keyEncoding: pkcs1
+  usages:
+    - digital signature
+    - key encipherment
+    - key agreement
+  issuerRef:
+    name: kubernetes-ca
+    kind: Issuer
+    group: cert-manager.io
