@@ -1,5 +1,5 @@
 selenium~=3.141.0
-pyyaml~=5.1.2
+pyyaml
 robotframework
 robotframework-seleniumlibrary
 robotframework-sshlibrary
@@ -7,3 +7,4 @@ robotframework-jsonlibrary
 pyopenssl
 pyasn1~=0.4.8
 ipaddress
+pyasn1-modules
