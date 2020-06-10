@@ -112,6 +112,7 @@ _move node from on going to done
     Set To Dictionary    ${deployment_state["${cluster}"]}    on_going=${on_going}
     Log Dictionary    ${deployment_state}
     enable node in CS    ${node}    ${cluster_number}
+    Step     Node ${node} has been added to cluster ...
 
 do I need to start new deployment
     [Arguments]    ${cluster}
@@ -165,7 +166,7 @@ check state of all the cluster is done
     [Return]    ${status}
 
 cluster is deployed
-    step    start deploying the cluster
+    step    starting cluster deployment ...
     create cluster deployment dictionnary
     ${waiting time}    _set deployment timeout
     FOR    ${temp}    IN RANGE    ${waiting time}
@@ -175,6 +176,7 @@ cluster is deployed
     END
     kured config    off
     step    cluster is successfully deploy
+    step    cluster configuration is available in ${CLUSTERDIR}
     Set Global Variable    ${CLUSTER_STATUS}    PASS
 
 _check status is done

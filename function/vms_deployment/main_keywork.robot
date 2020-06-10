@@ -9,7 +9,7 @@ Resource          ../terraform_files_change.robot
 *** Keywords ***
 deploy cluster vms
     [Arguments]    ${redeploy}=False
-    step    Deploying vm ...
+    step    Deploying vm for ${PLATFORM} ...
     Run Keyword If    ${redeploy}    copy terraform from temporay
     ...    ELSE    copy terraform configuration from skuba folder
     set repo and packages
