@@ -6,7 +6,6 @@ Installed python requirements :
 - sudo pip install -r requirements.txt
 
 You need to have this tools installed : 
-- openldap2-client
 - kubectl ( 1.17.3 )
 - helm ( 2.16.1 )
 - custom terraform 0.12.19 ( from caasp pattern )
