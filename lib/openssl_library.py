@@ -182,20 +182,3 @@ def get_issuer(CERT_FILE):
     subject_str = "".join("/{0:s}={1:s}".format(name.decode(), value.decode()) for name, value in subject.get_components())
     logging.debug(subject_str)
     return subject_str
-
-# dic = {
-#     "dns": [],
-#     "ip": ["10.1.1.1", "5.4.7.6"]
-# }
-# generate_signed_ssl_certificate("maxime", "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt",
-#                                 "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.key",
-#                                 "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/cluster/pki/ca.crt",
-#                                 "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/cluster/pki/ca.key",
-#                                 "200609171010Z", "200609181010Z", dic)
-#
-# # generate_self_signed_ssl_certificate("maxime",
-# #                                      "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt",
-# #                                      "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.key",
-# #                                      "200609171010Z", "200609181010Z", dic)
-#
-# get_san_from_cert("/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt")
