@@ -1,6 +1,8 @@
 *** Settings ***
+Suite Setup       setup test suite monitoring
 Resource          ../function/cluster_deployment.robot
 Resource          ../function/tests/certificate.robot
+Resource          ../function/tests/monitoring/monitoring.robot
 
 *** Test Cases ***
 Check kubelet server certificate is the one signed by kubelet-ca for each node
@@ -9,6 +11,7 @@ Check kubelet server certificate is the one signed by kubelet-ca for each node
     Then kubelet server certificate should be signed by kubelet-ca for each node
 
 certificate rotation for dex and gangway
+    [Tags]    release
     Given cluster running
     And helm is installed
     and deploy reloader
