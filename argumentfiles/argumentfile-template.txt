@@ -1,0 +1,5 @@
+-v PREFIX:robottemplate
+-v NUMBER:2:3
+-v platform:vmware
+-v keep:True
+--include=join

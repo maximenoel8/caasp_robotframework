@@ -24,11 +24,18 @@ For backup and restore test, configure your aws identification key
 
 ## Execute test
 
+
 ```
 robot -v PREFIX:<your name> -v NUMBER:<master:worker> -v PLATFORM:<openstack|vmware> --test <path to your test>  <caasp_robotframework_folder>
 ```
+#### Exemples
+*Deploy a cluster on vmware and keep it*
 
-*Exemple:*
+```
+robot --argumentfile <path_to_project>/caasp_robotframework/argumentfiles/argumentfile-template.txt
+```
+
+*Run authentication test*
  ```
 robot --test Caasp\ Robotframework.Test.Rbac.389ds_authentication -v NUMBER:1:3 -v PLATFORM:vmware -v PREFIX:myname --outputdir=tmp .
 ```
