@@ -32,7 +32,7 @@ robot -v PREFIX:<your name> -v NUMBER:<master:worker> -v PLATFORM:<openstack|vmw
 *Deploy a cluster on vmware and keep it*
 
 ```
-robot --argumentfile <path_to_project>/caasp_robotframework/argumentfiles/argumentfile-template.txt
+robot --argumentfile <path_to_project>/caasp_robotframework/argumentfiles/argumentfile-template.txt ./
 ```
 
 *Run authentication test*
@@ -46,7 +46,7 @@ robot --test Caasp\ Robotframework.Test.Replica.dex_gangway_replicat -v MODE:DEV
 
 *Executing tests by tags :*
 ```
-pybot –include=release -v PREFIX:myname -v platform:aws -v number:1:2 ./
+robot –include=release -v PREFIX:myname -v platform:aws -v number:1:2 ./
 ```
 
 ## Configuration available
