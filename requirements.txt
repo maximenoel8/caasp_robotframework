@@ -4,3 +4,5 @@ robotframework
 robotframework-seleniumlibrary
 robotframework-sshlibrary
 robotframework-jsonlibrary
+pyopenssl
+pyasn1~=0.4.8
