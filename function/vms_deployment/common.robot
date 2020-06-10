@@ -10,6 +10,7 @@ Resource          terraform.robot
 Library           ../../lib/convert_tvars_to_json.py
 Resource          ../helper.robot
 Resource          set_repo.robot
+Resource          ../tools.robot
 
 *** Keywords ***
 clone skuba locally
@@ -45,8 +46,10 @@ configure registration auto tfvars vmware
 
 clean cluster
     [Arguments]    ${cluster_name}=${EMPTY}
+    step    cleaning the cluster ...
     Run Keyword If    "${cluster_name}"=="${EMPTY}"    clean all cluster
     ...    ELSE    terraform destroy all cluster
+    step     cluster has been destroyed
 
 clean all cluster
     ${clusters_dir}    OperatingSystem.List Directories In Directory    ${CURDIR}/../../workdir
