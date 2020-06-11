@@ -54,6 +54,8 @@ create ssh session for worker on aws
     ${lg}    Get Length    ${index}
     ${index}    Set Variable If    ${lg}==1    ${index}00    ${lg}==2    ${index}0    ${lg}==3    ${index}
     ${node_ip}    get node ip from CS    ${node}    ${cluster_number}
-    Create Local Ssh Tunnel    31${index}    ${node_ip}    22    127.0.0.1
-    Open Connection    127.0.0.1    port=31${index}    alias=${node}
-    Login With Public Key    ${VM_USER}    ${DATADIR}/id_shared
+    Comment    Create Local Ssh Tunnel    31${index}    ${node_ip}    22    127.0.0.1
+    Comment    Open Connection    127.0.0.1    port=31${index}    alias=${node}
+    Comment    Login With Public Key    ${VM_USER}    ${DATADIR}/id_shared
+    Open Connection    ${node_ip}    alias=${node}
+    Login With Public Key    ${VM_USER}    ${DATADIR}/id_shared    proxy_cmd=ssh -o BatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l ${VM_USER} -i ${DATADIR}/id_shared -W ${node_ip}:22 ${WORKSTATION_${cluster_number}}
