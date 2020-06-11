@@ -166,7 +166,7 @@ check state of all the cluster is done
     [Return]    ${status}
 
 cluster is deployed
-    step    starting cluster deployment ...
+    step    Starting cluster deployment ...
     create cluster deployment dictionnary
     ${waiting time}    _set deployment timeout
     FOR    ${temp}    IN RANGE    ${waiting time}
@@ -178,6 +178,7 @@ cluster is deployed
     step    cluster is successfully deploy
     step    cluster configuration is available in ${CLUSTERDIR}
     Set Global Variable    ${CLUSTER_STATUS}    PASS
+    step    Checking cluster is correctly running ...
 
 _check status is done
     [Arguments]    ${cluster}
