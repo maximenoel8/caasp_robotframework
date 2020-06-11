@@ -14,7 +14,7 @@ wordpress load test
     And nginx is deployed
     And wordpress is deployed
     And locust is deployed
-    When run load testing    4000    40
+    When run load testing    600    5
     Then fail rate should be inferior to    15
     [Teardown]    wordpress is removed
 
