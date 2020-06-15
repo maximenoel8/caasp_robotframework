@@ -166,6 +166,7 @@ check expired date for ${service} is sup to ${time}
     ${convert_time}    Convert Date    ${certificate_time}    date_format=%Y%m%d%H%M%SZ
     ${current_time}    DateTime.Get Current Date    UTC
     ${expired_time}    DateTime.Subtract Date From Date    ${convert_time}    ${current_time}
+    ${expired_time_verbose}    Convert Time    ${expired_time}    verbose
     ${result}    DateTime.Subtract Time From Time    ${expired_time}    ${time}
     Should Be True    ${result} > 0
 

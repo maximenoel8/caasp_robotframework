@@ -6,6 +6,7 @@ Resource          ../../parameters/vm_deployment.robot
 configure terraform tfvars vmware
     ${cpi_enable}    Set Variable If    ${CPI_VSPHERE}    true    false
     ${hostname_from_dhcp}    Set Variable If    ${DNS_HOSTNAME}    true    false
+    ${template}    Set Variable If    "${VM_VERSION}"=="SP1"    SLES15-SP1-GM-up191203-guestinfo    SLES15-SP2-RC2-up200525-guestinfo
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    evaluate    ${i}+1
         &{vmware_dico}    Convert Tvars To Dico    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfvars.example
@@ -13,7 +14,7 @@ configure terraform tfvars vmware
         Set To Dictionary    ${vmware_dico}    vsphere_datacenter    PROVO
         Set To Dictionary    ${vmware_dico}    vsphere_network    VM Network
         Set To Dictionary    ${vmware_dico}    vsphere_resource_pool    CaaSP_RP
-        Set To Dictionary    ${vmware_dico}    template_name    SLES15-SP1-GM-up191203-guestinfo
+        Set To Dictionary    ${vmware_dico}    template_name    ${template}
         Set To Dictionary    ${vmware_dico}    stack_name    ${CLUSTER_PREFIX}-${cluster_number}
         Set To Dictionary    ${vmware_dico}    worker_disk_size    ${80}
         Set To Dictionary    ${vmware_dico}    worker_cpus    ${8}

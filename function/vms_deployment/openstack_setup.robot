@@ -9,11 +9,12 @@ set openstack env variables
     END
 
 configure terraform tfvars openstack
+    ${template}    Set Variable If    "${VM_VERSION}"=="SP1"    SLES15-SP1-JeOS.x86_64-QU1    SLES15-SP2-JeOS.x86_64-PublicRC2
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    evaluate    ${i}+1
         _modify master and worker instances    ${cluster_number}
         &{openstack_dico}    Convert Tvars To Dico    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfvars.example
-        Set To Dictionary    ${openstack_dico}    image_name    SLES15-SP1-JeOS.x86_64-QU1
+        Set To Dictionary    ${openstack_dico}    image_name    ${template}
         Set To Dictionary    ${openstack_dico}    internal_net    ${CLUSTER_PREFIX}-${cluster_number}
         Set To Dictionary    ${openstack_dico}    external_net    floating
         Set To Dictionary    ${openstack_dico}    stack_name    ${CLUSTER_PREFIX}-${cluster_number}

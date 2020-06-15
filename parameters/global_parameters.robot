@@ -23,3 +23,4 @@ ${CONNEXION_UP}    False    # Create ssh session will be done only once during t
 ${CHECK_TERRAFORM}    False
 ${AIRGAPPED}      False
 ${AIRGAPPED_IP}    ${EMPTY}
+${VM_VERSION}     SP1

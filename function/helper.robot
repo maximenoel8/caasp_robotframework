@@ -17,7 +17,7 @@ remove string from file
 
 add devel repo
     [Arguments]    ${alias}
-    execute command with ssh    sudo zypper ar -C -G -f http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_SP1/ caasp_devel    ${alias}
+    execute command with ssh    sudo zypper ar -C -G -f http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_${VM_VERSION}/ caasp_devel    ${alias}
 
 modify string in file
     [Arguments]    ${file}    ${se}    ${re}
@@ -46,7 +46,7 @@ check string contain
 add CA to server
     [Arguments]    ${ip}
     open ssh session    ${ip}    tempo
-    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo    tempo
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_15_${VM_VERSION}/SUSE:CA.repo    tempo
     Run Keyword And Ignore Error    execute command with ssh    sudo zypper ref    tempo
     Run Keyword And Ignore Error    execute command with ssh    sudo zypper -n in ca-certificates-suse    tempo
     Run Keyword And Ignore Error    execute command with ssh    sudo update-ca-certificates    tempo

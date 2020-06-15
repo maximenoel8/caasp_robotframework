@@ -31,7 +31,8 @@ install skuba
 
 _skuba from pattern
     [Arguments]    ${cluster_number}
-    execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64    skuba_station_${cluster_number}
+    ${version}    Set Variable If    "${VM_VERSION}"=="SP1"    15.1    15.2
+    execute command with ssh    sudo SUSEConnect -p sle-module-containers/${version}/x86_64    skuba_station_${cluster_number}
     execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
     Run Keyword If    ${OLD}    execute command with ssh    sudo zypper mr -d SUSE-CAASP-4.0-Updates    skuba_station_${cluster_number}
     execute command with ssh    sudo zypper -n in -t pattern SUSE-CaaSP-Management    skuba_station_${cluster_number}
@@ -49,9 +50,10 @@ _skuba from repo
 _change skuba branch
     [Arguments]    ${commit}    ${folder}    ${cluster_number}
     ${pull request}    Split String    ${commit}    -
-    Run Keyword If    "${pull request[0]}"=="pull"    execute command with ssh    cd ${folder} && git fetch origin pull/${pull request[1]}/head:customise    alias=skuba_station_${cluster_number}
-    ...    ELSE IF    "${pull request[0]}"=="tag"    execute command with ssh    cd ${folder} && git checkout tags/${pull request[1]} -b customise    alias=skuba_station_${cluster_number}
+    Run Keyword If    "${pull request[0]}"=="pull"    execute command with ssh    cd ${folder} && git fetch origin pull/${pull request[1]}/head:customize    alias=skuba_station_${cluster_number}
+    ...    ELSE IF    "${pull request[0]}"=="tag"    execute command with ssh    cd ${folder} && git checkout tags/${pull request[1]} -b customize    alias=skuba_station_${cluster_number}
     ...    ELSE    Fail    wrong type
+    execute command with ssh    cd ${folder} && git checkout customize    alias=skuba_station_${cluster_number}
 
 _disable firewall
     [Arguments]    ${cluster_number}
@@ -59,7 +61,7 @@ _disable firewall
 
 _install go git make
     [Arguments]    ${cluster_number}
-    execute command with ssh    sudo zypper addrepo https://download.opensuse.org/repositories/devel:languages:go/SLE_15_SP1/devel:languages:go.repo && sudo zypper -n --no-gpg-checks install go    skuba_station_${cluster_number}
+    execute command with ssh    sudo zypper addrepo https://download.opensuse.org/repositories/devel:languages:go/SLE_15_${VM_VERSION}/devel:languages:go.repo && sudo zypper -n --no-gpg-checks install go    skuba_station_${cluster_number}
     execute command with ssh    sudo zypper -n in git-core make    skuba_station_${cluster_number}
 
 build skuba from repo
