@@ -1,16 +1,17 @@
 *** Settings ***
 Resource          interaction_with_cluster_state_dictionnary.robot
-Library           SSHLibrary
 Resource          ../parameters/global_parameters.robot
+Library           SSHLibrary
 
 *** Keywords ***
 open ssh session
-    [Arguments]    ${server}    ${alias}=default    ${cluster_number}=1
+    [Arguments]    ${server}    ${alias}=default    ${proxy_cmd}=${EMPTY}    ${cluster_number}=1
     ${server_ip}    Run Keyword If    "${alias}"=="default"    get node ip from CS    ${server}    ${cluster_number}
     ...    ELSE    Set Variable    ${server}
     ${alias}    Set Variable If    "${alias}"=="default"    ${server}    ${alias}
-    Open Connection    ${server_ip}    alias=${alias}
-    Login With Public Key    ${VM_USER}    data/id_shared
+    Open Connection    ${server_ip}    alias=${alias}    timeout=10
+    Run Keyword If    "${proxy_cmd}"=="${EMPTY}"    Login With Public Key    ${VM_USER}    data/id_shared
+    ...    ELSE    Login With Public Key    ${VM_USER}    data/id_shared    proxy_cmd=${proxy_cmd}
 
 reinitialize skuba session
     [Arguments]    ${cluster_number}=1
@@ -38,24 +39,11 @@ create ssh session for masters
 create ssh session for workers
     [Arguments]    ${cluster_number}
     @{nodes}    get worker servers name    cluster_number=${cluster_number}
-    Switch Connection    skuba_station_${cluster_number}
     FOR    ${node}    IN    @{nodes}
-        Run Keyword If    "${PLATFORM}"=="aws"    Run Keyword And Ignore Error    create ssh session for worker on aws    ${node}    cluster_number=${cluster_number}
-        ...    ELSE    open ssh session    ${node}    cluster_number=${cluster_number}
+        ${ip}    get node ip from CS    ${node}
+        ${proxy}    Set Variable If    "${PLATFORM}"=="aws"    ssh -o BatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l ec2-user -i ${DATADIR}/id_shared -W ${ip}:22 ${WORKSTATION_${cluster_number}}    ${EMPTY}
+        open ssh session    ${node}    proxy_cmd=${proxy}    cluster_number=${cluster_number}
     END
 
 create ssh session for workstation
     open ssh session    ${WORKSTATION_${cluster_number}}    alias=skuba_station_${cluster_number}
-
-create ssh session for worker on aws
-    [Arguments]    ${node}    ${cluster_number}=1
-    ${elements}    Split String    ${node}    -
-    ${index}    Set Variable    ${elements[-1]}
-    ${lg}    Get Length    ${index}
-    ${index}    Set Variable If    ${lg}==1    ${index}00    ${lg}==2    ${index}0    ${lg}==3    ${index}
-    ${node_ip}    get node ip from CS    ${node}    ${cluster_number}
-    Create Local Ssh Tunnel    31${index}    ${node_ip}    22    127.0.0.1
-    Open Connection    127.0.0.1    port=31${index}    alias=${node}
-    Login With Public Key    ${VM_USER}    ${DATADIR}/id_shared
-    Comment    Open Connection    ${node_ip}    alias=${node}
-    Comment    Login With Public Key    ${VM_USER}    ${DATADIR}/id_shared    proxy_cmd=ssh -o BatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l ${VM_USER} -i ${DATADIR}/id_shared -W ${node_ip}:22 ${WORKSTATION_${cluster_number}}
