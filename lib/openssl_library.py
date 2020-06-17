@@ -120,9 +120,11 @@ def generate_self_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, start_dat
 def get_san_from_cert(CERT_FILE):
     cert = _load_certificate(CERT_FILE)
     e = cert.get_extension(2)
-    if e.get_short_name().decode() != "subjectAltName":
-        logging.error("extension not subjectAltName")
-
+    for i in range(cert.get_extension_count()):
+        logging.debug(cert.get_extension(i).get_short_name())
+        if cert.get_extension(i).get_short_name().decode() == "subjectAltName":
+            e = cert.get_extension(i)
+            break
     raw_alt_names = e.get_data()
     decoded_alt_names, _ = asn1_decoder(raw_alt_names, asn1Spec=SubjectAltName())
     py_alt_names = nat_encoder(decoded_alt_names)
@@ -154,12 +156,14 @@ def verify_certificate_chain(cert_path, trusted_certs):
     # Download the certificate from the url and load the certificate
     certificate = _load_certificate(cert_path)
 
+    logging.debug(trusted_certs)
     # Create a certificate store and add your trusted certs
     try:
         store = crypto.X509Store()
 
         # Assuming the certificates are in PEM format in a trusted_certs list
         for _cert in trusted_certs:
+            logging.debug(_cert)
             client_certificate = _load_certificate(_cert)
             store.add_cert(client_certificate)
 
@@ -183,6 +187,17 @@ def get_issuer(CERT_FILE):
     logging.debug(subject_str)
     return subject_str
 
+
+
+def get_type(CERT_FILE):
+    cert = _load_certificate(CERT_FILE)
+    count = cert.get_extension_count()
+    logging.debug("Number of extension {}".format(count))
+    for i in range(count):
+        logging.debug(cert.get_extension(i).get_short_name())
+        if cert.get_extension(i).get_short_name().decode() == "extendedKeyUsage":
+            return str(cert.get_extension(i))
+
 # dic = {
 #     "dns": [],
 #     "ip": ["10.1.1.1", "5.4.7.6"]
@@ -198,7 +213,9 @@ def get_issuer(CERT_FILE):
 # # #                                      "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.key",
 # # #                                      "200609171010Z", "200609181010Z", dic)
 # #
-# # get_san_from_cert("/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt")
+# get_san_from_cert("/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt")
 # get_issuer("/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt")
-# value = verify_certificate_chain("/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt",["/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/cluster/pki/ca.crt"])
+# value = verify_certificate_chain("/home/maxime/github/caasp_robotframework/function/../workdir/cluster-7073/logs/certificates-backup/pki/apiserver.crt",["/home/maxime/github/caasp_robotframework/function/../workdir/cluster-7073/logs/certificates-backup/pki/etcd/ca.crt"])
 # logging.debug(value)
+# # value = get_type("/home/maxime/github/caasp_robotframework/workdir/cluster-7073/logs/certificates-backup/pki/apiserver-etcd-client.crt")
+# logging.debug(str(value))
