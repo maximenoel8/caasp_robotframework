@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import socket
 from collections import OrderedDict
 
+import idna
 import ipaddress
+from OpenSSL import SSL
 from OpenSSL import crypto
 from pyasn1.codec.der.decoder import decode as asn1_decoder
 # Import native Python type encoder
@@ -30,13 +33,17 @@ def _get_san(san):
 
 
 def _write_key_certificate(CERT_FILE, KEY_FILE, certificate, key):
-    with open(CERT_FILE, "wt") as f:
-        f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, certificate).decode("utf-8"))
+    _write_certificate(CERT_FILE, certificate)
     with open(KEY_FILE, "wt") as f:
         f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key).decode("utf-8"))
 
 
-def _create_x509_extension(SAN):
+def _write_certificate(CERT_FILE, certificate):
+    with open(CERT_FILE, "wt") as f:
+        f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, certificate).decode("utf-8"))
+
+
+def _create_x509_extension_for_server(SAN):
     sans = _get_san(SAN)
     extensions = [
         crypto.X509Extension(b"basicConstraints",
@@ -50,6 +57,20 @@ def _create_x509_extension(SAN):
         crypto.X509Extension(b"subjectAltName",
                              False,
                              bytes(sans, "utf-8"))
+    ]
+    return extensions
+
+
+def _create_x509_extension_for_CA():
+    extensions = [
+        crypto.X509Extension(b"basicConstraints",
+                             True,
+                             b"CA:TRUE"),
+
+        crypto.X509Extension(b"keyUsage",
+                             True,
+                             b"digitalSignature,keyEncipherment, keyAgreement")
+
     ]
     return extensions
 
@@ -95,12 +116,12 @@ def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, 
     selfsignedcert.set_issuer(cacert.get_subject())
     selfsignedcert.set_version(2)
     selfsignedcert.set_pubkey(csrrequest.get_pubkey())
-    selfsignedcert.add_extensions(_create_x509_extension(SAN))
+    selfsignedcert.add_extensions(_create_x509_extension_for_server(SAN))
     selfsignedcert.sign(cakey, "sha256")
     _write_key_certificate(CERT_FILE, KEY_FILE, selfsignedcert, psec)
 
 
-def generate_self_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, start_date, end_date, SAN):
+def generate_self_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, start_date, end_date, SAN=None, CA=False):
     key = _create_key_pair()
 
     # create a self-signed cert
@@ -110,7 +131,8 @@ def generate_self_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, start_dat
     cert.set_notBefore(bytes(start_date, "utf-8"))
     cert.set_notAfter(bytes(end_date, "utf-8"))
     cert.set_issuer(cert.get_subject())
-    cert.add_extensions(_create_x509_extension(SAN))
+    extension = _create_x509_extension_for_CA() if CA else _create_x509_extension_for_server(SAN)
+    cert.add_extensions(extension)
     cert.set_version(2)
     cert.set_pubkey(key)
     cert.sign(key, 'sha256')
@@ -140,10 +162,10 @@ def get_san_from_cert(CERT_FILE):
             logging.error("Bad AltName Key")
     logging.debug(ip_sub_alt_name)
     logging.debug(dns_sub_alt_name)
-    result = {"dns": dns_sub_alt_name,
-              "ip": ip_sub_alt_name}
-    logging.debug(result)
-    return result
+    san = {"dns": dns_sub_alt_name,
+           "ip": ip_sub_alt_name}
+    logging.debug(san)
+    return san
 
 
 def get_expiry_date(CERT_FILE):
@@ -183,10 +205,10 @@ def verify_certificate_chain(cert_path, trusted_certs):
 def get_issuer(CERT_FILE):
     cert = _load_certificate(CERT_FILE)
     subject = cert.get_issuer()
-    subject_str = "".join("/{0:s}={1:s}".format(name.decode(), value.decode()) for name, value in subject.get_components())
+    subject_str = "".join(
+        "/{0:s}={1:s}".format(name.decode(), value.decode()) for name, value in subject.get_components())
     logging.debug(subject_str)
     return subject_str
-
 
 
 def get_type(CERT_FILE):
@@ -198,24 +220,31 @@ def get_type(CERT_FILE):
         if cert.get_extension(i).get_short_name().decode() == "extendedKeyUsage":
             return str(cert.get_extension(i))
 
-# dic = {
-#     "dns": [],
-#     "ip": ["10.1.1.1", "5.4.7.6"]
-# }
-# generate_signed_ssl_certificate("maxime", "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt",
-#                                 "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.key",
-#                                 "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/cluster/pki/ca.crt",
-#                                 "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/cluster/pki/ca.key",
-#                                 "200609171010Z", "200611181010Z", dic)
-#
-# # # generate_self_signed_ssl_certificate("maxime",
-# # #                                      "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt",
-# # #                                      "/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.key",
-# # #                                      "200609171010Z", "200609181010Z", dic)
-# #
-# get_san_from_cert("/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt")
-# get_issuer("/home/maxime/github/caasp_robotframework/workdir/cluster-chhv/maxime.crt")
-# value = verify_certificate_chain("/home/maxime/github/caasp_robotframework/function/../workdir/cluster-7073/logs/certificates-backup/pki/apiserver.crt",["/home/maxime/github/caasp_robotframework/function/../workdir/cluster-7073/logs/certificates-backup/pki/etcd/ca.crt"])
-# logging.debug(value)
-# # value = get_type("/home/maxime/github/caasp_robotframework/workdir/cluster-7073/logs/certificates-backup/pki/apiserver-etcd-client.crt")
-# logging.debug(str(value))
+
+def get_certificate_from_client(hostname, port, CERT_FILE):
+    """
+
+    :type hostname: str
+    :type port: int
+    :type CERT_FILE: str
+
+    """
+    hostname_idna = idna.encode(hostname)
+    sock = socket.socket()
+
+    sock.connect((hostname, int(port)))
+    ctx = SSL.Context(SSL.SSLv23_METHOD)  # most compatible
+    ctx.check_hostname = False
+    ctx.verify_mode = SSL.VERIFY_NONE
+    sock_ssl = SSL.Connection(ctx, sock)
+    sock_ssl.set_connect_state()
+    sock_ssl.set_tlsext_host_name(hostname_idna)
+    sock_ssl.do_handshake()
+    cert = sock_ssl.get_peer_certificate()
+    sock_ssl.close()
+    sock.close()
+    _write_certificate(CERT_FILE, cert)
+    subject_str = "".join(
+        "/{0:s}={1:s}".format(name.decode(), value.decode()) for name, value in cert.get_issuer().get_components())
+    logging.debug(subject_str)
+    return subject_str
