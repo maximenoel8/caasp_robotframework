@@ -75,3 +75,10 @@ deploy httpbin
 deploy tblshoot
     kubectl    apply -f ${DATADIR}/manifests/tblshoot
     wait pods ready    -l app=tblshoot
+
+get number of files in ${directory} on ${node}
+    [Documentation]    Return file lists and number of element in directory on specific node
+    Switch Connection    ${node}
+    ${list}    SSHLibrary.List Files In Directory    ${directory}
+    ${lt}    Get Length    ${list}
+    [Return]    ${list}    ${lt}
