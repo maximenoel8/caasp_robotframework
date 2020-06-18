@@ -77,4 +77,4 @@ create wordpress certificate
     ${ip}    Create List
     ${SAN}    Create Dictionary    dns=${dns}    ip=${ip}
     Run Keyword And Ignore Error    kubectl    create namespace wordpress
-    create custom certificate to    wordpress    ${SAN}    wordpress
+    create tls secret to    wordpress    ${SAN}    wordpress

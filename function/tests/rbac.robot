@@ -15,7 +15,7 @@ Resource          ../setup_environment.robot
     Copy Directory    ${DATADIR}/389dss    ${LOGDIR}/389dss
     Modify Add Value    ${LOGDIR}/389dss/389ds-deployment.yaml    spec template spec containers 0 image    ${DS_IMAGE}
     kubectl    create -f "${LOGDIR}/389dss"
-    Wait Until Keyword Succeeds    3min    10s    check_pod_log_contain    -l app=dirsrv-389ds -n kube-system    INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
+    Wait Until Keyword Succeeds    3min    10s    check pod log contain    -l app=dirsrv-389ds -n kube-system    INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
 
 authentication with skuba CI (group)
     [Arguments]    ${cluster_number}=1

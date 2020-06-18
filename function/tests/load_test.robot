@@ -15,7 +15,7 @@ create tls certificate for locust
     ${ip}    Create List
     ${SAN}    Create Dictionary    dns=${dns}    ip=${ip}
     Run Keyword And Ignore Error    kubectl    create namespace locust
-    create custom certificate to    locust    ${SAN}    locust
+    create tls secret to    locust    ${SAN}    locust
 
 swarm load test
     [Arguments]    ${nb_users}    ${hatch_rate}
