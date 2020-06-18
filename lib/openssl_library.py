@@ -69,7 +69,7 @@ def _create_x509_extension_for_CA():
 
         crypto.X509Extension(b"keyUsage",
                              True,
-                             b"digitalSignature,keyEncipherment, keyAgreement")
+                             b"digitalSignature,keyEncipherment,keyCertSign")
 
     ]
     return extensions
