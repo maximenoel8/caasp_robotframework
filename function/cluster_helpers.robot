@@ -187,15 +187,14 @@ get ${service} service ip
     Should Match Regexp    ${ip}    ^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$
     [Return]    ${ip}
 
-wait daemonsets are ready
-    [Arguments]    ${ds}    ${namespace}=kube-system    ${cluster_number}=1
+wait ${type} ${name} in ${namespace} is ready
     FOR    ${i}    IN RANGE    0    60
         sleep    5
-        ${result}    kubectl    get ds ${ds} -n ${namespace}    ${cluster_number}
+        ${result}    kubectl    get ${type} ${name} -n ${namespace}
         ${lines}    Split To Lines    ${result}
         ${elements}    Split String    ${lines[1]}
-        Should Be Equal    ${elements[0]}    ${ds}
-        ${status}    Set Variable If    ${elements[1]}==${elements[3]}    True    False
+        Should Be Equal    ${elements[0]}    ${name}
+        ${status}    Set Variable If    "${elements[2]}"=="True"    True    False
         Exit For Loop If    ${status}
     END
 
@@ -217,3 +216,15 @@ get kubernetes version
     ...    ELSE IF    "${type}"=="all" and "${format}"=="major"    Create List    ${versions["client_major"]}    ${versions["server_major"]}
     ...    ELSE IF    "${type}"!="all"    Create List    ${versions["${type}_${format}"]}
     [Return]    ${output}
+
+wait daemonset are ready
+    [Arguments]    ${name}    ${namespace}=kube-system    ${cluster_number}=1
+    FOR    ${i}    IN RANGE    0    60
+        sleep    5
+        ${result}    kubectl    get ds ${name} -n ${namespace}    ${cluster_number}
+        ${lines}    Split To Lines    ${result}
+        ${elements}    Split String    ${lines[1]}
+        Should Be Equal    ${elements[0]}    ${name}
+        ${status}    Set Variable If    ${elements[1]}==${elements[3]}    True    False
+        Exit For Loop If    ${status}
+    END

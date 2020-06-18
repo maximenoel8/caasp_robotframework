@@ -88,7 +88,7 @@ add certificate exporter
     helm    install --name cert-exporter --namespace monitoring ${LOGDIR}/kubernetes-charts-suse-com/stable/cert-exporter --wait
 
 certificates dashboard is deployed
-    kubectl    apply -f https://raw.githubusercontent.com/jenting/caasp-monitoring/caasp-certs/grafana-dashboards-caasp-certificates.yaml
+    kubectl    apply -f https://raw.githubusercontent.com/SUSE/caasp-monitoring/master/grafana-dashboards-caasp-certificates.yaml
 
 reboot cert-exporter
     kubectl    rollout restart deployment cert-exporter-addon -n monitoring
@@ -100,7 +100,7 @@ create monitoring certificate
     ${ip}    Create List
     ${SAN}    Create Dictionary    dns=${dns}    ip=${ip}
     Run Keyword And Ignore Error    kubectl    create namespace monitoring
-    create custom certificate to    monitoring    ${SAN}    monitoring
+    create tls secret to    monitoring    ${SAN}    monitoring
     kubectl    create secret generic -n monitoring prometheus-basic-auth --from-file=${DATADIR}/monitoring/auth
 
 reboot grafana
