@@ -22,6 +22,7 @@ certificate rotation for dex and gangway
     Then check expired date for oidc-gangway is sup to 720 hours
     And check expired date for oidc-dex is sup to 6 hours
     When modify tls secret to    oidc-dex    duration=6 hours, 2 minutes    ca=True
+    step    waiting 3 minutes
     And sleep    3 minutes
     Then check expired date for oidc-dex is sup to 11 hours
     [Teardown]    clean cert-manager
@@ -34,7 +35,7 @@ check kucero is correctly renewing certificate
     When modify kucero command in manifest adding polling period and renew-before
     And kucero has renewed certificate
     Then number of certificates is superior    ${current_files_number}
-    And certificate are correctly generated for all the nodes
+    And certificate are correctly generated for all masters
     [Teardown]    modify kucero command in manifest removing polling period and renew-before
 
 check csr server

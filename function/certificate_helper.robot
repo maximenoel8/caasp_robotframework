@@ -4,10 +4,12 @@ Library           ../lib/base64_encoder.py
 Library           ../lib/openssl_library.py
 Resource          helper.robot
 Library           DateTime
+Resource          tools.robot
 
 *** Keywords ***
 create kubernetes CA issuer secret
     [Arguments]    ${certificate_folder}=default    ${issuer_name}=default    ${cluster_number}=1
+    step    create kubernetes CA issuer secret
     Create Directory    ${LOGDIR}/manifests/certificate/
     ${certificate_folder}    Set Variable If    "${certificate_folder}"=="default"    ${CLUSTERDIR}_${cluster_number}/pki    ${certificate_folder}
     ${issuer_dico}    open yaml file    ${DATADIR}/manifests/certificate/issuer.yaml

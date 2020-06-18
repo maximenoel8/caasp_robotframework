@@ -12,12 +12,14 @@ Resource          monitoring/monitoring.robot
 
 *** Keywords ***
 deploy reloader
+    step    deploy reloader
     helm    repo add stakater https://stakater.github.io/stakater-charts
     helm    repo update
     helm    install stakater/reloader --name reloader --namespace kube-system
     wait deploy    reloader-reloader -n kube-system
 
 deploy cert-manager
+    step     deploy cert-manager
     helm    repo add jetstack https://charts.jetstack.io
     helm    repo update
     helm    install jetstack/cert-manager --name cert-manager --namespace kube-system --version v0.15.0 --set installCRDs=true
@@ -25,6 +27,7 @@ deploy cert-manager
 
 create and apply rotation certificate manifest for
     [Arguments]    ${service}    ${issuer}=kubernetes-ca    ${duration}=8760h    ${renew_before}=720h
+    step    create rotation certificate manifest for ${service}
     backup tls secret manifest    ${service}
     ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
     ${common_name}    Set Variable If    "${service}"=="metrics-server"    metrics-server.kube-system.svc    ${service}
@@ -68,6 +71,7 @@ create tls secret to
 
 modify tls secret to
     [Arguments]    ${service}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False
+    step    Modify tls secret for ${service}
     backup tls secret manifest    ${service}
     ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
     Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${duration}
@@ -109,6 +113,7 @@ replace tls secret and restart service
     kubectl    rollout restart deployment/${service} -n ${namespace}
 
 check expired date for ${service} is sup to ${time}
+    step    check expired date for ${service} is superior to ${time}
     backup tls secret manifest    ${service}
     ${certificate_time}    get_expiry_date    ${LOGDIR}/certificate/${service}/backup/${service}.crt
     ${convert_time}    Convert Date    ${certificate_time}    date_format=%Y%m%d%H%M%SZ
@@ -174,6 +179,7 @@ certificate are correctly generated
     END
 
 modify kucero command in manifest adding polling period and renew-before
+    step    Modify kucero command to renew certificate immediately
     kubectl    get ds/kucero -o yaml -n kube-system > ${LOGDIR}/kucero-backup.yaml
     ${service}    OperatingSystem.Get File    ${LOGDIR}/kucero-backup.yaml
     ${dico}    Safe Load    ${service}
@@ -209,7 +215,8 @@ get number certificate files on ${node}
     [Return]    ${cf_num}    ${cert_root_num}    ${cert_etcd_num}
 
 kucero is running on master
-    wait ${type} ${name} in ${namespace} is ready    kucero    namespace=kube-system
+    step    check kucero is running on masters
+    wait daemonset are ready    kucero    namespace=kube-system
     ${pods_name}    wait podname    -l name=kucero -n kube-system
     ${number__of_pod_kucero}    Get Length    ${pods_name}
     ${number_of_master}    get number of nodes    role=master
@@ -226,6 +233,7 @@ current number of certificates are backuped
     [Return]    ${number_backup}
 
 kucero has renewed certificate
+    step    check certificate are renewed correctly in kucero logs
     @{pods}    wait podname    -l name=kucero -n kube-system
     FOR    ${pod}    IN    @{pods}
         Wait Until Keyword Succeeds    5min    10sec    check pod log contain    ${pod} -n kube-system    msg="Releasing lock"
@@ -242,7 +250,8 @@ number of certificates is superior
         Should Not Be Equal    ${new_certificate_number["${node}"]["etcd_cert"]}    ${backup_number["${node}"]["etcd_cert"]}
     END
 
-certificate are correctly generated for all the nodes
+certificate are correctly generated for all masters
+    step    check certificates are correctly generated on master
     @{nodes}    get master servers name
     FOR    ${node}    IN    @{nodes}
         backup certificate files from server    ${node}
