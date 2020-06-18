@@ -1,117 +1,16 @@
 *** Settings ***
 Resource          ../commands.robot
 Library           ../../lib/base64_encoder.py
-Library           ../../lib/yaml_editor.py
 Resource          ../cluster_helpers.robot
 Resource          monitoring/grafana_dashboard.robot
 Library           DateTime
 Library           ../../lib/openssl_library.py
 Library           OperatingSystem
+Resource          ../certificate_helper.robot
+Resource          ../cluster_deployment.robot
+Resource          monitoring/monitoring.robot
 
 *** Keywords ***
-backup certificate configuration
-    [Arguments]    ${service}
-    execute command localy    mkdir -p ${LOGDIR}/certificate/${service}/backup
-    kubectl    get secret ${service}-cert -n kube-system -o yaml > ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml
-    execute command localy    cat ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml | grep tls.crt | awk '{print $2}' | base64 --decode | tee ${LOGDIR}/certificate/${service}/backup/${service}.crt > /dev/null
-    execute command localy    cat ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml | grep tls.key | awk '{print $2}' | base64 --decode | tee ${LOGDIR}/certificate/${service}/backup/${service}.key > /dev/null
-
-get SAN ip and dns
-    [Arguments]    ${service}
-    ${SAN}    get_san_from_cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
-    Log Dictionary    ${SAN}
-    [Return]    ${SAN}
-
-create client config
-    [Arguments]    ${service}    ${SAN}
-    Copy File    ${DATADIR}/certificate/server.conf    ${LOGDIR}/certificate/${service}/${service}.conf
-    ${count}    Set Variable    1
-    FOR    ${ip}    IN    @{SAN["ip"]}
-        Append To File    ${LOGDIR}/certificate/${service}/${service}.conf    IP.${count} = ${ip}\n
-        ${count}    Evaluate    ${count} + 1
-    END
-    ${count}    Set Variable    1
-    FOR    ${dns}    IN    @{SAN["dns"]}
-        Append To File    ${LOGDIR}/certificate/${service}/${service}.conf    DNS.${count} = ${dns}\n
-        ${count}    Evaluate    ${count} + 1
-    END
-
-generate new certificate with CA signing request
-    [Arguments]    ${service}    ${san}    ${expired_date}=6 days, 23 hours
-    ${start_date}    ${end_date}    generate start_date and end_date    ${expired_date}
-    generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${WORKDIR}/cluster_1/pki/ca.crt    ${WORKDIR}/cluster_1/pki/ca.key    ${start_date}    ${end_date}    ${san}
-
-replace new secret
-    [Arguments]    ${service}    ${namespace}=kube-system
-    kubectl    replace -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
-    kubectl    rollout restart deployment/${service} -n ${namespace}
-
-_encode file in base64
-    [Arguments]    ${file}
-    ${value}    OperatingSystem.Get File    ${file}
-    ${encode_value}    Encode Base64    ${value}
-    [Return]    ${encode_value}
-
-add custom certificate to
-    [Arguments]    ${service}    ${expired_date}=6 days, 23 hours    ${namespace}=kube-system
-    backup certificate configuration    ${service}
-    ${san}    get SAN ip and dns    ${service}
-    generate new certificate with CA signing request    ${service}    ${san}    ${expired_date}
-    create certificate secret file    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${namespace}
-    replace new secret    ${service}
-    wait pods ready
-    _modify expired date for secret    ${service}-cert    tls.crt    ${expired_date}
-
-create CA
-    [Arguments]    ${service}    ${CN}=kubernetes-customize
-    execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
-    execute command localy    openssl genrsa -out ${LOGDIR}/certificate/${service}/ca.key 2048
-    execute command localy    openssl req -key ${LOGDIR}/certificate/${service}/ca.key -new -x509 -days 10 -sha256 -config ${DATADIR}/certificate/ca.conf -out ${LOGDIR}/certificate/${service}/ca.crt -subj "/CN=${CN}"
-
-create certificate secret file
-    [Arguments]    ${service}    ${file}    ${namespace}    ${ca}=True
-    ${service_crt}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.crt
-    ${service_key}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.key
-    ${ca_crt}    _encode file in base64    ${WORKDIR}/cluster_1/pki/ca.crt
-    Copy File    ${file}    ${LOGDIR}/certificate/${service}/${service}-cert.yaml
-    ${extension}    Set Variable If    ${ca}    -cert    -tls
-    Modify Add Value    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    metadata name    ${service}${extension}
-    Modify Add Value    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    metadata namespace    ${namespace}
-    Run Keyword If    ${ca}    Modify Add Value    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    data ca.crt    ${ca_crt}
-    Run Keyword If    not ${ca}    yaml_editor.Remove Key    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    data ca.crt
-    Modify Add Value    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    data tls.crt    ${service_crt}
-    Modify Add Value    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    data tls.key    ${service_key}
-
-create custom certificate to
-    [Arguments]    ${service}    ${SAN}    ${namespace}    ${ca}=False
-    execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
-    create client config    ${service}    ${SAN}
-    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}
-    ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}
-    create certificate secret file    ${service}    ${DATADIR}/certificate/template-cert.yaml    ${namespace}    ${ca}
-    kubectl    apply -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
-
-generate new certificate without CA request
-    [Arguments]    ${service}    ${san}    ${expired_date}=6 days, 23 hours
-    ${start_date}    ${end_date}    generate start_date and end_date    ${expired_date}
-    generate_self_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${start_date}    ${end_date}    ${san}
-
-replace certificate to service
-    [Arguments]    ${service}    ${namespace}
-    backup certificate configuration    ${service}
-    ${SAN}    get SAN ip and dns    ${service}
-    create custom certificate to    ${service}    ${SAN}    ${namespace}    True
-    replace new secret    ${service}
-
-generate start_date and end_date
-    [Arguments]    ${expired_time}
-    ${expired_time}    String.Remove String    ${expired_time}    ,
-    ${start_date} =    Get Current Date    UTC    exclude_millis=yes    result_format=%Y%m%d%H%M%S
-    ${end_date} =    Add Time To Date    ${start_date}    ${expired_time}    exclude_millis=yes    result_format=%Y%m%d%H%M%S
-    ${start_date} =    Set Variable    ${start_date[2:]}Z
-    ${end_date} =    Set Variable    ${end_date[2:]}Z
-    [Return]    ${start_date}    ${end_date}
-
 deploy reloader
     helm    repo add stakater https://stakater.github.io/stakater-charts
     helm    repo update
@@ -124,44 +23,93 @@ deploy cert-manager
     helm    install jetstack/cert-manager --name cert-manager --namespace kube-system --version v0.15.0 --set installCRDs=true
     wait deploy    cert-manager -n kube-system
 
-annotate dex gangway and metrics secret for reload
-    kubectl    -n kube-system annotate deploy/oidc-dex secret.reloader.stakater.com/reload=oidc-dex-cert --overwrite
-    kubectl    -n kube-system annotate deploy/oidc-gangway secret.reloader.stakater.com/reload=oidc-gangway-cert --overwrite
-    kubectl    -n kube-system annotate deploy/metrics-server secret.reloader.stakater.com/reload=metrics-server-cert --overwrite
+create and apply rotation certificate manifest for
+    [Arguments]    ${service}    ${issuer}=kubernetes-ca    ${duration}=8760h    ${renew_before}=720h
+    backup tls secret manifest    ${service}
+    ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    ${common_name}    Set Variable If    "${service}"=="metrics-server"    metrics-server.kube-system.svc    ${service}
+    _create certificate rotation manifest    ${service}    ${common_name}    ${SAN}    ${issuer}    ${duration}    ${renew_before}
+    kubectl    apply -f ${LOGDIR}/${service}-certificate.yaml
+    wait certificate ${service}-cert in kube-system is ready
 
-create kubernetes CA issuer secret
-    [Arguments]    ${cluster_number}=1
-    kubectl    create secret tls kubernetes-ca --cert=${CLUSTERDIR}_${cluster_number}/pki/ca.crt --key=${CLUSTERDIR}_${cluster_number}/pki/ca.key -n kube-system    ${cluster_number}
-    Wait Until Keyword Succeeds    2 min    5 sec    kubectl    apply -f ${DATADIR}/manifests/certificate/issuer.yaml    ${cluster_number}
-
-create certificate rotation manifest
-    [Arguments]    ${service}    ${common_name}    ${SAN}    ${duration}=8760    ${renew_before}=720
+_create certificate rotation manifest
+    [Arguments]    ${service}    ${common_name}    ${SAN}    ${issuer}=kubernetes-ca    ${duration}=8760    ${renew_before}=720
     ${dns_list}    Set Variable    ${SAN["dns"]}
     ${ip_list}    Set Variable    ${SAN["ip"]}
     ${lt_dns}    Get Length    ${dns_list}
     ${lt_ip}    Get Length    ${ip_list}
-    ${manifest}    OperatingSystem.Get File    ${DATADIR}/manifests/certificate/template-certificate.yaml
-    ${manifest_dictionnary}    Safe Load    ${manifest}
+    ${manifest_dictionnary}    open yaml file    ${DATADIR}/manifests/certificate/template-certificate.yaml
+    Set To Dictionary    ${manifest_dictionnary["metadata"]}    name=${service}-cert
     Set To Dictionary    ${manifest_dictionnary["metadata"]}    name=${service}-cert
     Set To Dictionary    ${manifest_dictionnary["spec"]}    secretName=${service}-cert
     Set To Dictionary    ${manifest_dictionnary["spec"]}    commonName=${common_name}
     Set To Dictionary    ${manifest_dictionnary["spec"]}    duration=${duration}
     Set To Dictionary    ${manifest_dictionnary["spec"]}    renewBefore=${renew_before}
+    Set To Dictionary    ${manifest_dictionnary["spec"]["issuerRef"]}    name=${issuer}
     Run Keyword If    ${lt_ip} > 0    Set To Dictionary    ${manifest_dictionnary["spec"]}    ipAddresses=${ip_list}
     Run Keyword If    ${lt_dns} > 0    Set To Dictionary    ${manifest_dictionnary["spec"]}    dnsNames=${dns_list}
     ${manifest_stream}    Dump    ${manifest_dictionnary}
     Create File    ${LOGDIR}/${service}-certificate.yaml    ${manifest_stream}
 
-create and apply rotation certificate manifest for
-    [Arguments]    ${service}    ${duration}=8760h    ${renew_before}=720h
-    backup certificate configuration    ${service}
-    ${SAN}    get SAN ip and dns    ${service}
-    ${common_name}    Set Variable If    "${service}"=="metrics-server"    metrics-server.kube-system.svc    ${service}
-    create certificate rotation manifest    ${service}    ${common_name}    ${SAN}    ${duration}    ${renew_before}
-    kubectl    apply -f ${LOGDIR}/${service}-certificate.yaml
+annotate dex gangway and metrics secret for reload
+    step    annotate dex, metrcis and gangway secret for reload
+    kubectl    -n kube-system annotate deploy/oidc-dex secret.reloader.stakater.com/reload=oidc-dex-cert --overwrite
+    kubectl    -n kube-system annotate deploy/oidc-gangway secret.reloader.stakater.com/reload=oidc-gangway-cert --overwrite
+    kubectl    -n kube-system annotate deploy/metrics-server secret.reloader.stakater.com/reload=metrics-server-cert --overwrite
+
+create tls secret to
+    [Arguments]    ${service}    ${SAN}    ${namespace}    ${duration}=6 days, 23 hours    ${ca}=False
+    execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
+    create client config    ${service}    ${SAN}
+    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${duration}
+    ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}    ${duration}
+    create tls secret manifest    ${service}    ${DATADIR}/certificate/template-cert.yaml    ${namespace}    ${ca}
+    kubectl    apply -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
+
+modify tls secret to
+    [Arguments]    ${service}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False
+    backup tls secret manifest    ${service}
+    ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${duration}
+    ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}    ${duration}
+    create tls secret manifest    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${namespace}
+    replace tls secret and restart service    ${service}
+    wait pods ready
+    _modify expired date for secret    ${service}-cert    tls.crt    ${duration}
+
+backup tls secret manifest
+    [Arguments]    ${service}
+    Create Directory    ${LOGDIR}/certificate/${service}/backup
+    ${output}    kubectl    get secret ${service}-cert -n kube-system -o yaml
+    Create File    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${output}
+    ${dico_output}    load    ${output}
+    ${tls_certificate}    Decode Base64    ${dico_output["data"]["tls.crt"]}
+    Create File    ${LOGDIR}/certificate/${service}/backup/${service}.crt    ${tls_certificate}
+
+create tls secret manifest
+    [Arguments]    ${service}    ${file}    ${namespace}    ${ca}=True
+    ${extension}    Set Variable If    ${ca}    -cert    -tls
+    ${service_crt}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.crt
+    ${service_key}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.key
+    ${ca_crt}    _encode file in base64    ${WORKDIR}/cluster_1/pki/ca.crt
+    ${output}    OperatingSystem.Get File    ${file}
+    ${manifest_dico}    Load    ${output}
+    Set To Dictionary    ${manifest_dico["metadata"]}    name=${service}${extension}
+    Set To Dictionary    ${manifest_dico["metadata"]}    namespace=${namespace}
+    Set To Dictionary    ${manifest_dico["data"]}    tls.crt=${service_crt}
+    Set To Dictionary    ${manifest_dico["data"]}    tls.key=${service_key}
+    Run Keyword If    ${ca}    Set To Dictionary    ${manifest_dico["data"]}    ca.crt=${ca_crt}
+    ...    ELSE    Remove From Dictionary    ${manifest_dico}    ca.crt
+    ${dico}    Dump    ${manifest_dico}
+    Create File    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    ${dico}
+
+replace tls secret and restart service
+    [Arguments]    ${service}    ${namespace}=kube-system
+    kubectl    replace -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
+    kubectl    rollout restart deployment/${service} -n ${namespace}
 
 check expired date for ${service} is sup to ${time}
-    backup certificate configuration    ${service}
+    backup tls secret manifest    ${service}
     ${certificate_time}    get_expiry_date    ${LOGDIR}/certificate/${service}/backup/${service}.crt
     ${convert_time}    Convert Date    ${certificate_time}    date_format=%Y%m%d%H%M%SZ
     ${current_time}    DateTime.Get Current Date    UTC
@@ -170,23 +118,202 @@ check expired date for ${service} is sup to ${time}
     ${result}    DateTime.Subtract Time From Time    ${expired_time}    ${time}
     Should Be True    ${result} > 0
 
-clean cert-manager
-    Run Keyword And Ignore Error    helm    delete --purge reloader
-    Run Keyword And Ignore Error    helm    delete --purge cert-manager
-    Run Keyword And Ignore Error    kubectl    delete -f ${DATADIR}/manifests/certificate/issuer.yaml
-    Run Keyword And Ignore Error    kubectl    delete secret kubernetes-ca -n kube-system
-
 kubelet server certificate should be signed by kubelet-ca for each node
+    [Arguments]    ${cluster_number}=1
     ${master}    get master servers name    enable
     ${workers}    get worker servers name    enable
     ${nodes}    Combine Lists    ${master}    ${workers}
     FOR    ${node}    IN    @{nodes}
-        ${ip}    get node ip from CS    ${node}
-        check kubelet server certificate is signed by kubelet-ca    ${ip}
+        ${server_ip}    get node ip from CS    ${node}
+        kubelet server certificate is signed by kubelet-ca on ${server_ip} 10250 with ${CLUSTER_DIR}_${cluster_number}/pki/kubelet-ca.crt
     END
 
-check kubelet server certificate is signed by kubelet-ca
-    [Arguments]    ${server_ip}    ${cluster_number}=1
-    ${output}    openssl    s_client -connect ${server_ip}:10250 -CAfile /home/${VM_USER}/cluster/pki/kubelet-ca.crt <<< "Q"
-    Should Contain    ${output}    issuer=/CN=kubelet-ca
-    Should Contain    ${output}    Verify return code: 0 (ok)
+${service} certificate is signed by ${issuer} on ${server_ip} ${port} with ${certificate}
+    Create Directory    ${LOGDIR}/tmp
+    ${authority}    Create List    ${certificate}
+    ${issuer_from_file}    get_certificate_from_client    ${server_ip}    ${port}    ${LOGDIR}/tmp/${service}.crt
+    Should Contain    ${issuer_from_file}    /CN=${issuer}
+    ${status}    verify_certificate_chain    ${LOGDIR}/tmp/${service}.crt    ${authority}
+    Should Be True    ${status}
+    Comment    Remove File    ${LOGDIR}/tmp/${service}.crt
+
+clean cert-manager
+    Run Keyword And Ignore Error    helm    delete --purge reloader
+    Run Keyword And Ignore Error    helm    delete --purge cert-manager
+    Run Keyword And Ignore Error    kubectl    delete -f ${LOGDIR}/manifests/certificate/issuer.yaml
+    Run Keyword And Ignore Error    kubectl    delete secret kubernetes-ca -n kube-system
+    Run Keyword And Ignore Error    kubectl    delete secret custom-kubernetes-ca -n kube-system
+
+backup certificate files from server
+    [Arguments]    ${node}    ${cluster_number}=1
+    execute command with ssh    mkdir -p /home/${VM_USER}/certificates-backup/${node}    ${node}
+    execute command with ssh    sudo cp -p \ -R /etc/kubernetes/pki /home/${VM_USER}/certificates-backup/${node}    ${node}
+    execute command with ssh    sudo chown \ -R ${VM_USER}:users /home/${VM_USER}/certificates-backup/${node}    ${node}
+    execute command with ssh    cd /home/${VM_USER}&& tar -czvf certificates-backup.tar.gz certificates-backup    ${node}
+    SSHLibrary.Get File    /home/${VM_USER}/certificates-backup.tar.gz    ${LOGDIR}/    recursive=True
+    execute command localy    cd ${LOGDIR} && tar -xzvf certificates-backup.tar.gz
+    Remove File    ${LOGDIR}/certificates-backup.tar.gz
+
+certificate are correctly generated
+    [Arguments]    ${node}    ${cluster_number}=1
+    ${dico}    Load JSON From File    ${DATADIR}/monitoring/expected_value_grafana_certificates.json
+    Set Test Variable    ${cer_dico}    ${dico["kubernetes"]}
+    @{certificate_names}    Get Dictionary Keys    ${cer_dico}
+    FOR    ${certificate_name}    IN    @{certificate_names}
+        Continue For Loop If    "${certificate_name}"=="master" or "${certificate_name}"=="worker" or "${certificate_name}"=="etcd-ca" or "${certificate_name}"=="kubernetes" or "${certificate_name}"=="front-proxy-ca" or "${certificate_name}"=="kubelet-ca"
+        ${issuer}    Set Variable    ${cer_dico["${certificate_name}"]["issuer"]}
+        ${issuer_certificate}    Run Keyword If    "${issuer}"=="kubernetes"    Create List    ${CLUSTERDIR}_${cluster_number}/pki/ca.crt
+        ...    ELSE IF    "${issuer}"=="etcd-ca"    Create List    ${CLUSTERDIR}_${cluster_number}/pki/etcd/ca.crt
+        ...    ELSE IF    "${issuer}"=="front-proxy-ca"    Create List    ${CLUSTERDIR}_${cluster_number}/pki/front-proxy-ca.crt
+        ${certificate_file}    Replace String    ${cer_dico["${certificate_name}"]["filename"]}    /etc/kubernetes    ${LOGDIR}/certificates-backup/${node}
+        ${issuer_from_file}    get issuer    ${certificate_file}
+        Should Be Equal    ${issuer_from_file}    /CN=${issuer}
+        ${status}    verify certificate chain    ${certificate_file}    ${issuer_certificate}
+        Should Be True    ${status}
+        _check certificate type    ${certificate_name}    ${certificate_file}
+    END
+
+modify kucero command in manifest adding polling period and renew-before
+    kubectl    get ds/kucero -o yaml -n kube-system > ${LOGDIR}/kucero-backup.yaml
+    ${service}    OperatingSystem.Get File    ${LOGDIR}/kucero-backup.yaml
+    ${dico}    Safe Load    ${service}
+    ${values}    Get From Dictionary    ${dico["spec"]["template"]["spec"]["containers"][0]}    command
+    Remove Values From List    ${values}    --polling-period=1m    --renew-before=8870h
+    Append To List    ${values}    --polling-period=1m
+    Append To List    ${values}    --renew-before=8870h
+    Set To Dictionary    ${dico["spec"]["template"]["spec"]["containers"][0]}    command=${values}
+    ${output}    Dump    ${dico}
+    Create File    ${LOGDIR}/kucero.yaml    ${output}
+    kubectl    apply -f ${LOGDIR}/kucero.yaml --force
+    wait daemonset are ready    kucero
+
+modify kucero command in manifest removing polling period and renew-before
+    kubectl    get ds/kucero -o yaml -n kube-system > ${LOGDIR}/kucero-backup.yaml
+    ${service}    OperatingSystem.Get File    ${LOGDIR}/kucero-backup.yaml
+    ${dico}    Safe Load    ${service}
+    ${values}    Get From Dictionary    ${dico["spec"]["template"]["spec"]["containers"][0]}    command
+    Remove Values From List    ${values}    --polling-period=1m    --renew-before=8870h
+    Set To Dictionary    ${dico["spec"]["template"]["spec"]["containers"][0]}    command=${values}
+    ${output}    Dump    ${dico}
+    Create File    ${LOGDIR}/kucero.yaml    ${output}
+    kubectl    apply -f ${LOGDIR}/kucero.yaml --force
+    wait ${type} ${name} in ${namespace} is ready    kucero
+
+get number certificate files on ${node}
+    [Documentation]    Return number of files in /etc/kubernetes
+    ...    Return number of files in /etc/kubernetes/pki
+    ...    Return number of files in /etc/kubernetes/pki/etcd
+    ${cf_files}    ${cf_num}    get number of files in /etc/kubernetes on ${node}
+    ${cert_root_files}    ${cert_root_num}    get number of files in /etc/kubernetes/pki on ${node}
+    ${cert_etcd_files}    ${cert_etcd_num}    get number of files in /etc/kubernetes/pki/etcd on ${node}
+    [Return]    ${cf_num}    ${cert_root_num}    ${cert_etcd_num}
+
+kucero is running on master
+    wait ${type} ${name} in ${namespace} is ready    kucero    namespace=kube-system
+    ${pods_name}    wait podname    -l name=kucero -n kube-system
+    ${number__of_pod_kucero}    Get Length    ${pods_name}
+    ${number_of_master}    get number of nodes    role=master
+    Should Be Equal    ${number__of_pod_kucero}    ${number_of_master}
+
+current number of certificates are backuped
+    ${nodes}    get master servers name
+    ${number_backup}    Create Dictionary
+    FOR    ${node}    IN    @{nodes}
+        ${numbers}    get number certificate files on ${node}
+        ${temp_dico}    Create Dictionary    conf_file=${numbers[0]}    root_cert=${numbers[1]}    etcd_cert=${numbers[2]}
+        Set To Dictionary    ${number_backup}    ${node}=${temp_dico}
+    END
+    [Return]    ${number_backup}
+
+kucero has renewed certificate
+    @{pods}    wait podname    -l name=kucero -n kube-system
+    FOR    ${pod}    IN    @{pods}
+        Wait Until Keyword Succeeds    5min    10sec    check pod log contain    ${pod} -n kube-system    msg="Releasing lock"
+    END
+
+number of certificates is superior
+    [Arguments]    ${backup_number}
+    ${new_certificate_number}    current number of certificates are backuped
+    @{nodes}    get master servers name
+    FOR    ${node}    IN    @{nodes}
+        ${type}    get node type    ${node}
+        Should Not Be Equal    ${new_certificate_number["${node}"]["conf_file"]}    ${backup_number["${node}"]["conf_file"]}
+        Should Not Be Equal    ${new_certificate_number["${node}"]["root_cert"]}    ${backup_number["${node}"]["root_cert"]}
+        Should Not Be Equal    ${new_certificate_number["${node}"]["etcd_cert"]}    ${backup_number["${node}"]["etcd_cert"]}
+    END
+
+certificate are correctly generated for all the nodes
+    @{nodes}    get master servers name
+    FOR    ${node}    IN    @{nodes}
+        backup certificate files from server    ${node}
+        certificate are correctly generated    ${node}
+    END
+
+serverTLSBoostrap exists in config map
+    ${version}    get kubernetes version    server    major
+    ${output}    kubectl    get configmap kubelet-config-${version[0]} -n kube-system -o yaml
+    ${dico_to}    Load    ${output}
+    ${dico}    Load    ${dico_to["data"]["kubelet"]}
+    Dictionary Should Contain Key    ${dico}    serverTLSBootstrap
+    Should Be True    ${dico["serverTLSBootstrap"]}
+
+serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
+    @{nodes}    get nodes name from CS
+    FOR    ${node}    IN    @{nodes}
+        ${output}    execute command with ssh    sudo cat /var/lib/kubelet/config.yaml    ${node}
+        ${dico}    Load    ${output}
+        Dictionary Should Contain Key    ${dico}    serverTLSBootstrap
+        Should Be True    ${dico["serverTLSBootstrap"]}
+    END
+
+_check certificate type
+    [Arguments]    ${certificate_name}    ${certificate_file}
+    ${result}    get type    ${certificate_file}
+    @{types}    Split String    ${result}    ,
+    @{expected_types}    Split String    ${cer_dico["${certificate_name}"]["kind"]}    ,
+    FOR    ${element}    IN    @{types}
+        ${type}    Strip String    ${element}
+        Should Contain Any    ${type}    @{expected_types}
+    END
+
+deleting kubelet-server-current.pem and restarting kubelet on ${node}
+    execute command with ssh    sudo rm /var/lib/kubelet/pki/kubelet-server-current.pem    ${node}
+    execute command with ssh    sudo systemctl restart kubelet    ${node}
+    Wait Until Keyword Succeeds    2 min    5 sec    SSHLibrary.File Should Exist    /var/lib/kubelet/pki/kubelet-server-current.pem
+
+csr is generated and approve for ${node}
+    ${skuba_name}    get node skuba name    ${node}
+    ${output}    kubectl    get csr -o yaml
+    ${dico}    Load    ${output}
+    ${last_generated_csr_dico}    Set Variable    ${dico["items"][0]}
+    Should Be Equal    ${last_generated_csr_dico["spec"]["username"]}    system:node:${skuba_name}
+    Should Be Equal    ${last_generated_csr_dico["spec"]["signerName"]}    kubernetes.io/kubelet-serving
+    Should Be Equal    ${last_generated_csr_dico["status"]["conditions"][0]["type"]}    Approved
+    Should Be Equal    ${last_generated_csr_dico["status"]["conditions"][0]["reason"]}    AutoApproved by kucero
+    Should Be Equal    ${last_generated_csr_dico["status"]["conditions"][0]["message"]}    Auto approving kubelet serving certificate after SubjectAccessReview.
+
+number of certificate in /var/lib/kubelet/pki is superior
+    [Arguments]    ${ref_number}    ${node}
+    ${number}    get number of files in /var/lib/kubelet/pki on ${CLUSTER_PREFIX}-1-master-0
+    ${status}    Evaluate    ${number[1]} > ${ref_number}
+    Should Be True    ${status}
+
+${service} certificate CA signed is custom trusted CA certificate
+    ${authority}    Create List    ${CLUSTER_DIR}_${cluster_number}/pki/kubelet-ca.crt
+    ${issuer}    get_certificate_from_client    ${LOADBALANCER_IP}    32000    ${LOGDIR}/certificate-${server_ip}.crt
+    Should Contain    ${issuer}    /CN=kubelet-ca
+    ${status}    verify_certificate_chain    ${LOGDIR}/certificate-${server_ip}.crt    ${authority}
+    Should Be True    ${status}
+
+addon ${service} certificate is correctly generated in certificate status by ${issuer}
+    ${output}    kubectl    get certificates ${service}-cert -n kube-system -o yaml
+    ${certificate_dico}    Safe Load    ${output}
+    Should Be Equal    ${certificate_dico["spec"]["commonName"]}    ${service}
+    Should Be Equal    ${certificate_dico["spec"]["issuerRef"]["name"]}    ${issuer}
+    Should Be Equal    ${certificate_dico["status"]["conditions"][0]["reason"]}    Ready
+    Should Be True    ${certificate_dico["status"]["conditions"][0]["status"]}
+
+setup certificate suite
+    Given cluster running
+    And setup test suite monitoring
+    And helm is installed

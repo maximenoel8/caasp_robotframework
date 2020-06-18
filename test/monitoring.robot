@@ -27,8 +27,8 @@ customize dex and gangway certificate
     And nginx is deployed
     And prometheus is deployed
     And grafana is deployed
-    When add custom certificate to    oidc-gangway
-    And add custom certificate to    oidc-dex
+    When modify tls secret to    oidc-gangway    ca=True
+    And modify tls secret to    oidc-dex    ca=True
     And reboot cert-exporter
     And reboot grafana
     And certificates dashboard is deployed
