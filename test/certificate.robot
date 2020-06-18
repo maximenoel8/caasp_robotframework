@@ -5,11 +5,11 @@ Resource          ../function/tests/certificate.robot
 Resource          ../function/tests/monitoring/monitoring.robot
 
 *** Test Cases ***
-Check kubelet server certificate is the one signed by kubelet-ca for each node
+check kubelet server certificate is the one signed by kubelet-ca for each nodes
     [Tags]    release
     Then kubelet server certificate should be signed by kubelet-ca for each node
 
-certificate rotation for dex and gangway
+check cert-manager correctl do the certificate rotation for dex and gangway when certificate is expired
     [Tags]    release
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
@@ -27,7 +27,7 @@ certificate rotation for dex and gangway
     Then check expired date for oidc-dex is sup to 11 hours
     [Teardown]    clean cert-manager
 
-check kucero is correctly renewing certificate
+check kucero is correctly renewing certificates
     And kucero is running on master
     And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
     And serverTLSBoostrap exists in config map
@@ -38,7 +38,7 @@ check kucero is correctly renewing certificate
     And certificate are correctly generated for all masters
     [Teardown]    modify kucero command in manifest removing polling period and renew-before
 
-check csr server
+check csr server is correctly generated new kubelet certificate
     ${node}    Set Variable    ${CLUSTER_PREFIX}-1-master-0
     And kucero is running on master
     And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
@@ -48,7 +48,7 @@ check csr server
     then csr is generated and approve for ${node}
     And number of certificate in /var/lib/kubelet/pki is superior    ${current_files_number[1]}    ${node}
 
-oidc-dex and oidc-gangway signed by custom CA certificate and key
+check oidc-dex and oidc-gangway signed by custom CA certificate and key are correctly manage by cert-manager
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
     and deploy cert-manager
