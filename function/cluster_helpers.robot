@@ -58,7 +58,7 @@ check replicat for
     Should Be Equal As Integers    ${length}    ${number_replicat}    Number of ${args} not equal to replicat
     List Should Not Contain Duplicates    ${nodes_list}    ${args} are not correctly replicate
 
-check_pod_log_contain
+check pod log contain
     [Arguments]    ${args}    ${expected_value}
     ${output}    kubectl    logs ${args}
     Should Contain    ${output}    ${expected_value}
@@ -164,6 +164,9 @@ check pods running
         ${elements}    Split String    ${line}
         ${status}    Set Variable If    "${elements[2]}"=="Running"    True    False
         Exit For Loop If    not ${status}
+        ${number_pod_running}    Get Regexp Matches    ${elements[1]}    ([0-9]+)/([0-9]+)    1    2
+        ${status}    Set Variable If    ${number_pod_running[0][0]}==${number_pod_running[0][1]}    True    False
+        Exit For Loop If    not ${status}
     END
     ${pod}    Set Variable if    not ${status}    ${elements[0]}    ${EMPTY}
     [Return]    ${status}    ${pod}
@@ -183,3 +186,34 @@ get ${service} service ip
     ${ip}    kubectl    get svc ${service} -ojsonpath={.spec.clusterIP}
     Should Match Regexp    ${ip}    ^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$
     [Return]    ${ip}
+
+wait daemonsets are ready
+    [Arguments]    ${ds}    ${namespace}=kube-system    ${cluster_number}=1
+    FOR    ${i}    IN RANGE    0    60
+        sleep    5
+        ${result}    kubectl    get ds ${ds} -n ${namespace}    ${cluster_number}
+        ${lines}    Split To Lines    ${result}
+        ${elements}    Split String    ${lines[1]}
+        Should Be Equal    ${elements[0]}    ${ds}
+        ${status}    Set Variable If    ${elements[1]}==${elements[3]}    True    False
+        Exit For Loop If    ${status}
+    END
+
+get kubernetes version
+    [Arguments]    ${type}=all    ${format}=minor    # format can be minor ( return 1.x.x ) or major ( return 1.x )
+    [Documentation]    type can be server or client
+    ...    format can be major or minor
+    ${result}    kubectl    version --short
+    @{lines}    Split To Lines    ${result}
+    ${versions}    Create Dictionary
+    FOR    ${line}    IN    @{lines}
+        ${element}    Split String    ${line}
+        ${version}    Remove String    ${element[2]}    v
+        ${sub_version}    Split String    ${version}    .
+        Run Keyword If    "${element[0]}"=="Client"    Set To Dictionary    ${versions}    client_minor=${version}    client_major=${sub_version[0]}.${sub_version[1]}
+        ...    ELSE IF    "${element[0]}"=="Server"    Set To Dictionary    ${versions}    server_minor=${version}    server_major=${sub_version[0]}.${sub_version[1]}
+    END
+    ${output}    Run Keyword If    "${type}"=="all" and "${format}"=="minor"    Create List    ${versions["client_minor"]}    ${versions["server_minor"]}
+    ...    ELSE IF    "${type}"=="all" and "${format}"=="major"    Create List    ${versions["client_major"]}    ${versions["server_major"]}
+    ...    ELSE IF    "${type}"!="all"    Create List    ${versions["${type}_${format}"]}
+    [Return]    ${output}
