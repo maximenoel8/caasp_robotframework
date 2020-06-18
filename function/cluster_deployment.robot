@@ -112,7 +112,7 @@ _move node from on going to done
     Set To Dictionary    ${deployment_state["${cluster}"]}    on_going=${on_going}
     Log Dictionary    ${deployment_state}
     enable node in CS    ${node}    ${cluster_number}
-    Step     Node ${node} has been added to cluster ...
+    Step    Node ${node} has been added to cluster ...
 
 do I need to start new deployment
     [Arguments]    ${cluster}
