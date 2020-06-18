@@ -2,6 +2,7 @@
 Library           String
 Library           OperatingSystem
 Resource          commands.robot
+Library           yaml
 
 *** Keywords ***
 remove string from file
@@ -75,3 +76,9 @@ run command on nodes
     FOR    ${node}    IN    @{nodes}
         execute command with ssh    ${cmd}    ${node}
     END
+
+open yaml file
+    [Arguments]    ${yaml_file}
+    ${output}    OperatingSystem.Get File    ${yaml_file}
+    ${dico}    Safe Load    ${output}
+    [Return]    ${dico}
