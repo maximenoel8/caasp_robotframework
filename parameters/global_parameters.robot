@@ -24,3 +24,4 @@ ${CHECK_TERRAFORM}    False
 ${AIRGAPPED}      False
 ${AIRGAPPED_IP}    ${EMPTY}
 ${VM_VERSION}     SP1
+${CAASP_VERSION}    4
