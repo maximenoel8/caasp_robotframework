@@ -19,7 +19,7 @@ deploy reloader
     wait deploy    reloader-reloader -n kube-system
 
 deploy cert-manager
-    step     deploy cert-manager
+    step    deploy cert-manager
     helm    repo add jetstack https://charts.jetstack.io
     helm    repo update
     helm    install jetstack/cert-manager --name cert-manager --namespace kube-system --version v0.15.0 --set installCRDs=true
@@ -123,7 +123,7 @@ check expired date for ${service} is sup to ${time}
     ${result}    DateTime.Subtract Time From Time    ${expired_time}    ${time}
     Should Be True    ${result} > 0
 
-kubelet server certificate should be signed by kubelet-ca for each node
+kubelet server certificate should be signed by kubelet-ca for each nodes
     [Arguments]    ${cluster_number}=1
     ${master}    get master servers name    enable
     ${workers}    get worker servers name    enable
@@ -143,6 +143,7 @@ ${service} certificate is signed by ${issuer} on ${server_ip} ${port} with ${cer
     Comment    Remove File    ${LOGDIR}/tmp/${service}.crt
 
 clean cert-manager
+    step    clean cert-manager deployment
     Run Keyword And Ignore Error    helm    delete --purge reloader
     Run Keyword And Ignore Error    helm    delete --purge cert-manager
     Run Keyword And Ignore Error    kubectl    delete -f ${LOGDIR}/manifests/certificate/issuer.yaml
@@ -194,6 +195,7 @@ modify kucero command in manifest adding polling period and renew-before
     wait daemonset are ready    kucero
 
 modify kucero command in manifest removing polling period and renew-before
+    step    Reinitialize kucero conifguration
     kubectl    get ds/kucero -o yaml -n kube-system > ${LOGDIR}/kucero-backup.yaml
     ${service}    OperatingSystem.Get File    ${LOGDIR}/kucero-backup.yaml
     ${dico}    Safe Load    ${service}
@@ -203,7 +205,7 @@ modify kucero command in manifest removing polling period and renew-before
     ${output}    Dump    ${dico}
     Create File    ${LOGDIR}/kucero.yaml    ${output}
     kubectl    apply -f ${LOGDIR}/kucero.yaml --force
-    wait ${type} ${name} in ${namespace} is ready    kucero
+    wait daemonset are ready    kucero
 
 get number certificate files on ${node}
     [Documentation]    Return number of files in /etc/kubernetes
@@ -223,6 +225,7 @@ kucero is running on master
     Should Be Equal    ${number__of_pod_kucero}    ${number_of_master}
 
 current number of certificates are backuped
+    step    save numbers of certificates before renew
     ${nodes}    get master servers name
     ${number_backup}    Create Dictionary
     FOR    ${node}    IN    @{nodes}
@@ -241,6 +244,7 @@ kucero has renewed certificate
 
 number of certificates is superior
     [Arguments]    ${backup_number}
+    step    get current number of certificate
     ${new_certificate_number}    current number of certificates are backuped
     @{nodes}    get master servers name
     FOR    ${node}    IN    @{nodes}
@@ -258,7 +262,8 @@ certificate are correctly generated for all masters
         certificate are correctly generated    ${node}
     END
 
-serverTLSBoostrap exists in config map
+serverTLSBootstrap exists in config map
+    step    serverTLSbootstrap exists in config map
     ${version}    get kubernetes version    server    major
     ${output}    kubectl    get configmap kubelet-config-${version[0]} -n kube-system -o yaml
     ${dico_to}    Load    ${output}
@@ -267,6 +272,7 @@ serverTLSBoostrap exists in config map
     Should Be True    ${dico["serverTLSBootstrap"]}
 
 serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
+    step    check serverTLSbootsrap in config.yaml
     @{nodes}    get nodes name from CS
     FOR    ${node}    IN    @{nodes}
         ${output}    execute command with ssh    sudo cat /var/lib/kubelet/config.yaml    ${node}
@@ -286,6 +292,7 @@ _check certificate type
     END
 
 deleting kubelet-server-current.pem and restarting kubelet on ${node}
+    step    delete server certificate and reboot kubelet
     execute command with ssh    sudo rm /var/lib/kubelet/pki/kubelet-server-current.pem    ${node}
     execute command with ssh    sudo systemctl restart kubelet    ${node}
     Wait Until Keyword Succeeds    2 min    5 sec    SSHLibrary.File Should Exist    /var/lib/kubelet/pki/kubelet-server-current.pem

@@ -194,9 +194,10 @@ wait ${type} ${name} in ${namespace} is ready
         ${lines}    Split To Lines    ${result}
         ${elements}    Split String    ${lines[1]}
         Should Be Equal    ${elements[0]}    ${name}
-        ${status}    Set Variable If    "${elements[2]}"=="True"    True    False
+        ${status}    Set Variable If    "${elements[1]}"=="True"    True    False
         Exit For Loop If    ${status}
     END
+    Should Not Be Equal    ${i}    59
 
 get kubernetes version
     [Arguments]    ${type}=all    ${format}=minor    # format can be minor ( return 1.x.x ) or major ( return 1.x )
@@ -228,3 +229,4 @@ wait daemonset are ready
         ${status}    Set Variable If    ${elements[1]}==${elements[3]}    True    False
         Exit For Loop If    ${status}
     END
+    Should Not Be Equal    ${i}    59

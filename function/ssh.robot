@@ -13,8 +13,9 @@ open ssh session
     Run Keyword If    "${proxy_cmd}"=="${EMPTY}"    Login With Public Key    ${VM_USER}    data/id_shared
     ...    ELSE    Login With Public Key    ${VM_USER}    data/id_shared    proxy_cmd=${proxy_cmd}
 
-reinitialize skuba session
+refresh ssh session
     [Arguments]    ${cluster_number}=1
+    step    refresh ssh session
     Close All Connections
     create ssh session with workstation and nodes
 

@@ -7,7 +7,7 @@ Resource          ../function/tests/monitoring/monitoring.robot
 *** Test Cases ***
 check kubelet server certificate is the one signed by kubelet-ca for each nodes
     [Tags]    release
-    Then kubelet server certificate should be signed by kubelet-ca for each node
+    Then kubelet server certificate should be signed by kubelet-ca for each nodes
 
 check cert-manager correctl do the certificate rotation for dex and gangway when certificate is expired
     [Tags]    release
@@ -28,9 +28,11 @@ check cert-manager correctl do the certificate rotation for dex and gangway when
     [Teardown]    clean cert-manager
 
 check kucero is correctly renewing certificates
+    [Setup]    refresh ssh session
+    refresh ssh session
     And kucero is running on master
     And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
-    And serverTLSBoostrap exists in config map
+    And serverTLSBootstrap exists in config map
     ${current_files_number}    And current number of certificates are backuped
     When modify kucero command in manifest adding polling period and renew-before
     And kucero has renewed certificate
@@ -39,10 +41,11 @@ check kucero is correctly renewing certificates
     [Teardown]    modify kucero command in manifest removing polling period and renew-before
 
 check csr server is correctly generated new kubelet certificate
+    [Setup]    refresh ssh session
     ${node}    Set Variable    ${CLUSTER_PREFIX}-1-master-0
     And kucero is running on master
     And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
-    And serverTLSBoostrap exists in config map
+    And serverTLSBootstrap exists in config map
     ${current_files_number}    and get number of files in /var/lib/kubelet/pki on ${node}
     When deleting kubelet-server-current.pem and restarting kubelet on ${node}
     then csr is generated and approve for ${node}
