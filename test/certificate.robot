@@ -52,15 +52,31 @@ check csr server is correctly generated new kubelet certificate
     And number of certificate in /var/lib/kubelet/pki is superior    ${current_files_number[1]}    ${node}
 
 check oidc-dex and oidc-gangway signed by custom CA certificate and key are correctly manage by cert-manager
+    Set Test Variable    ${issuer_CN}    noca-kubernetes-ca
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
     and deploy cert-manager
-    and create CA    custom-kubernetes-ca
-    and create kubernetes CA issuer secret    ${LOGDIR}/certificate/custom-kubernetes-ca    custom-kubernetes-ca
-    When create and apply rotation certificate manifest for    oidc-dex    custom-kubernetes-ca    12h    6h
-    And create and apply rotation certificate manifest for    oidc-gangway    custom-kubernetes-ca    12h    6h
-    Then addon oidc-dex certificate is correctly generated in certificate status by custom-kubernetes-ca
-    And addon oidc-gangway certificate is correctly generated in certificate status by custom-kubernetes-ca
-    And oidc-dex certificate is signed by custom-kubernetes-ca on ${IP_LB_1} 32000 with ${LOGDIR}/certificate/custom-kubernetes-ca/ca.crt
-    And oidc-ganway certificate is signed by custom-kubernetes-ca on ${IP_LB_1} 32001 with ${LOGDIR}/certificate/custom-kubernetes-ca/ca.crt
+    And create CA    ${issuer_CN}
+    and create kubernetes CA issuer secret    ${LOGDIR}/certificate/${issuer_CN}    ${issuer_CN}
+    When create and apply rotation certificate manifest for    oidc-dex    ${issuer_CN}    12h    6h
+    And create and apply rotation certificate manifest for    oidc-gangway    ${issuer_CN}    12h    6h
+    Then addon oidc-dex certificate is correctly generated in certificate status by ${issuer_CN}
+    And addon oidc-gangway certificate is correctly generated in certificate status by ${issuer_CN}
+    And addon oidc-dex certificate is signed by ${issuer_CN} on ${IP_LB_1} 32000 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt
+    And addon oidc-ganway certificate is signed by ${issuer_CN} on ${IP_LB_1} 32001 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt
+    [Teardown]    clean cert-manager
+
+check oidc-dex and oidc-gangway signed by custom CA certificate signed by kubernetes-ca and key are correctly manage by cert-manager
+    Set Test Variable    ${issuer_CN}    customize-kubernetes-ca
+    and deploy reloader
+    and annotate dex gangway and metrics secret for reload
+    and deploy cert-manager
+    And create CA with CA signing request    ${issuer_CN}
+    and create kubernetes CA issuer secret    ${LOGDIR}/certificate/${issuer_CN}    ${issuer_CN}
+    When create and apply rotation certificate manifest for    oidc-dex    ${issuer_CN}    12h    6h
+    And create and apply rotation certificate manifest for    oidc-gangway    ${issuer_CN}    12h    6h
+    Then addon oidc-dex certificate is correctly generated in certificate status by ${issuer_CN}
+    And addon oidc-gangway certificate is correctly generated in certificate status by ${issuer_CN}
+    And addon oidc-dex certificate is signed by ${issuer_CN} on ${IP_LB_1} 32000 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt ${CLUSTERDIR}_1/pki/ca.crt
+    And addon oidc-ganway certificate is signed by ${issuer_CN} on ${IP_LB_1} 32001 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt ${CLUSTERDIR}_1/pki/ca.crt
     [Teardown]    clean cert-manager

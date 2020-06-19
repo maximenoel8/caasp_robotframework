@@ -67,3 +67,9 @@ create CA
     Create Directory    ${LOGDIR}/certificate/${service}
     ${start_date}    ${end_date}    generate start_date and end_date    ${duration}
     generate_self_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/ca.crt    ${LOGDIR}/certificate/${service}/ca.key    ${start_date}    ${end_date}    CA=True
+
+create CA with CA signing request
+    [Arguments]    ${service}    ${duration}=87600 hours
+    Create Directory    ${LOGDIR}/certificate/${service}
+    ${start_date}    ${end_date}    generate start_date and end_date    ${duration}
+    generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/ca.crt    ${LOGDIR}/certificate/${service}/ca.key    ${WORKDIR}/cluster_1/pki/ca.crt    ${WORKDIR}/cluster_1/pki/ca.key    ${start_date}    ${end_date}    CA=True

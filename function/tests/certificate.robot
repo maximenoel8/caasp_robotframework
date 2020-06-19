@@ -34,6 +34,8 @@ create and apply rotation certificate manifest for
     _create certificate rotation manifest    ${service}    ${common_name}    ${SAN}    ${issuer}    ${duration}    ${renew_before}
     kubectl    apply -f ${LOGDIR}/${service}-certificate.yaml
     wait certificate ${service}-cert in kube-system is ready
+    kubectl    rollout restart deployment/${service} -n kube-system
+    wait deploy    ${service} -n kube-system
 
 _create certificate rotation manifest
     [Arguments]    ${service}    ${common_name}    ${SAN}    ${issuer}=kubernetes-ca    ${duration}=8760    ${renew_before}=720
@@ -130,12 +132,12 @@ kubelet server certificate should be signed by kubelet-ca for each nodes
     ${nodes}    Combine Lists    ${master}    ${workers}
     FOR    ${node}    IN    @{nodes}
         ${server_ip}    get node ip from CS    ${node}
-        kubelet server certificate is signed by kubelet-ca on ${server_ip} 10250 with ${CLUSTER_DIR}_${cluster_number}/pki/kubelet-ca.crt
+        addon kubelet server certificate is signed by kubelet-ca on ${server_ip} 10250 with ${CLUSTER_DIR}_${cluster_number}/pki/kubelet-ca.crt
     END
 
-${service} certificate is signed by ${issuer} on ${server_ip} ${port} with ${certificate}
+addon ${service} certificate is signed by ${issuer} on ${server_ip} ${port} with ${certificate}
     Create Directory    ${LOGDIR}/tmp
-    ${authority}    Create List    ${certificate}
+    ${authority}    Split String    ${certificate}
     ${issuer_from_file}    get_certificate_from_client    ${server_ip}    ${port}    ${LOGDIR}/tmp/${service}.crt
     Should Contain    ${issuer_from_file}    /CN=${issuer}
     ${status}    verify_certificate_chain    ${LOGDIR}/tmp/${service}.crt    ${authority}
@@ -148,7 +150,7 @@ clean cert-manager
     Run Keyword And Ignore Error    helm    delete --purge cert-manager
     Run Keyword And Ignore Error    kubectl    delete -f ${LOGDIR}/manifests/certificate/issuer.yaml
     Run Keyword And Ignore Error    kubectl    delete secret kubernetes-ca -n kube-system
-    Run Keyword And Ignore Error    kubectl    delete secret custom-kubernetes-ca -n kube-system
+    Run Keyword And Ignore Error    kubectl    delete secret ${issuer_CN} -n kube-system
 
 backup certificate files from server
     [Arguments]    ${node}    ${cluster_number}=1

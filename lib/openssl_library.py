@@ -94,7 +94,8 @@ def _load_key(KEY_FILE):
 
 
 # a certificate signing request (csr)
-def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, CA_key_file, start_date, end_date, SAN):
+def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, CA_key_file, start_date, end_date,
+                                    SAN=None, CA=False):
     logging.debug(SAN)
 
     cacert = _load_certificate(CA_cert_file)
@@ -116,7 +117,8 @@ def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, 
     selfsignedcert.set_issuer(cacert.get_subject())
     selfsignedcert.set_version(2)
     selfsignedcert.set_pubkey(csrrequest.get_pubkey())
-    selfsignedcert.add_extensions(_create_x509_extension_for_server(SAN))
+    extension = _create_x509_extension_for_CA() if CA else _create_x509_extension_for_server(SAN)
+    selfsignedcert.add_extensions(extension)
     selfsignedcert.sign(cakey, "sha256")
     _write_key_certificate(CERT_FILE, KEY_FILE, selfsignedcert, psec)
 
