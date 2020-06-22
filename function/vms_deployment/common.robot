@@ -18,7 +18,7 @@ clone skuba locally
     execute command localy    git clone https://github.com/SUSE/skuba.git ${WORKDIR}/skuba
     execute command localy    cd ${WORKDIR}/skuba && git checkout ${GIT_BRANCH}
 
-copy terraform configuration from skuba folder
+copy terraform configuration
     log    ${NUMBER_OF_CLUSTER}
     ${limit}    Evaluate    ${NUMBER_OF_CLUSTER}+1
     FOR    ${cluster_number}    IN RANGE    1    ${limit}
