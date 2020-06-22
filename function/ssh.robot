@@ -42,7 +42,7 @@ create ssh session for workers
     @{nodes}    get worker servers name    cluster_number=${cluster_number}
     FOR    ${node}    IN    @{nodes}
         ${ip}    get node ip from CS    ${node}
-        ${proxy}    Set Variable If    "${PLATFORM}"=="aws"    ssh -o BatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l ec2-user -i ${DATADIR}/id_shared -W ${ip}:22 ${WORKSTATION_${cluster_number}}    ${EMPTY}
+        ${proxy}    Set Variable If    "${PLATFORM}"=="aws" or "${PLATFORM}"=="azure"    ssh -o BatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l ${VM_USER} -i ${DATADIR}/id_shared -W ${ip}:22 ${WORKSTATION_${cluster_number}}    ${EMPTY}
         open ssh session    ${node}    proxy_cmd=${proxy}    cluster_number=${cluster_number}
     END
 
