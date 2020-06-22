@@ -13,16 +13,19 @@ repo for skuba build
     Set To Dictionary    ${LB_REPO_LIST}    &{repos_lb}
 
 repo for DEV
-    Run keyword if    ${CAASP_VERSION}==4    Set To Dictionary    ${REPOS_LIST}    caasp_devel=http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_${VM_VERSION}/    ELSE IF ${CAASP_VERSION}==5 and "${VM_VERSION}"=="SP2"    Set To Dictionary    ${REPOS_LIST}    caasp_devel=http://download.suse.de/ibs/Devel:/CaaSP:/5/SLE_15_${VM_VERSION}/
-    ...    ELSE    log    Caasp 5 can not be deploy with sles sp1    ERROR
+    Run keyword if    "${CAASP_VERSION}"=="4"    Set To Dictionary    ${REPOS_LIST}    caasp_devel=http://download.suse.de/ibs/Devel:/CaaSP:/4.0/SLE_15_${VM_VERSION}/
+    ...    ELSE IF     ${CAASP_VERSION}==5 and "${VM_VERSION}"=="SP2"    Set To Dictionary    ${REPOS_LIST}    caasp_devel=http://download.suse.de/ibs/Devel:/CaaSP:/5/SLE_15_${VM_VERSION}/
+    ...    ELSE    Fail    Caasp 5 can not be deploy with sles sp1
 
 repo for RELEASE
-    Run keyword if    ${CAASP_VERSION}==4 and "${VM_VERSION}"=="SP1"    Set To Dictionary    ${REPOS_LIST}    caasp_release=http://download.suse.de/ibs/SUSE:/SLE-15-${VM_VERSION}:/Update:/Products:/CASP40/standard/    ELSE IF ${CAASP_VERSION}==5 and "${VM_VERSION}"=="SP2"    Set To Dictionary    ${REPOS_LIST}    caasp_release=http://download.suse.de/ibs/SUSE:/SLE-15-${VM_VERSION}:/Update:/Products:/CaaSP:/5/standard/
-    ...    ELSE    log    caasp ${CAASP_VERSION} can not be deploy with sles ${VM_VERSION}    ERROR
+    Run keyword if    "${CAASP_VERSION}"=="4" and "${VM_VERSION}"=="SP1"    Set To Dictionary    ${REPOS_LIST}    caasp_release=http://download.suse.de/ibs/SUSE:/SLE-15-${VM_VERSION}:/Update:/Products:/CASP40/standard/
+    ...    ELSE IF    "${CAASP_VERSION}"=="5" and "${VM_VERSION}"=="SP2"    Set To Dictionary    ${REPOS_LIST}    caasp_release=http://download.suse.de/ibs/SUSE:/SLE-15-${VM_VERSION}:/Update:/Products:/CaaSP:/5/standard/
+    ...    ELSE    Fail    caasp ${CAASP_VERSION} can not be deploy with sles ${VM_VERSION}
 
 repo for STAGING
-    Run keyword if    ${CAASP_VERSION}==4 and "${VM_VERSION}"=="SP1"    Set To Dictionary    ${REPOS_LIST}    caasp_staging=http://download.suse.de/ibs/SUSE:/SLE-15-${VM_VERSION}:/Update:/Products:/CASP40/staging/    ELSE IF ${CAASP_VERSION}==5 and "${VM_VERSION}"=="SP2"    Set To Dictionary    ${REPOS_LIST}    caasp_staging=http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/CaaSP:/5/staging/
-    ...    ELSE    log    caasp ${CAASP_VERSION} can not be deploy with sles ${VM_VERSION}    ERROR
+    Run keyword if    "${CAASP_VERSION}"=="4" and "${VM_VERSION}"=="SP1"    Set To Dictionary    ${REPOS_LIST}    caasp_staging=http://download.suse.de/ibs/SUSE:/SLE-15-${VM_VERSION}:/Update:/Products:/CASP40/staging/
+    ...    ELSE IF    "${CAASP_VERSION}"=="5" and "${VM_VERSION}"=="SP2"    Set To Dictionary    ${REPOS_LIST}    caasp_staging=http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/CaaSP:/5/staging/
+    ...    ELSE    Fail    caasp ${CAASP_VERSION} can not be deploy with sles ${VM_VERSION}
 
 repo for pattern new version
     Set To Dictionary    ${REPOS_LIST}    &{INCIDENT_REPO}
