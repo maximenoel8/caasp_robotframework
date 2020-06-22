@@ -105,7 +105,7 @@ create tls secret manifest
     Set To Dictionary    ${manifest_dico["data"]}    tls.crt=${service_crt}
     Set To Dictionary    ${manifest_dico["data"]}    tls.key=${service_key}
     Run Keyword If    ${ca}    Set To Dictionary    ${manifest_dico["data"]}    ca.crt=${ca_crt}
-    ...    ELSE    Remove From Dictionary    ${manifest_dico}    ca.crt
+    ...    ELSE    Remove From Dictionary    ${manifest_dico["data"]}    ca.crt
     ${dico}    Dump    ${manifest_dico}
     Create File    ${LOGDIR}/certificate/${service}/${service}-cert.yaml    ${dico}
 

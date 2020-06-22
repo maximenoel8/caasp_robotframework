@@ -176,7 +176,7 @@ cluster is deployed
     END
     kured config    off
     step    cluster is successfully deploy
-    step    cluster configuration is available in ${CLUSTERDIR}
+    step    cluster configuration is available in ${CLUSTERDIR}_1
     Set Global Variable    ${CLUSTER_STATUS}    PASS
     step    Checking cluster is correctly running ...
 
