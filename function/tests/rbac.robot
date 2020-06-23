@@ -7,6 +7,7 @@ Library           SSHLibrary
 Resource          selenium.robot
 Library           ../../lib/firefox_profile.py
 Resource          ../setup_environment.robot
+Library           ../../lib/base64_encoder.py
 
 *** Keywords ***
 389ds server is deployed
@@ -54,7 +55,7 @@ authentication with skuba CI (users)
 
 authentication with WebUI user
     step    checking authentification with WebUI ( user )
-    deploy selenium pod
+    selenium is deployed
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb || true
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com

@@ -18,6 +18,6 @@ spec:
         - ip: "10.84.73.122"
       containers:
         - name: selenium
-          image: selenium/standalone-firefox:3.141.59-xenon
+          image: selenium/standalone-firefox:latest
           ports:
             - containerPort: 4444
