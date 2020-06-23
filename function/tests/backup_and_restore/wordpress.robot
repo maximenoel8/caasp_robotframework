@@ -7,9 +7,11 @@ Resource          ../certificate.robot
 
 *** Keywords ***
 wordpress is deployed
-    deploy mysql
+    [Arguments]    ${maria}=True
+    Run Keyword unless    ${maria}    deploy mysql
     create wordpress certificate
-    helm    install --name wordpress --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values.yaml bitnami/wordpress
+    Run Keyword if    ${maria}    helm    install --name wordpress --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values-maria.yaml bitnami/wordpress
+    ...    ELSE    helm    install --name wordpress --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values.yaml bitnami/wordpress
     wordpress is up
     step    wordpress is deployed with pv
 
@@ -42,7 +44,7 @@ check file exist in wordpress pod
     Should Contain    ${output}    picture.png
 
 wordpress volumes are annotated to be backed up
-    kubectl    -n wordpress annotate pod/mysql-master-0 backup.velero.io/backup-volumes=data,config
+    kubectl    -n wordpress annotate pod/wordpress-mariadb-0 backup.velero.io/backup-volumes=data,config
     kubectl    -n wordpress annotate pod/${wordpress_pod_name} backup.velero.io/backup-volumes=wordpress-data
 
 wordpress is up

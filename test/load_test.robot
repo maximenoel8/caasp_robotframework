@@ -12,7 +12,7 @@ wordpress load test
     And helm is installed
     And storageclass is deployed
     And nginx is deployed
-    And wordpress is deployed
+    And wordpress is deployed    maria=False
     And locust is deployed
     When run load testing    600    5
     Then fail rate should be inferior to    15
@@ -24,7 +24,7 @@ wordpress with hpa test
     And helm is installed
     And storageclass is deployed
     And nginx is deployed
-    And wordpress is deployed
+    And wordpress is deployed    maria=False
     And locust is deployed
     And hpa is apply on    wordpress
     When swarm load test    800    5
