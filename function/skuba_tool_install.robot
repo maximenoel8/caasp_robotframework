@@ -34,8 +34,8 @@ _skuba from pattern
     ${version}    Set Variable If    "${VM_VERSION}"=="SP1"    15.1    15.2
     ${scc_version}    Set Variable If    ${CAASP_VERSION}==4    4.0    5
     execute command with ssh    sudo SUSEConnect -p sle-module-containers/${version}/x86_64    skuba_station_${cluster_number}
-    execute command with ssh    sudo SUSEConnect -p caasp/${scc_version}/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
-    Run Keyword If    ${OLD}    execute command with ssh    sudo zypper mr -d SUSE-CAASP-4.0-Updates    skuba_station_${cluster_number}
+    execute command with ssh    sudo SUSEConnect -p caasp/${scc_version}/x86_64 -r ${CAASP_KEY_V${CAASP_VERSION}}    skuba_station_${cluster_number}
+    Run Keyword If    ${OLD}    execute command with ssh    sudo zypper mr -d SUSE-CAASP-${scc_version}-Updates    skuba_station_${cluster_number}
     execute command with ssh    sudo zypper -n in -t pattern SUSE-CaaSP-Management    skuba_station_${cluster_number}
     Run Keyword If    '${RPM}'!='${EMPTY}' and not ${UPGRADE}    add repo from incident and update    ${cluster_number}
     Run Keyword If    '${REGISTRY}'!='${EMPTY}' and not ${UPGRADE}    add container repo file to nodes    ${cluster_number}
