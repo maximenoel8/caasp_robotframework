@@ -32,7 +32,7 @@ install skuba
 _skuba from pattern
     [Arguments]    ${cluster_number}
     ${version}    Set Variable If    "${VM_VERSION}"=="SP1"    15.1    15.2
-    ${scc_version}    Set Variable If    ${KUBA_VERSION}==4    4.0    5
+    ${scc_version}    Set Variable If    ${CAASP_VERSION}==4    4.0    5
     execute command with ssh    sudo SUSEConnect -p sle-module-containers/${version}/x86_64    skuba_station_${cluster_number}
     execute command with ssh    sudo SUSEConnect -p caasp/${scc_version}/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
     Run Keyword If    ${OLD}    execute command with ssh    sudo zypper mr -d SUSE-CAASP-4.0-Updates    skuba_station_${cluster_number}
