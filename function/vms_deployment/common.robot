@@ -23,6 +23,7 @@ copy terraform configuration
     ${limit}    Evaluate    ${NUMBER_OF_CLUSTER}+1
     FOR    ${cluster_number}    IN RANGE    1    ${limit}
         Copy Directory    ${TEMPLATE_TERRAFORM_DIR}/${PLATFORM}    ${TERRAFORMDIR}/cluster_${cluster_number}
+        create register scc file    ${TERRAFORMDIR}/cluster_${cluster_number}
     END
     Comment    Remove Directory    ${WORKDIR}/skuba    True
 
@@ -101,6 +102,6 @@ create register scc file
     [Arguments]    ${terraform_folder}
     ${sles_version}    Set Variable If    "${VM_VERSION}"=="SP1"    15.1    15.2
     ${scc_version}    Set Variable If    "${CAASP_VERSION}"=="4"    4.0    5
-    Create File    ${terraform_folder}/cloud-init/register-scc.tpl     \ - [ SUSEConnect, -r, ${caasp_registry_code} ]
-    Append To File    ${terraform_folder}/cloud-init/register-scc.tpl     \ - [ SUSEConnect, -p, sle-module-containers/${sles_version}/x86_64 ]
-    Append To File    ${terraform_folder}/cloud-init/register-scc.tpl     \ - [ SUSEConnect, -p, caasp/${scc_version}/x86_64, -r, ${caasp_registry_code} ]
+    Create File    ${terraform_folder}/cloud-init/register-scc.tpl     \ - [ SUSEConnect, -r, \$\{caasp_registry_code\}]\n
+    Append To File    ${terraform_folder}/cloud-init/register-scc.tpl     \ - [ SUSEConnect, -p, sle-module-containers/${sles_version}/x86_64 ]\n
+    Append To File    ${terraform_folder}/cloud-init/register-scc.tpl     \ - [ SUSEConnect, -p, caasp/${scc_version}/x86_64, -r, \$\{caasp_registry_code\} ]
