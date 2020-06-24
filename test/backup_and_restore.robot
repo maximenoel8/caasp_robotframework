@@ -61,6 +61,7 @@ etcd-backup
 
 Restore all master nodes - etcd cluster and data
     [Tags]    backup
+    Given cluster running
     And helm is installed
     And rsyslog is deployed
     And etcd-backup job is executed

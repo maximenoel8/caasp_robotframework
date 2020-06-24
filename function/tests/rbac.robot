@@ -1,6 +1,5 @@
 *** Settings ***
 Resource          ../commands.robot
-Library           ../../lib/yaml_editor.py
 Resource          ../../parameters/389ds_parameters.robot
 Resource          ../cluster_helpers.robot
 Library           SSHLibrary
@@ -88,7 +87,7 @@ dex is configured for
 
 clean 389ds server
     step    clean 389ds service
-    kubectl    delete -f "${DATADIR}/389dss"
+    kubectl    delete -f "${DATADIR}/manifests/389dss"
     [Teardown]    teardown_test
 
 openldap server is deployed
@@ -165,6 +164,7 @@ _configure dex file config for openldap
     Set To Dictionary    ${sub_dico}    enablePasswordDB=${false}
     ${new_dico}    Dump    ${sub_dico}
     Set To Dictionary    ${dico["data"]}    config.yaml=${new_dico}
+    [Return]    ${dico}
 
 _configure dex file config for static password
     [Arguments]    ${dico}
