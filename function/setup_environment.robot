@@ -96,7 +96,6 @@ restore /etc/hosts
 
 setup environment for suite
     Run Keyword If    "${CLUSTER}"==""    generate cluster name
-    Step    Cluster name is ${CLUSTER_PREFIX}
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
     Set Global Variable    ${TEMPLATE_TERRAFORM_DIR}    ${CURDIR}/../terraform
@@ -112,3 +111,4 @@ setup environment for suite
     ${SSH_PUB_KEY}    Remove String    ${SSH_PUB_KEY}    \n
     Set Global Variable    ${SSH_PUB_KEY}
     setup environment
+    Step    Cluster name is ${CLUSTER_PREFIX}
