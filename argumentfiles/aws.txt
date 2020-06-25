@@ -1,5 +1,5 @@
 -v PREFIX:mnoel
--v NUMBER:1:1
+-v NUMBER:1:2
 -v PLATFORM:aws
 -v keep:True
 -v VM_USER:ec2-user
