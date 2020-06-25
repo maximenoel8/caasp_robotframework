@@ -9,3 +9,4 @@ pyopenssl
 pyasn1~=0.4.8
 ipaddress
 pyasn1-modules
+paramiko>=2.7.1
