@@ -1,16 +1,12 @@
 pipeline {
-    agent {
-        any
-    }
+    agent any
     environment {
+        robotenv = credentials('env.robot')
     }
     stages {
         stage('intialize') {
             steps {
-                withCredentials([file(credentialsId: 'env.robot', variable: 'robotenv')])
-                        {
-                            sh "cp \$robotenv parameters"
-                        }
+                sh "cp \$robotenv parameters"
                 sh 'sudo chmod 0600 data/id_shared'
                 sh 'sudo pip install -r requirements.txt'
             }
