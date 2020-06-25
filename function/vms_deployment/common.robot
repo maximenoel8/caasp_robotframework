@@ -39,8 +39,9 @@ run terraform
 configure registration auto tfvars vmware
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        ${terraform_tvars}    OperatingSystem.Get File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars
-        ${terraform_tvars}    Replace String    ${terraform_tvars}    \#caasp_registry_code = ""    caasp_registry_code = "${CAASP_KEY_V${CAASP_VERSION}}"
+        Comment    ${terraform_tvars}    OperatingSystem.Get File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars
+        Comment    ${terraform_tvars}    Replace String    ${terraform_tvars}    \#caasp_registry_code = ""    caasp_registry_code = "${CAASP_KEY_V${CAASP_VERSION}}"
+        Create File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars    caasp_registry_code = "${CAASP_KEY_V${CAASP_VERSION}}"
         Comment    ${terraform_tvars}    Replace String    ${terraform_tvars}    \#rmt_server_name = "rmt.example.com"    rmt_server_name = "saturn.qa.suse.cz"
         Create File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars    ${terraform_tvars}
     END
