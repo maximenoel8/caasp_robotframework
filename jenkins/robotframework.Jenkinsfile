@@ -15,13 +15,10 @@ pipeline {
         }
 //        parallel {
             stage('01. Build cluster from pattern on OpenStack') {
-                environment {
-                    String charset = (('a'..'z') + ('0'..'9')).join()
-                    Integer length = 4
-                    String randomString1 = RandomStringUtils.random(length, charset.toCharArray())
-                }
+
                 steps {
-                    sh 'echo \$randomString1'
+                    sh 'random=$(python3 $WORKSPACE/lib/generate_random.py)'
+                    sh 'echo \$random'
 //                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$randomString1 --outputdir reports1 ./'
 //                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$randomString1 --rerunfailed reports1/output.xml --outputdir reports ./'
 //                        sh 'python3 -m robot.rebot --merge --output reports/output.xml -l reports/log.html -r reports/report.html reports1/output.xml reports/output.xml'
