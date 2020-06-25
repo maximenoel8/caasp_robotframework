@@ -3,7 +3,7 @@ Resource          ../function/tests/centralized_logging.robot
 Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
-Centralized logging
+centralized logging
     [Tags]    release
     Given cluster running
     And helm is installed

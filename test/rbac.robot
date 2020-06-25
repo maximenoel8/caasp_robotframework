@@ -28,7 +28,6 @@ openldap authentication
     [Teardown]    clean up openldap
 
 389ds authentication with dex configure using kustomize
-    [Tags]    release
     Given cluster running
     And helm is installed
     And 389ds server is deployed

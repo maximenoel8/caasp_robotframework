@@ -9,7 +9,7 @@ check kubelet server certificate is the one signed by kubelet-ca for each nodes
     [Tags]    release
     Then kubelet server certificate should be signed by kubelet-ca for each nodes
 
-check cert-manager correctl do the certificate rotation for dex and gangway when certificate is expired
+check cert-manager correctly do the certificate rotation for dex and gangway when certificate is expired
     [Tags]    release
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
@@ -28,6 +28,7 @@ check cert-manager correctl do the certificate rotation for dex and gangway when
     [Teardown]    clean cert-manager
 
 check kucero is correctly renewing certificates
+    [Tags]    release    v5
     [Setup]    refresh ssh session
     refresh ssh session
     And kucero is running on master
@@ -41,6 +42,7 @@ check kucero is correctly renewing certificates
     [Teardown]    modify kucero command in manifest removing polling period and renew-before
 
 check csr server is correctly generated new kubelet certificate
+    [Tags]    release    v5
     [Setup]    refresh ssh session
     ${node}    Set Variable    ${CLUSTER_PREFIX}-1-master-0
     And kucero is running on master
@@ -52,6 +54,7 @@ check csr server is correctly generated new kubelet certificate
     And number of certificate in /var/lib/kubelet/pki is superior    ${current_files_number[1]}    ${node}
 
 check oidc-dex and oidc-gangway signed by custom CA certificate and key are correctly manage by cert-manager
+    [Tags]    release
     Set Test Variable    ${issuer_CN}    noca-kubernetes-ca
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
@@ -67,6 +70,7 @@ check oidc-dex and oidc-gangway signed by custom CA certificate and key are corr
     [Teardown]    clean cert-manager
 
 check oidc-dex and oidc-gangway signed by custom CA certificate signed by kubernetes-ca and key are correctly manage by cert-manager
+    [Tags]    release
     Set Test Variable    ${issuer_CN}    customize-kubernetes-ca
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
