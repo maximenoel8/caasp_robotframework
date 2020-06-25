@@ -13,7 +13,7 @@ pipeline {
                 sh 'sudo pip install -r requirements.txt'
             }
         }
-        parallel {
+//        parallel {
             stage('01. Build cluster from pattern on OpenStack') {
                 environment {
                     String charset = (('a'..'z') + ('0'..'9')).join()
@@ -47,7 +47,7 @@ pipeline {
 //                        }
 //                    }
             }
-        }
+//        }
 
 //            stage('02. Build cluster from pattern on VMWARE with CPI activated and use default dns') {
 //                steps {
