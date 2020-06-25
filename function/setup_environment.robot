@@ -53,7 +53,7 @@ load vm ip
     Run Keyword if    "${status}"=="FAIL" or not ${integrity_status}    create cluster_state
     set global ip variable
 
-create cluster folder
+generate cluster name
     ${random}    Generate Random String    4    [LOWER][NUMBERS]
     Set Global Variable    ${CLUSTER}    cluster-${random}
     Log    ${CLUSTER}    console=yes    level=HTML
@@ -96,8 +96,7 @@ restore /etc/hosts
     execute command localy    sudo cp ${LOGDIR}/hosts.backup /etc/hosts
 
 setup environment for suite
-    Run Keyword If    "${CLUSTER}"==""    create cluster folder
-    Log    ${CLUSTER}    console=yes    level=HTML
+    Run Keyword If    "${CLUSTER}"==""    generate cluster name
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
     Set Global Variable    ${TEMPLATE_TERRAFORM_DIR}    ${CURDIR}/../terraform
