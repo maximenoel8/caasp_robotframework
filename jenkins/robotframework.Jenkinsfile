@@ -16,94 +16,96 @@ pipeline {
             parallel {
 
                 stage('01. Build cluster from pattern on OpenStack') {
+                    environment{
+                        random = "${sh(script:'python3 $WORKSPACE/lib/generate_random.py', returnStdout: true).trim()}"
+                    }
                     steps {
-                        sh 'random=$(python3 $WORKSPACE/lib/generate_random.py)'
                         sh 'echo \$random'
-                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$random --outputdir reports1 ./'
-                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$random --rerunfailed reports1/output.xml --outputdir reports ./'
-                        sh 'python3 -m robot.rebot --merge --output reports/output.xml -l reports/log.html -r reports/report.html reports1/output.xml reports/output.xml'
-                        sh 'exit 0'
+//                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$random --outputdir reports1 ./'
+//                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$random --rerunfailed reports1/output.xml --outputdir reports ./'
+//                        sh 'python3 -m robot.rebot --merge --output reports/output.xml -l reports/log.html -r reports/report.html reports1/output.xml reports/output.xml'
+//                        sh 'exit 0'
                     }
-                    post {
-                        always {
-                            script {
-                                step(
-                                        [
-                                                $class              : 'RobotPublisher',
-                                                outputPath          : 'reports',
-                                                outputFileName      : '**/output.xml',
-                                                reportFileName      : '**/report.html',
-                                                logFileName         : '**/log.html',
-                                                disableArchiveOutput: false,
-                                                passThreshold       : 50,
-                                                unstableThreshold   : 40,
-                                                otherFiles          : "**/*.png,**/*.jpg",
-                                        ]
-                                )
-                            }
-                        }
-                    }
+//                    post {
+//                        always {
+//                            script {
+//                                step(
+//                                        [
+//                                                $class              : 'RobotPublisher',
+//                                                outputPath          : 'reports',
+//                                                outputFileName      : '**/output.xml',
+//                                                reportFileName      : '**/report.html',
+//                                                logFileName         : '**/log.html',
+//                                                disableArchiveOutput: false,
+//                                                passThreshold       : 50,
+//                                                unstableThreshold   : 40,
+//                                                otherFiles          : "**/*.png,**/*.jpg",
+//                                        ]
+//                                )
+//                            }
+//                        }
+//                    }
                 }
 
-            stage('02. Build cluster from pattern on VMWARE with CPI activated and use default dns') {
-                steps {
-                    sh 'random=$(python3 $WORKSPACE/lib/generate_random.py)'
-                    sh 'echo \$random'
-                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random --outputdir reports1 ./'
-                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random --rerunfailed reports1/output.xml --outputdir reports ./'
-                    sh 'python3 -m robot.rebot --merge --output reports/output.xml -l reports/log.html -r reports/report.html reports1/output.xml reports/output.xml'
-                    sh 'exit 0'
-                }
-                post {
-                    always {
-                        script {
-                            step(
-                                    [
-                                            $class              : 'RobotPublisher',
-                                            outputPath          : 'reports',
-                                            outputFileName      : '**/output.xml',
-                                            reportFileName      : '**/report.html',
-                                            logFileName         : '**/log.html',
-                                            disableArchiveOutput: false,
-                                            passThreshold       : 50,
-                                            unstableThreshold   : 40,
-                                            otherFiles          : "**/*.png,**/*.jpg",
-                                    ]
-                            )
-                        }
-                    }
-                }
-            }
-//
-            stage('03. Build cluster from pattern on VMWARE with CPI activated and not use of the default dns') {
-                steps {
-                    sh 'random=$(python3 $WORKSPACE/lib/generate_random.py)'
-                    sh 'echo \$random'
-                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v CLUSTER:cluster-\$random --outputdir reports1 ./'
-                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v CLUSTER:cluster-\$random --rerunfailed reports1/output.xml --outputdir reports ./'
-                    sh 'python3 -m robot.rebot --merge --output reports/output.xml -l reports/log.html -r reports/report.html reports1/output.xml reports/output.xml'
-                    sh 'exit 0'
-                }
-                post {
-                    always {
-                        script {
-                            step(
-                                    [
-                                            $class              : 'RobotPublisher',
-                                            outputPath          : 'reports',
-                                            outputFileName      : '**/output.xml',
-                                            reportFileName      : '**/report.html',
-                                            logFileName         : '**/log.html',
-                                            disableArchiveOutput: false,
-                                            passThreshold       : 50,
-                                            unstableThreshold   : 40,
-                                            otherFiles          : "**/*.png,**/*.jpg",
-                                    ]
-                            )
-                        }
-                    }
-                }
-            }
+//            stage('02. Build cluster from pattern on VMWARE with CPI activated and use default dns') {
+//                steps {
+//                    sh 'random=$(python3 $WORKSPACE/lib/generate_random.py)'
+//                    sh 'echo \$random'
+//                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random --outputdir reports1 ./'
+//                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random --rerunfailed reports1/output.xml --outputdir reports ./'
+//                    sh 'python3 -m robot.rebot --merge --output reports/output.xml -l reports/log.html -r reports/report.html reports1/output.xml reports/output.xml'
+//                    sh 'exit 0'
+//                }
+//                post {
+//                    always {
+//                        script {
+//                            step(
+//                                    [
+//                                            $class              : 'RobotPublisher',
+//                                            outputPath          : 'reports',
+//                                            outputFileName      : '**/output.xml',
+//                                            reportFileName      : '**/report.html',
+//                                            logFileName         : '**/log.html',
+//                                            disableArchiveOutput: false,
+//                                            passThreshold       : 50,
+//                                            unstableThreshold   : 40,
+//                                            otherFiles          : "**/*.png,**/*.jpg",
+//                                    ]
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+////
+//            stage('03. Build cluster from pattern on VMWARE with CPI activated and not use of the default dns') {
+//                steps {
+//                    sh 'random=$(python3 $WORKSPACE/lib/generate_random.py)'
+//                    sh 'echo \$random'
+//                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v CLUSTER:cluster-\$random --outputdir reports1 ./'
+//                    sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v CLUSTER:cluster-\$random --rerunfailed reports1/output.xml --outputdir reports ./'
+//                    sh 'python3 -m robot.rebot --merge --output reports/output.xml -l reports/log.html -r reports/report.html reports1/output.xml reports/output.xml'
+//                    sh 'exit 0'
+//                }
+//                post {
+//                    always {
+//                        script {
+//                            step(
+//                                    [
+//                                            $class              : 'RobotPublisher',
+//                                            outputPath          : 'reports',
+//                                            outputFileName      : '**/output.xml',
+//                                            reportFileName      : '**/report.html',
+//                                            logFileName         : '**/log.html',
+//                                            disableArchiveOutput: false,
+//                                            passThreshold       : 50,
+//                                            unstableThreshold   : 40,
+//                                            otherFiles          : "**/*.png,**/*.jpg",
+//                                    ]
+//                            )
+//                        }
+//                    }
+//                }
+//            }
 //
 //            stage('04. Build cluster on AWS') {
 //                steps {
