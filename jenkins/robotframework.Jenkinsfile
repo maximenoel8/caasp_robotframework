@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        robotenv = credentials('env.robot')
+        robotenv = credentials('azure')
     }
     stages {
         stage('intialize') {
