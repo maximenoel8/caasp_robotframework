@@ -56,7 +56,6 @@ load vm ip
 generate cluster name
     ${random}    Generate Random String    4    [LOWER][NUMBERS]
     Set Global Variable    ${CLUSTER}    cluster-${random}
-    Log    ${CLUSTER}    console=yes    level=HTML
 
 check cluster deploy
     [Arguments]    ${cluster_number}=1
@@ -97,6 +96,7 @@ restore /etc/hosts
 
 setup environment for suite
     Run Keyword If    "${CLUSTER}"==""    generate cluster name
+    Step    Cluster name is ${CLUSTER_PREFIX}
     Set Global Variable    ${WORKDIR}    ${CURDIR}/../workdir/${CLUSTER}
     Set Global Variable    ${LOGDIR}    ${WORKDIR}/logs
     Set Global Variable    ${TEMPLATE_TERRAFORM_DIR}    ${CURDIR}/../terraform
