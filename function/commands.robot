@@ -56,7 +56,7 @@ helm
     [Arguments]    ${arguments}    ${cluster_number}=1
     Set Environment Variable    HELM_HOME    ${WORKDIR}/helm_${cluster_number}
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
-    ${output}    execute command localy    helm ${arguments}
+    ${output}    Wait Until Keyword Succeeds    3x    2s    execute command localy    helm ${arguments}
     [Return]    ${output}
 
 openssl
