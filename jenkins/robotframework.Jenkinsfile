@@ -20,13 +20,15 @@ pipeline {
                         random1 = "${sh(script: 'python3 $WORKSPACE/lib/generate_random.py', returnStdout: true).trim()}"
                     }
                     steps {
-                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$random1 --outputdir reports-build1-first ./'
-                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$random1 --rerunfailed reports-build1-first/output.xml --outputdir reports-build1 ./'
+                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v keep:True -v CLUSTER:cluster-\$random1 --outputdir reports-build1-first ./'
+                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v keep:True -v CLUSTER:cluster-\$random1 --rerunfailed reports-build1-first/output.xml --outputdir reports-build1 ./'
                         sh 'python3 -m robot.rebot --merge --output reports-build1/output.xml -l reports-build1/log.html -r reports-build1/report.html reports-build1-first/output.xml reports-build1/output.xml'
                         sh 'exit 0'
                     }
                     post {
                         always {
+                            // Cleaning up the cluster
+                            sh('python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random1 -T ./', label: 'Cluster cleanup')
                             script {
                                 step(
                                         [
@@ -54,12 +56,14 @@ pipeline {
                     }
                     steps {
                         sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v KEEP:True -v CLUSTER:cluster-\$random2 --outputdir reports-build2-first ./'
-                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v KEEP:False -v CLUSTER:cluster-\$random2 --rerunfailed reports-build2-first/output.xml --outputdir reports-build2 ./'
+                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v KEEP:True -v CLUSTER:cluster-\$random2 --rerunfailed reports-build2-first/output.xml --outputdir reports-build2 ./'
                         sh 'python3 -m robot.rebot --merge --output reports-build2/output.xml -l reports-build2/log.html -r reports-build2/report.html reports-build2/output.xml reports-build2-first/output.xml'
                         sh 'exit 0'
                     }
                     post {
                         always {
+                            // Cleaning up the cluster
+                            sh('python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random2 -T ./', label: 'Cluster cleanup')
                             script {
                                 step(
                                         [
@@ -88,12 +92,14 @@ pipeline {
                     }
                     steps {
                         sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v KEEP:True -v CLUSTER:cluster-\$random3 --outputdir reports-build3-first ./'
-                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v KEEP:False -v CLUSTER:cluster-\$random3 --rerunfailed reports-build3-first/output.xml --outputdir reports-build3 ./'
+                        sh 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v KEEP:True -v CLUSTER:cluster-\$random3 --rerunfailed reports-build3-first/output.xml --outputdir reports-build3 ./'
                         sh 'python3 -m robot.rebot --merge --output reports-build3/output.xml -l reports-build3/log.html -r reports-build3/report.html reports-build3/output.xml reports-build3-first/output.xml'
                         sh 'exit 0'
                     }
                     post {
                         always {
+                            // Cleaning up the cluster
+                            sh('python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random3 -T ./', label: 'Cluster cleanup')
                             script {
                                 step(
                                         [
