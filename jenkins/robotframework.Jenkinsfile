@@ -43,7 +43,6 @@ pipeline {
                                 )
                             }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random1/logs/**', allowEmptyArchive: true)
-                            cleanWs()
                         }
                     }
                 }
@@ -77,7 +76,6 @@ pipeline {
                                 )
                             }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random2/logs/**', allowEmptyArchive: true)
-                            cleanWs()
                         }
                     }
                 }
@@ -112,7 +110,6 @@ pipeline {
                                 )
                             }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random3/logs/**', allowEmptyArchive: true)
-                            cleanWs()
                         }
                     }
 
@@ -125,6 +122,11 @@ pipeline {
 //                        sh(script: 'docker run --rm -v $PWD:/app -v ${VMWARE_ENV_FILE}:/app/env-vmware.conf:ro -e SUFFIX=04-${SUFFIX} -e SCC validator:release -p vmware -n 1:3 -t base -e UPGRADE=after -e INCIDENT_RPM=$INCIDENT_RPM -e INCIDENT_REG=$INCIDENT_REG', label: 'Validator run')
 //                    }
 //                }
+            }
+            post {
+                always {
+                    cleanWs()
+                }
             }
         }
 
