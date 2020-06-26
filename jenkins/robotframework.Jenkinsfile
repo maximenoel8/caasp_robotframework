@@ -43,11 +43,7 @@ pipeline {
                                 )
                             }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random1/logs/**', allowEmptyArchive: true)
-                        }
-                    }
-                    cleanup {
-                        dir("${WORKSPACE}") {
-                            deleteDir()
+                            cleanWs()
                         }
                     }
                 }
@@ -81,11 +77,7 @@ pipeline {
                                 )
                             }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random2/logs/**', allowEmptyArchive: true)
-                        }
-                    }
-                    cleanup {
-                        dir("${WORKSPACE}") {
-                            deleteDir()
+                            cleanWs()
                         }
                     }
                 }
@@ -118,14 +110,12 @@ pipeline {
                                                 otherFiles          : "**/*.png,**/*.jpg",
                                         ]
                                 )
-                            } archiveArtifacts(artifacts: 'workdir/cluster-\$random3/logs/**', allowEmptyArchive: true)
+                            }
+                            archiveArtifacts(artifacts: 'workdir/cluster-\$random3/logs/**', allowEmptyArchive: true)
+                            cleanWs()
                         }
                     }
-                    cleanup {
-                        dir("${WORKSPACE}") {
-                            deleteDir()
-                        }
-                    }
+
                 }
 
 //
