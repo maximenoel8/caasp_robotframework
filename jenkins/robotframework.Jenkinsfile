@@ -42,9 +42,16 @@ pipeline {
                                         ]
                                 )
                             }
+                            archiveArtifacts(artifacts: 'cluster*/**/*', allowEmptyArchive: true)
+                        }
+                    }
+                    cleanup {
+                        dir("${WORKSPACE}") {
+                            deleteDir()
                         }
                     }
                 }
+
 
                 stage('02. Build cluster from pattern on VMWARE with CPI activated and use default dns') {
                     environment {
@@ -73,9 +80,16 @@ pipeline {
                                         ]
                                 )
                             }
+                            archiveArtifacts(artifacts: 'cluster*/**/*', allowEmptyArchive: true)
+                        }
+                    }
+                    cleanup {
+                        dir("${WORKSPACE}") {
+                            deleteDir()
                         }
                     }
                 }
+
 
                 stage('03. Build cluster from pattern on VMWARE with CPI activated and not use of the default dns') {
 
@@ -108,6 +122,7 @@ pipeline {
                         }
                     }
                 }
+
 //
 //            stage('04. Build cluster on AWS') {
 //                steps {
@@ -116,9 +131,10 @@ pipeline {
 //                    }
 //                }
             }
-
         }
-    }
 
+    }
 }
+
+
 
