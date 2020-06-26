@@ -28,7 +28,7 @@ pipeline {
                     post {
                         always {
                             // Cleaning up the cluster
-                            sh('python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random1 -T ./', label: 'Cluster cleanup')
+                            sh(script: 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random1 -T ./', label: 'Cluster cleanup')
                             script {
                                 step(
                                         [
@@ -63,7 +63,7 @@ pipeline {
                     post {
                         always {
                             // Cleaning up the cluster
-                            sh('python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random2 -T ./', label: 'Cluster cleanup')
+                            sh(script: 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random2 -T ./', label: 'Cluster cleanup')
                             script {
                                 step(
                                         [
@@ -99,7 +99,7 @@ pipeline {
                     post {
                         always {
                             // Cleaning up the cluster
-                            sh('python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random3 -T ./', label: 'Cluster cleanup')
+                            sh(script: 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random3 -T ./', label: 'Cluster cleanup')
                             script {
                                 step(
                                         [
