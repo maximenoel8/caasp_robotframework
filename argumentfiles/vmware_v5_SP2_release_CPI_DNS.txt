@@ -1,7 +1,7 @@
 -v PREFIX:mnoel
 -v NUMBER:2:3
 -v platform:vmware
--v keep:False
+-v KEEP:False
 -v VM_VERSION:SP2
 -v CAASP_VERSION:5
 -v VM_USER:sles
