@@ -78,6 +78,7 @@ _check bootstrap retry
     Run Keyword If    ${RETRY_${cluster}} == 4    Fail    Bootstrap fail after 4 retry
     ${current_retry}    Evaluate    ${RETRY_${cluster}}+1
     Set Global Variable    ${RETRY_${cluster}}    ${current_retry}
+    sleep    20
 
 init cluster
     [Arguments]    ${alias}    ${cluster_number}=1
