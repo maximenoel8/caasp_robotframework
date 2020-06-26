@@ -28,7 +28,6 @@ check cert-manager correctly do the certificate rotation for dex and gangway whe
     [Teardown]    clean cert-manager
 
 check kucero is correctly renewing certificates
-    [Tags]    release    v5
     [Setup]    refresh ssh session
     refresh ssh session
     And kucero is running on master
@@ -42,7 +41,6 @@ check kucero is correctly renewing certificates
     [Teardown]    modify kucero command in manifest removing polling period and renew-before
 
 check csr server is correctly generated new kubelet certificate
-    [Tags]    release    v5
     [Setup]    refresh ssh session
     ${node}    Set Variable    ${CLUSTER_PREFIX}-1-master-0
     And kucero is running on master

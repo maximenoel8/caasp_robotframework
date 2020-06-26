@@ -103,6 +103,6 @@ create register scc file
     [Arguments]    ${terraform_folder}
     ${sles_version}    Set Variable If    "${VM_VERSION}"=="SP1"    15.1    15.2
     ${scc_version}    Set Variable If    "${CAASP_VERSION}"=="4"    4.0    5
-    Create File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -r, \$\{caasp_registry_code\}]\n
+    Create File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -r, \$\{caasp_registry_code\} ]\n
     Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, sle-module-containers/${sles_version}/x86_64 ]\n
     Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, caasp/${scc_version}/x86_64, -r, \$\{caasp_registry_code\} ]
