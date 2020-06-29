@@ -60,20 +60,21 @@ clean all cluster
     END
 
 configure terraform file common
-    [Arguments]    ${vmware_dico}
+    [Arguments]    ${terraform_dico}
     ${master_vm}    Evaluate    ${${VM_NUMBER[0]}}+1
-    Set To Dictionary    ${vmware_dico}    masters    ${master_vm}
-    Set To Dictionary    ${vmware_dico}    workers    ${${VM_NUMBER[1]}}
-    ${status}    ${packages}    Run Keyword And Ignore Error    Get From Dictionary    ${vmware_dico}    packages
-    @{packages}    Run Keyword If    "${status}"=="FAIL"    Create List
+    Set To Dictionary    ${terraform_dico}    masters    ${master_vm}
+    Set To Dictionary    ${terraform_dico}    workers    ${${VM_NUMBER[1]}}
+    ${status}    ${packages}    Run Keyword And Ignore Error    Get From Dictionary    ${terraform_dico}    packages
+    ${packages}    Run Keyword If    "${status}"=="FAIL"    Create List
+    ...    ELSE    Set Variable    ${packages}
     ${PACKAGES_LIST}    Run Keyword If    "${packages}"!="${EMPTY}"    Combine Lists    ${PACKAGES_LIST}    ${packages}
     ...    ELSE    Set Variable    ${PACKAGES_LIST}
-    Set To Dictionary    ${vmware_dico}    packages    ${PACKAGES_LIST}
+    Set To Dictionary    ${terraform_dico}    packages    ${PACKAGES_LIST}
     @{authorized_keys}    Create List    ${SSH_PUB_KEY}
-    Set To Dictionary    ${vmware_dico}    authorized_keys    ${authorized_keys}
-    Comment    Set To Dictionary    ${vmware_dico}    repositories    ${REPOS_LIST}
-    Comment    Set To Dictionary    ${vmware_dico}    lb_repositories    ${LB_REPO_LIST}
-    [Return]    ${vmware_dico}
+    Set To Dictionary    ${terraform_dico}    authorized_keys    ${authorized_keys}
+    Comment    Set To Dictionary    ${terraform_dico}    repositories    ${REPOS_LIST}
+    Comment    Set To Dictionary    ${terraform_dico}    lb_repositories    ${LB_REPO_LIST}
+    [Return]    ${terraform_dico}
 
 check terraform finish successfully
     [Arguments]    ${cluster}
