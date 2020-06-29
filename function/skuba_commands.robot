@@ -65,7 +65,7 @@ initiale join
 start bootstrap
     [Arguments]    ${node}    ${cluster}
     ${cluster_number}    get cluster number    ${cluster}
-    _check bootstrap retry
+    _check bootstrap retry    ${cluster_number}
     open ssh session    ${WORKSTATION__${cluster_number}}    ${node}
     init cluster    ${node}    ${cluster_number}
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
@@ -73,11 +73,12 @@ start bootstrap
     Append To File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
 
 _check bootstrap retry
-    ${status}    ${output}    Run Keyword And Ignore Error    Variable Should Exist    ${RETRY_${cluster}}
-    Run Keyword If    "${status}"=="FAIL"    Set Global Variable    ${RETRY_${cluster}}    0
-    Run Keyword If    ${RETRY_${cluster}} == 4    Fail    Bootstrap fail after 4 retry
-    ${current_retry}    Evaluate    ${RETRY_${cluster}}+1
-    Set Global Variable    ${RETRY_${cluster}}    ${current_retry}
+    [Arguments]    ${cluster_number}
+    ${status}    ${output}    Run Keyword And Ignore Error    Variable Should Exist    ${RETRY_${cluster_number}}
+    Run Keyword If    "${status}"=="FAIL"    Set Global Variable    ${RETRY_${cluster_number}}    0
+    Run Keyword If    ${RETRY_${cluster_number}} == 4    Fail    Bootstrap fail after 4 retry
+    ${current_retry}    Evaluate    ${RETRY_${cluster_number}}+1
+    Set Global Variable    ${RETRY_${cluster_number}}    ${current_retry}
     sleep    20
 
 init cluster
