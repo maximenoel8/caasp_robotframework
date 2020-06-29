@@ -170,10 +170,12 @@ _configure dex file config for static password
     [Arguments]    ${dico}
     ${user_config}    open yaml file    ${DATADIR}/rbac/users_static_password.yaml
     ${sub_dico}    Safe Load    ${dico["data"]["config.yaml"]}
-    Log Dictionary    ${sub_dico}
     Set To Dictionary    ${sub_dico}    enablePasswordDB=${true}
     Set To Dictionary    ${sub_dico}    staticPasswords=${user_config}
     Collections.Remove From Dictionary    ${sub_dico}    connectors
+    Log Dictionary    ${sub_dico}
+    ${new_dico}    Dump    ${sub_dico}
+    Set To Dictionary    ${dico["data"]}    config.yaml=${new_dico}
     [Return]    ${dico}
 
 _config dex modifying current cm
