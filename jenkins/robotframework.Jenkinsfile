@@ -4,7 +4,7 @@ pipeline {
         robotenv = credentials('env.robot')
     }
     stages {
-        stage('intialize') {
+        stage('initialize') {
             steps {
                 sh "cp \$robotenv parameters"
                 sh 'sudo chmod 0600 data/id_shared'
@@ -12,7 +12,7 @@ pipeline {
             }
         }
 
-        stage("Run test") {
+        stage("Run tests") {
             parallel {
 
                 stage('01. Build cluster from pattern on OpenStack') {
@@ -29,21 +29,21 @@ pipeline {
                         always {
                             // Cleaning up the cluster
                             sh(script: 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/openstack_v5_SP2_release.txt -v CLUSTER:cluster-\$random1 -T ./', label: 'Cluster cleanup')
-                            script {
-                                step(
-                                        [
-                                                $class              : 'RobotPublisher',
-                                                outputPath          : 'reports-build1',
-                                                outputFileName      : '**/output.xml',
-                                                reportFileName      : '**/report.html',
-                                                logFileName         : '**/log.html',
-                                                disableArchiveOutput: false,
-                                                passThreshold       : 50,
-                                                unstableThreshold   : 40,
-                                                otherFiles          : "**/*.png,**/*.jpg",
-                                        ]
-                                )
-                            }
+//                            script {
+//                                step(
+//                                        [
+//                                                $class              : 'RobotPublisher',
+//                                                outputPath          : 'reports-build1',
+//                                                outputFileName      : '**/output.xml',
+//                                                reportFileName      : '**/report.html',
+//                                                logFileName         : '**/log.html',
+//                                                disableArchiveOutput: false,
+//                                                passThreshold       : 50,
+//                                                unstableThreshold   : 40,
+//                                                otherFiles          : "**/*.png,**/*.jpg",
+//                                        ]
+//                                )
+//                            }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random1/logs/**', allowEmptyArchive: true)
                         }
                     }
@@ -64,21 +64,21 @@ pipeline {
                         always {
                             // Cleaning up the cluster
                             sh(script: 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_DNS.txt -v CLUSTER:cluster-\$random2 -T ./', label: 'Cluster cleanup')
-                            script {
-                                step(
-                                        [
-                                                $class              : 'RobotPublisher',
-                                                outputPath          : 'reports-build2',
-                                                outputFileName      : '**/output.xml',
-                                                reportFileName      : '**/report.html',
-                                                logFileName         : '**/log.html',
-                                                disableArchiveOutput: false,
-                                                passThreshold       : 50,
-                                                unstableThreshold   : 40,
-                                                otherFiles          : "**/*.png,**/*.jpg",
-                                        ]
-                                )
-                            }
+//                            script {
+//                                step(
+//                                        [
+//                                                $class              : 'RobotPublisher',
+//                                                outputPath          : 'reports-build2',
+//                                                outputFileName      : '**/output.xml',
+//                                                reportFileName      : '**/report.html',
+//                                                logFileName         : '**/log.html',
+//                                                disableArchiveOutput: false,
+//                                                passThreshold       : 50,
+//                                                unstableThreshold   : 40,
+//                                                otherFiles          : "**/*.png,**/*.jpg",
+//                                        ]
+//                                )
+//                            }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random2/logs/**', allowEmptyArchive: true)
                         }
                     }
@@ -100,21 +100,21 @@ pipeline {
                         always {
                             // Cleaning up the cluster
                             sh(script: 'python3 -m robot.run --NoStatusRC --argumentfile $WORKSPACE/argumentfiles/vmware_v5_SP2_release_CPI_NoDNS.txt -v CLUSTER:cluster-\$random3 -T ./', label: 'Cluster cleanup')
-                            script {
-                                step(
-                                        [
-                                                $class              : 'RobotPublisher',
-                                                outputPath          : 'reports-build3',
-                                                outputFileName      : '**/output.xml',
-                                                reportFileName      : '**/report.html',
-                                                logFileName         : '**/log.html',
-                                                disableArchiveOutput: false,
-                                                passThreshold       : 50,
-                                                unstableThreshold   : 40,
-                                                otherFiles          : "**/*.png,**/*.jpg",
-                                        ]
-                                )
-                            }
+//                            script {
+//                                step(
+//                                        [
+//                                                $class              : 'RobotPublisher',
+//                                                outputPath          : 'reports-build3',
+//                                                outputFileName      : '**/output.xml',
+//                                                reportFileName      : '**/report.html',
+//                                                logFileName         : '**/log.html',
+//                                                disableArchiveOutput: false,
+//                                                passThreshold       : 50,
+//                                                unstableThreshold   : 40,
+//                                                otherFiles          : "**/*.png,**/*.jpg",
+//                                        ]
+//                                )
+//                            }
                             archiveArtifacts(artifacts: 'workdir/cluster-\$random3/logs/**', allowEmptyArchive: true)
                         }
                     }
@@ -131,6 +131,25 @@ pipeline {
             }
             post {
                 always {
+                    sh 'python3 -m robot.rebot -N openstack --output reports-build1/output.xml reports-build1/output.xml'
+                    sh 'python3 -m robot.rebot -N vmware-default-dns --output reports-build2/output.xml reports-build2/output.xml'
+                    sh 'python3 -m robot.rebot -N vmware-NO-default-dns --output reports-build3/output.xml reports-build3/output.xml '
+                    sh 'python3 -m robot.rebot --output reports/output.xml -l reports/log.html -r reports/report.html reports-build1/output.xml reports-build2/output.xml reports-build3/output.xml'
+                    script {
+                        step(
+                                [
+                                        $class              : 'RobotPublisher',
+                                        outputPath          : 'reports',
+                                        outputFileName      : '**/output.xml',
+                                        reportFileName      : '**/report.html',
+                                        logFileName         : '**/log.html',
+                                        disableArchiveOutput: false,
+                                        passThreshold       : 50,
+                                        unstableThreshold   : 40,
+                                        otherFiles          : "**/*.png,**/*.jpg",
+                                ]
+                        )
+                    }
                     cleanWs()
                 }
             }
