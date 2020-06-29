@@ -44,7 +44,7 @@ pipeline {
 //                                        ]
 //                                )
 //                            }
-                            archiveArtifacts(artifacts: 'workdir/cluster-\$random1/logs/**', allowEmptyArchive: true)
+                            archiveArtifacts(artifacts: '$WORKSPACE/workdir/cluster-\$random1/logs/*', allowEmptyArchive: true)
                         }
                     }
                 }
@@ -79,7 +79,7 @@ pipeline {
 //                                        ]
 //                                )
 //                            }
-                            archiveArtifacts(artifacts: 'workdir/cluster-\$random2/logs/**', allowEmptyArchive: true)
+                            archiveArtifacts(artifacts: 'workdir/cluster-\$random2/logs/*', allowEmptyArchive: true)
                         }
                     }
                 }
@@ -115,7 +115,7 @@ pipeline {
 //                                        ]
 //                                )
 //                            }
-                            archiveArtifacts(artifacts: 'workdir/cluster-\$random3/logs/**', allowEmptyArchive: true)
+                            archiveArtifacts(artifacts: 'workdir/cluster-\$random3/logs/*', allowEmptyArchive: true)
                         }
                     }
 
