@@ -38,3 +38,11 @@ _change_vsphere_datastorage
     modify string in file    ${TERRAFORMDIR}/cluster_${cluster_number}/variables.tf    datastore    datastore_cluster
     modify string in file    ${TERRAFORMDIR}/cluster_${cluster_number}/master-instance.tf    datastore    datastore_cluster
     modify string in file    ${TERRAFORMDIR}/cluster_${cluster_number}/worker-instance.tf    datastore    datastore_cluster
+
+_setup vsphere cloud configuration
+    [Arguments]    ${cluster_number}
+    Copy File    ${DATADIR}/cpi/vsphere.conf.template    ${LOGDIR}/vsphere.conf
+    modify string in file    ${LOGDIR}/vsphere.conf    <user>    ${vmware["VSPHERE_USER"]}
+    modify string in file    ${LOGDIR}/vsphere.conf    <password>    ${vmware["VSPHERE_PASSWORD"]}
+    modify string in file    ${LOGDIR}/vsphere.conf    <stack>    ${CLUSTER_PREFIX}-${cluster_number}
+    Put File    ${LOGDIR}/vsphere.conf    /home/${VM_USER}/cluster/cloud/vsphere/

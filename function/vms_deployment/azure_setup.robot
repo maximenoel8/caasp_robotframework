@@ -1,6 +1,7 @@
 *** Settings ***
 Resource          common.robot
 Resource          ../../parameters/vm_deployment.robot
+Library           JSONLibrary
 
 *** Keywords ***
 configure terraform tfvars azure
@@ -10,7 +11,7 @@ configure terraform tfvars azure
         ${zone_list}    Create List    1    2    3
         ${ntp_servers}    create list    0.novell.pool.ntp.org    1.novell.pool.ntp.org    2.novell.pool.ntp.org    3.novell.pool.ntp.org
         Set To Dictionary    ${azure_dico}    stack_name    ${CLUSTER_PREFIX}-${cluster_number}
-        Set To Dictionary    ${azure_dico}    azure_location    West Europe
+        Set To Dictionary    ${azure_dico}    azure_location    ${AZURE["location"]}
         Set To Dictionary    ${azure_dico}    enable_zone    ${true}
         Set To Dictionary    ${azure_dico}    azure_availability_zones    ${zone_list}
         Set To Dictionary    ${azure_dico}    cidr_block    10.1.0.0/16
@@ -25,6 +26,7 @@ configure terraform tfvars azure
         Set To Dictionary    ${azure_dico}    worker_disk_size    ${30}
         Set To Dictionary    ${azure_dico}    ntp_servers    ${ntp_servers}
         Set To Dictionary    ${azure_dico}    repositories    ${REPOS_LIST}
+        Set To Dictionary    ${vmware_dico}    cpi_enable    ${true}
         ${azure_dico}    configure terraform file common    ${azure_dico}
         _create tvars json file    ${azure_dico}    ${cluster_number}
     END
@@ -34,3 +36,17 @@ set azure env variables
     Set Environment Variable    ARM_CLIENT_SECRET    ${AZURE["client_secret"]}
     Set Environment Variable    ARM_SUBSCRIPTION_ID    ${AZURE["subscription_id"]}
     Set Environment Variable    ARM_TENANT_ID    ${AZURE["tenant_id"]}
+
+_setup azure cloud configuration
+    [Arguments]    ${cluster_number}=1
+    ${azure_conf}    JSONLibrary.Load JSON From File    ${DATADIR}/cpi/azure.conf.template
+    Log Dictionary    ${azure_conf}
+    Log    ${AZURE["tenant_id"]}
+    Set To Dictionary    ${azure_conf}    tenantId=${AZURE["tenant_id"]}
+    Set To Dictionary    ${azure_conf}    subscriptionId=${AZURE["subscription_id"]}
+    Set To Dictionary    ${azure_conf}    resourceGroup=${CLUSTER_PREFIX}-${cluster_number}-resource-group
+    Set To Dictionary    ${azure_conf}    location=${AZURE["location"]}
+    Set To Dictionary    ${azure_conf}    routeTableName=${CLUSTER_PREFIX}-${cluster_number}-route-table
+    ${azure_conf_data}    JSONLibrary.Convert JSON To String    ${azure_conf}
+    Create File    ${LOGDIR}/azure.conf    ${azure_conf_data}
+    Put File    ${LOGDIR}/azure.conf    /home/${VM_USER}/cluster/cloud/azure/
