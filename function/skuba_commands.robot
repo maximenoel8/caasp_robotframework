@@ -5,6 +5,7 @@ Resource          reboot.robot
 Resource          helper.robot
 Resource          tools.robot
 Resource          ../parameters/vm_deployment.robot
+Resource          vms_deployment/main_keywork.robot
 
 *** Keywords ***
 replica dex and gangway are correctly distribued
@@ -83,17 +84,10 @@ _check bootstrap retry
 
 init cluster
     [Arguments]    ${alias}    ${cluster_number}=1
-    ${extra_args}    Set Variable If    "${PLATFORM}"=="aws"    --cloud-provider aws    ${EMPTY}
+    ${extra_args}    Set Variable If    "${PLATFORM}"=="aws" or"${PLATFORM}"=="azure"    --cloud-provider ${PLATFORM}    ${EMPTY}
     ${extra_args}    Set Variable If    "${PLATFORM}"=="vmware" and ${CPI_VSPHERE}    --cloud-provider vsphere    ${extra_args}
     ${extra_args}    Set Variable If    "${MODE}"=="DEV" and "${KUBERNETES_VERSION}"!="${EMPTY}"    --kubernetes-version ${KUBERNETES_VERSION} ${extra_args}    ${extra_args}
     Run Keyword And Ignore Error    execute command with ssh    rm -rf cluster    ${alias}
     execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${alias}
     Run Keyword If    ${CPI_VSPHERE}    _setup vsphere cloud configuration    ${cluster_number}
-
-_setup vsphere cloud configuration
-    [Arguments]    ${cluster_number}
-    Copy File    ${DATADIR}/vsphere.conf.template    ${LOGDIR}/vsphere.conf
-    modify string in file    ${LOGDIR}/vsphere.conf    <user>    ${vmware["VSPHERE_USER"]}
-    modify string in file    ${LOGDIR}/vsphere.conf    <password>    ${vmware["VSPHERE_PASSWORD"]}
-    modify string in file    ${LOGDIR}/vsphere.conf    <stack>    ${CLUSTER_PREFIX}-${cluster_number}
-    Put File    ${LOGDIR}/vsphere.conf    /home/${VM_USER}/cluster/cloud/vsphere/
+    Run Keyword If    "${PLATFORM}"=="azure"    _setup azure cloud configuration    ${cluster_number}

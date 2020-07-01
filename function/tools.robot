@@ -47,12 +47,12 @@ storageclass is deployed
 
 deploy storagedefault on aws
     [Arguments]    ${cluster_number}
-    kubectl    apply -f ${DATADIR}/storage-default.yaml    cluster_number=${cluster_number}
+    kubectl    apply -f ${DATADIR}/cpi/aws-default-storageclass.yaml    cluster_number=${cluster_number}
     step    Storage default class is setup for aws
 
 deploy storagedefault on vsphere
     [Arguments]    ${cluster_number}
-    kubectl    apply -f ${DATADIR}/vsphere-default-storageclass.yaml    cluster_number=${cluster_number}
+    kubectl    apply -f ${DATADIR}/cpi/vsphere-default-storageclass.yaml    cluster_number=${cluster_number}
     step    Storage default class is setup for vsphere
 
 resolv dns
