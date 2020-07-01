@@ -1,0 +1,10 @@
+{
+    "cloud": "AzurePublicCloud",
+    "tenantId": "<AZ_TENANT_ID>",
+    "subscriptionId": "<AZ_SUBSCRIPTION_ID>",
+    "resourceGroup": "<AZ_RESOURCE_GROUP>",
+    "location": "<AZ_LOCATION>",
+    "routeTableName": "<AZ_ROUTE_TABLE_NAME>",
+    "useManagedIdentityExtension": true,
+    "useInstanceMetadata": true
+}
