@@ -5,13 +5,14 @@ Library           SSHLibrary
 
 *** Keywords ***
 open ssh session
-    [Arguments]    ${server}    ${alias}=default    ${proxy_cmd}=${EMPTY}    ${cluster_number}=1
+    [Arguments]    ${server}    ${alias}=default    ${proxy_cmd}=${EMPTY}    ${cluster_number}=1    ${user}=default
+    ${user}    Set Variable If    "${user}"=="default"    ${VM_USER}    ${user}
     ${server_ip}    Run Keyword If    "${alias}"=="default"    get node ip from CS    ${server}    ${cluster_number}
     ...    ELSE    Set Variable    ${server}
     ${alias}    Set Variable If    "${alias}"=="default"    ${server}    ${alias}
-    Open Connection    ${server_ip}    alias=${alias}    timeout=20
-    Run Keyword If    "${proxy_cmd}"=="${EMPTY}"    Login With Public Key    ${VM_USER}    data/id_shared
-    ...    ELSE    Login With Public Key    ${VM_USER}    data/id_shared    proxy_cmd=${proxy_cmd}
+    Open Connection    ${server_ip}    alias=${alias}    timeout=120
+    Run Keyword If    "${proxy_cmd}"=="${EMPTY}"    Login With Public Key    ${user}    data/id_shared
+    ...    ELSE    Login With Public Key    ${user}    data/id_shared    proxy_cmd=${proxy_cmd}
 
 refresh ssh session
     [Arguments]    ${cluster_number}=1
@@ -24,7 +25,6 @@ create ssh session with workstation and nodes
         ${cluster_number}    Evaluate    ${i}+1
         open ssh session    ${BOOTSTRAP_MASTER_${cluster_number}}    alias=bootstrap_master_${cluster_number}
         open ssh session    ${WORKSTATION_${cluster_number}}    alias=skuba_station_${cluster_number}
-        Run Keyword If    ${AIRGAPPED}    open ssh session    ${AIRGAPPED_IP}    alias=mirror
         create ssh session for masters    ${cluster_number}
         create ssh session for workers    ${cluster_number}
     END
