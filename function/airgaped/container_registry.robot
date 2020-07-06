@@ -19,9 +19,7 @@ get container list from customize repo
     FOR    ${repo}    IN    @{repo_list}
         ${STATUS}    ${_}    Run Keyword And Ignore Error    Should Contain    ${repo}    ${filter}
         Continue For Loop If    "${STATUS}"=="FAIL"
-        ${tag_result}    RequestsLibrary.Get Request    ${registry}    /v2/${repo}/tags/list
-        ${tags_lists}    Set Variable    ${tag_result.json()["tags"]}
-        Append To List    ${registry_list}    ${registry}/${repo}:${tags_lists[0]}
+        ${registry_list}    _get containers version    ${registry}    ${repo}    ${registry_list}
     END
     [Teardown]    Delete All Sessions
     [Return]    ${registry_list}
@@ -60,9 +58,9 @@ copy docker images with skopeo
     @{list_images}    Combine Lists    ${list1}    ${list2}
     Set Global Variable    ${REG_PORT}    5000
     FOR    ${image}    IN    @{list_images}
-        execute command with ssh    sudo skopeo copy docker://${image} docker://${AIRGAPPED_IP}:${REG_PORT}/${image} --src-tls-verify=false    mirror
+        Run Keyword And Ignore Error    execute command with ssh    sudo skopeo copy docker://${image} docker://${AIRGAPPED_IP_ONLINE}:${REG_PORT}/${image} --src-tls-verify=false    mirror
     END
-    ${output}    execute command localy    curl -k https://${AIRGAPPED_IP}:${REG_PORT}/v2/_catalog
+    ${output}    execute command localy    curl -k https://${AIRGAPPED_IP_ONLINE}:${REG_PORT}/v2/_catalog
     log    ${output}
 
 deploy docker registry
@@ -72,21 +70,21 @@ deploy docker registry
     Put File    ${DATADIR}/airgapped/config.yml    /home/${VM_USER}/
     execute command with ssh    sudo mkdir -p /etc/docker/registry    mirror
     execute command with ssh    sudo cp /home/${VM_USER}/config.yml /etc/docker/registry/config.yml    mirror
-    execute command with ssh    sudo docker run -d -p 5000:5000 --restart=always --name registry \ -v /etc/docker/registry:/etc/docker/registry:ro \ -v /etc/rmt/ssl:/etc/rmt/ssl:ro \ -v /var/lib/registry:/var/lib/registry registry.suse.com/sles12/registry:2.6.2    mirror
+    execute command with ssh    sudo docker run -d -p 30500:5000 --restart=always --name registry \ -v /etc/docker/registry:/etc/docker/registry:ro \ -v /etc/rmt/ssl:/etc/rmt/ssl:ro \ -v /var/lib/registry:/var/lib/registry registry.suse.com/sles12/registry:2.6.2    mirror
 
 backup docker images
     ${SHARED}    Set Variable    /home/${VM_USER}
     execute command with ssh    mkdir -p /${SHARED}/registry    mirror
     execute command with ssh    rsync -aP /var/lib/registry/ ${SHARED}/registry/    mirror
     execute command with ssh    cd ${SHARED} && tar -czvf registry.tar.gz registry    mirror
-    Switch Connection    mirror
-    SSHLibrary.Get File    ${SHARED}/registry.tar.gz    ${LOGDIR}/
+    Comment    Switch Connection    mirror
+    Comment    SSHLibrary.Get File    ${SHARED}/registry.tar.gz    ${LOGDIR}/
 
 import docker images
     [Arguments]    ${node}
     ${SHARED}    Set Variable    /home/${VM_USER}
-    Switch Connection    ${node}
-    Put file    ${LOGDIR}/registry.tar.gz    ${SHARED}
+    Comment    Switch Connection    ${node}
+    Comment    Put file    ${LOGDIR}/registry.tar.gz    ${SHARED}
     execute command with ssh    tar -xzvf ${SHARED}/registry.tar.gz    ${node}
     execute command with ssh    sudo rsync -aP ${SHARED}/registry/ /var/lib/registry/    ${node}
 
@@ -99,3 +97,14 @@ deploy docker registry package
     execute command with ssh    sudo cp /home/${VM_USER}/config.yml /etc/registry/config.yml    mirror
     execute command with ssh    sudo systemctl restart registry    mirror
     execute command with ssh    sudo systemctl enable registry    mirror
+
+_get containers version
+    [Arguments]    ${registry}    ${repo}    ${registry_list}
+    ${tag_result}    RequestsLibrary.Get Request    ${registry}    /v2/${repo}/tags/list
+    @{tags_lists}    Set Variable    ${tag_result.json()["tags"]}
+    FOR    ${tag}    IN    @{tags_lists}
+        ${status}    ${_}    Run Keyword And Ignore Error    Should Not Contain    ${tag}    build
+        Continue For Loop If    "${tag}"=="beta" or "${status}"=="FAIL"
+        Append To List    ${registry_list}    ${registry}/${repo}:${tag}
+    END
+    [Return]    ${registry_list}

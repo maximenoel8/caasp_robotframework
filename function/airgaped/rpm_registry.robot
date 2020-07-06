@@ -7,13 +7,13 @@ Resource          ../helper.robot
 *** Keywords ***
 enable offical rpm repositories
 
-enable customize rpm
-    [Arguments]    ${rpm_url}
-    execute command with ssh    sudo rmt-cli repos custom add ${rpm_url} customize0    mirror
-    ${output}    execute command with ssh    sudo rmt-cli repos custom list | grep customize0    mirror
-    ${elements}    Split String    ${output}
-    ${repository_id}    Set Variable    ${elements[1]}
-    execute command with ssh    sudo rmt-cli repos custom enable ${repository_id}    mirror
+enable customize rpms
+    [Arguments]    ${rpm_urls}
+    Log Dictionary    ${rpm_urls}
+    @{keys}    Get Dictionary Keys    ${rpm_urls}
+    FOR    ${key}    IN    @{keys}
+        _enable customize rpm    ${rpm_urls["${key}"]}    ${key}
+    END
 
 install rmt-server
     Copy File    ${DATADIR}/airgapped/rmt.conf    ${LOGDIR}
@@ -25,6 +25,7 @@ install rmt-server
     Put file    ${LOGDIR}/rmt.conf    /home/${VM_USER}    mode=0644
     execute command with ssh    sudo cp /home/${VM_USER}/rmt.conf /etc/    mirror
     execute command with ssh    sudo cp /home/${VM_USER}/rmt-server/* /etc/rmt/ssl/    mirror
+    execute command with ssh    sudo sed -i -e 's/\\[mysqld\\]/[mysqld]\\nskip-grant-tables/g' /etc/my.cnf    mirror
     execute command with ssh    sudo systemctl restart rmt-server    mirror
     execute command with ssh    sudo systemctl enable rmt-server    mirror
     Comment    ${output}    execute command with ssh    sudo systemctl status rmt-server-sync.timer    ${node}
@@ -38,16 +39,14 @@ generate certificates
     ${service}    Set Variable    rmt-server
     create CA    ${service}    RMT Certificate Authority
     ${san_dns}    Create List    mirror.server.aws
-    ${san_ip}    Create List    ${AIRGAPPED_IP}
+    ${san_ip}    Create List    ${AIRGAPPED_IP_OFFLINE}
     ${SAN}    Create Dictionary    dns=${san_dns}    ip=${san_ip}
     create client config    ${service}    ${SAN}
-    execute command localy    openssl genrsa -out ${LOGDIR}/certificate/${service}/${service}.key 2048
-    execute command localy    openssl req -key ${LOGDIR}/certificate/${service}/${service}.key -new -sha256 -out ${LOGDIR}/certificate/${service}/${service}.csr -config ${LOGDIR}/certificate/${service}/${service}.conf -subj "/CN=${service}"
-    execute command localy    openssl x509 -req -CA ${LOGDIR}/certificate/${service}/ca.crt -CAkey ${LOGDIR}/certificate/${service}/ca.key -CAcreateserial -in ${LOGDIR}/certificate/${service}/${service}.csr -out ${LOGDIR}/certificate/${service}/${service}.crt -days 10 -extensions v3_req -extfile ${LOGDIR}/certificate/${service}/${service}.conf
+    generate new certificate with CA signing request    ${service}    ${SAN}    ${LOGDIR}/certificate/${service}/ca.crt    ${LOGDIR}/certificate/${service}/ca.key
 
 sync and mirror online
     execute command with ssh    sudo rmt-cli sync    mirror
-    execute command with ssh    sudo rmt-cli mirror    mirror
+    execute command with ssh    sudo rmt-cli mirror    mirror    timeout=120min
 
 export rpm repository
     ${SHARED}    Set Variable    /home/${VM_USER}
@@ -56,14 +55,24 @@ export rpm repository
     execute command with ssh    sudo rmt-cli export data ${SHARED}/rmt    mirror
     execute command with ssh    sudo rmt-cli export settings ${SHARED}/rmt    mirror
     execute command with ssh    sudo rmt-cli export repos ${SHARED}/rmt    mirror
-    Switch Connection    mirror
-    SSHLibrary.Get Directory    ${SHARED}/rmt    ${LOGDIR}    recursive=True
+    Comment    Switch Connection    mirror
+    Comment    SSHLibrary.Get Directory    ${SHARED}/rmt    ${LOGDIR}    recursive=True
+    execute command with ssh    cd ${SHARED} && tar -czvf rmt.tar.gz rmt    mirror
 
 import rpm repository
     [Arguments]    ${node}
     ${SHARED}    Set Variable    /home/${VM_USER}
-    Switch Connection    ${node}
-    Put Directory    ${LOGDIR}/rmt    ${SHARED}    recursive=True
+    Comment    Switch Connection    ${node}
+    Comment    Put Directory    ${LOGDIR}/rmt    ${SHARED}    recursive=True
+    execute command with ssh    tar -xzvf ${SHARED}/rmt.tar.gz    ${node}
     execute command with ssh    sudo chown -R _rmt:users ${SHARED}/rmt    ${node}
     execute command with ssh    sudo rmt-cli import data ${SHARED}/rmt    ${node}
     execute command with ssh    sudo rmt-cli import repos ${SHARED}/rmt    ${node}
+
+_enable customize rpm
+    [Arguments]    ${rpm_url}    ${depo_name}
+    execute command with ssh    sudo rmt-cli repos custom add ${rpm_url} ${depo_name}    mirror
+    ${output}    execute command with ssh    sudo rmt-cli repos custom list | grep ${depo_name}    mirror
+    ${elements}    Split String    ${output}
+    ${repository_id}    Set Variable    ${elements[1]}
+    execute command with ssh    sudo rmt-cli repos custom enable ${repository_id}    mirror

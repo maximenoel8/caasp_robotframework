@@ -19,7 +19,7 @@ deploy reverse proxy
 
 populate rmt and docker repo offline for
     [Arguments]    ${rpm_url}
-    enable customize rpm    ${rpm_url}
+    enable customize rpms    ${rpm_url}
     import rpm repository    mirror
     import docker images    mirror
 
@@ -34,9 +34,9 @@ add airgapped certificate to nodes
 add mirror dns to nodes
     [Arguments]    ${cluster_number}=1
     @{nodes}    get nodes name from CS    ${cluster_number}
-    execute command with ssh    sudo sh -c "echo '${AIRGAPPED_IP} \ mirror.server.aws' >> /etc/hosts"    skuba_station_${cluster_number}
+    execute command with ssh    sudo sh -c "echo '${AIRGAPPED_IP_OFFLINE} \ mirror.server.aws' >> /etc/hosts"    skuba_station_${cluster_number}
     FOR    ${node}    IN    @{nodes}
-        execute command with ssh    sudo sh -c "echo '${AIRGAPPED_IP} \ mirror.server.aws' >> /etc/hosts"    ${node}
+        execute command with ssh    sudo sh -c "echo '${AIRGAPPED_IP_OFFLINE} \ mirror.server.aws' >> /etc/hosts"    ${node}
     END
 
 add airgapped certificate to vm
@@ -45,3 +45,17 @@ add airgapped certificate to vm
     Put File    ${LOGDIR}/certificate/rmt-server/ca.crt    /home/${VM_USER}/
     execute command with ssh    sudo cp /home/${VM_USER}/ca.crt /etc/pki/trust/anchors/    ${node}
     execute command with ssh    sudo update-ca-certificates
+
+deploy offline airgapped
+    Set Global Variable    ${AIRGAPPED_IP_OFFLINE}    ${WORKSTATION_1}
+    open ssh session    ${AIRGAPPED_IP_ONLINE}    alias=online_mirror    user=sles
+    open ssh session    ${AIRGAPPED_IP_OFFLINE}    alias=mirror
+    execute command with ssh    scp -i /home/sles/id_shared -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null /home/sles/registry.tar.gz ${VM_USER}@${AIRGAPPED_IP_OFFLINE}:/home/${VM_USER}    alias=online_mirror
+    execute command with ssh    scp -i /home/sles/id_shared -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null /home/sles/rmt.tar.gz ${VM_USER}@${AIRGAPPED_IP_OFFLINE}:/home/${VM_USER}    alias=online_mirror
+    generate certificates
+    install mirror server
+    set repo and packages
+    populate rmt and docker repo offline for    ${REPOS_LIST}
+    add CA to all server
+    add airgapped certificate to nodes
+    add mirror dns to nodes
