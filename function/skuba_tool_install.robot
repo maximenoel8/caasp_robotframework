@@ -19,11 +19,10 @@ install skuba
     step    installing skuba ...
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        Run Keyword If    ${AIRGAPPED}    Run Keywords    add airgapped certificate to nodes
         ...    AND    add mirror dns to nodes
         Run Keyword If    "${MODE}"=="${EMPTY}"    Skuba from pattern    ${cluster_number}
         ...    ELSE    _skuba from repo    ${cluster_number}
-        Run Keyword if    "${PLATFORM}"=="vmware"    _disable firewall    ${cluster_number}
+        Comment    Run Keyword if    "${PLATFORM}"=="vmware"    _disable firewall    ${cluster_number}
         Switch Connection    skuba_station_${cluster_number}
         Put File    data/id_shared    /home/${VM_USER}/    mode=0600
     END
@@ -43,9 +42,11 @@ _skuba from pattern
 
 _skuba from repo
     [Arguments]    ${cluster_number}
-    _install go git make    ${cluster_number}
+    Run Keyword And Ignore Error    _install go git make    ${cluster_number}
     build skuba from repo    ${SKUBA_PULL_REQUEST}    cluster_number=${cluster_number}
     execute command with ssh    sudo zypper --non-interactive in kubernetes-client    alias=skuba_station_${cluster_number}
+    Run Keyword If    "${platform}"=="azure" or "${platform}"=="aws"    Copy File    ${DATADIR}/airgapped/registries.conf    ${LOGDIR}
+    Run Keyword If    "${platform}"=="azure" or "${platform}"=="aws"    add container repo file to nodes    ${cluster_number}
     step    skuba was build with ${MODE}
 
 _change skuba branch
@@ -67,6 +68,7 @@ _install go git make
 
 build skuba from repo
     [Arguments]    ${commit}    ${skuba_folder}=skuba    ${cluster_number}=1
+    execute command with ssh    rm -rf /home/${VM_USER}/skuba
     execute command with ssh    git clone https://github.com/SUSE/skuba.git ${skuba_folder}    skuba_station_${cluster_number}
     Run Keyword Unless    "${commit}"=="${EMPTY}"    _change skuba branch    ${commit}    ${skuba_folder}    ${cluster_number}
     Run Keyword If    "${MODE}"=="RELEASE"    execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64    skuba_station_${cluster_number}
