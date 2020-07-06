@@ -44,6 +44,7 @@ storageclass is deployed
     Run Keyword If    ( "${PLATFORM}"=="vmware" and not ${CPI_VSPHERE} ) or "${PLATFORM}"=="openstack"    nfs client is deployed    cluster_number=${cluster_number}
     Run Keyword If    "${PLATFORM}"=="vmware" and ${CPI_VSPHERE}    deploy storagedefault on vsphere    cluster_number=${cluster_number}
     Run Keyword If    "${PLATFORM}"=="aws"    deploy storagedefault on aws    cluster_number=${cluster_number}
+    Run Keyword If    "${PLATFORM}"=="azure"    deploy storagedefault on azure    cluster_number=${cluster_number}
 
 deploy storagedefault on aws
     [Arguments]    ${cluster_number}
@@ -82,3 +83,8 @@ get number of files in ${directory} on ${node}
     ${list}    SSHLibrary.List Files In Directory    ${directory}
     ${lt}    Get Length    ${list}
     [Return]    ${list}    ${lt}
+
+deploy storagedefault on azure
+    [Arguments]    ${cluster_number}
+    kubectl    apply -f ${DATADIR}/cpi/azure-default-storageclass.yaml    cluster_number=${cluster_number}
+    step    Storage default class is setup for azure
