@@ -174,6 +174,8 @@ cluster is deployed
         Exit For Loop If    ${status}
         Sleep    ${sleep_time}
     END
+    ${expect_time}    Evaluate    ${waiting time}-1
+    Run Keyword If    ${temp}==${expect_time}    Fail    Deployment fail
     kured config    off
     step    cluster is successfully deploy
     step    cluster configuration is available in ${CLUSTERDIR}_1
@@ -214,6 +216,7 @@ cluster running
     Run Keyword If    "${PLATFORM_DEPLOY}" == "FAIL" and ${cluster_number}==1    deploy cluster vms
     load vm ip
     Run Keyword If    ${cluster_number}==1    create ssh session with workstation and nodes
+    Run Keyword If    ${AIRGAPPED}    deploy offline airgapped
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    install skuba
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1    cluster is deployed
     wait nodes are ready    cluster_number=${cluster_number}
