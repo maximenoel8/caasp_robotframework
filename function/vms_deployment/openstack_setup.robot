@@ -22,6 +22,7 @@ configure terraform tfvars openstack
         Set To Dictionary    ${openstack_dico}    master_size    m1.large
         Set To Dictionary    ${openstack_dico}    worker_size    m1.xxlarge
         Set To Dictionary    ${openstack_dico}    repositories    ${REPOS_LIST}
+        _create package list    ${openstack_dico}
         ${openstack_dico}    configure terraform file common    ${openstack_dico}
         _create tvars json file    ${openstack_dico}    ${cluster_number}
     END
