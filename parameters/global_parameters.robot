@@ -22,6 +22,7 @@ ${REGISTRY}       ${EMPTY}
 ${CONNEXION_UP}    False    # Create ssh session will be done only once during the tests
 ${CHECK_TERRAFORM}    False
 ${AIRGAPPED}      False
-${AIRGAPPED_IP}    ${EMPTY}
+${AIRGAPPED_IP_ONLINE}    10.84.73.139
 ${VM_VERSION}     SP1
 ${CAASP_VERSION}    4
+${AIRGAPPED_IP_OFFLINE}    ${EMPTY}
