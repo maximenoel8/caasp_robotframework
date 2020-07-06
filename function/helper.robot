@@ -45,23 +45,18 @@ check string contain
     [Return]    ${status}
 
 add CA to server
-    [Arguments]    ${ip}
-    open ssh session    ${ip}    tempo
-    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_15_${VM_VERSION}/SUSE:CA.repo    tempo
-    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ref    tempo
-    Run Keyword And Ignore Error    execute command with ssh    sudo zypper -n in ca-certificates-suse    tempo
-    Run Keyword And Ignore Error    execute command with ssh    sudo update-ca-certificates    tempo
-    Run Keyword And Ignore Error    execute command with ssh    sudo systemctl restart crio    tempo
-    [Teardown]    Close Connection
+    [Arguments]    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_15_${VM_VERSION}/SUSE:CA.repo    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ref    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper -n in ca-certificates-suse    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo update-ca-certificates    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo systemctl restart crio    ${node}
 
 add CA to all server
     [Arguments]    ${cluster_number}=1
-    @{masters}    Collections.Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["master"]}
-    @{workers}    Collections.Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["worker"]}
-    @{nodes}    Combine Lists    ${masters}    ${workers}
+    @{nodes}    get nodes name from CS
     FOR    ${node}    IN    @{nodes}
-        ${ip}    get node ip from CS    ${node}    ${cluster_number}
-        add CA to server    ${ip}
+        add CA to server    ${node}
     END
 
 get cluster number
@@ -90,7 +85,7 @@ open yaml file
         Continue For Loop If    "${status_comment}"=="FAIL"
         ${dico}    Run Keyword if    "${status_seperate_ line}"=="PASS" and "${status_data}"=="PASS"    create sub yaml dico    ${dico}    ${data}
         ...    ELSE    Set Variable    ${dico}
-        ${data}    Set Variable if    "${status_seperate_ line}"=="PASS"     ${EMPTY}    ${data}\n${line}
+        ${data}    Set Variable if    "${status_seperate_ line}"=="PASS"    ${EMPTY}    ${data}\n${line}
     END
     ${keys}    Collections.Get Dictionary Keys    ${dico}
     ${lt}    Get Length    ${keys}
@@ -110,7 +105,7 @@ write yaml file
     ${data}    Set Variable
     ${separate_line}    Set Variable    ---
     FOR    ${key}    IN    @{keys}
-        ${output}    Dump     ${dico["${key}"]}
+        ${output}    Dump    ${dico["${key}"]}
         ${data}    Set Variable    ${data}${separate_line}\n${output}
     END
     Create File    ${path}    ${data}
