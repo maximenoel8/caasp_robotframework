@@ -14,7 +14,7 @@ deploy cluster vms
     Run Keyword If    ${redeploy}    copy terraform from temporay
     ...    ELSE    copy terraform configuration
     set repo and packages
-    Run Keyword If    "${MODE}"=="${EMPTY}" or "${MODE}"=="RELEASE"    Run Keyword And Ignore Error    configure registration auto tfvars vmware
+    Run Keyword If    "${MODE}"=="${EMPTY}" or "${MODE}"=="RELEASE" or "${PLATFORM}"=="aws" or "${PLATFORM}"=="azure"    Run Keyword And Ignore Error    configure registration auto tfvars vmware
     Run Keyword If    "${PLATFORM}"=="vmware"    configure terraform tfvars vmware
     ...    ELSE IF    "${PLATFORM}"=="openstack"    Configure terraform tfvars openstack
     ...    ELSE IF    "${PLATFORM}"=="libvirt"    configure terraform tfvars libvirt
