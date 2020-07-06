@@ -64,15 +64,8 @@ configure terraform file common
     ${master_vm}    Evaluate    ${${VM_NUMBER[0]}}+1
     Set To Dictionary    ${terraform_dico}    masters    ${master_vm}
     Set To Dictionary    ${terraform_dico}    workers    ${${VM_NUMBER[1]}}
-    ${status}    ${packages}    Run Keyword And Ignore Error    Get From Dictionary    ${terraform_dico}    packages
-    ${packages}    Run Keyword If    "${status}"=="FAIL"    Create List
-    ...    ELSE    Set Variable    ${packages}
-    ${PACKAGES_LIST}    Run Keyword If    "${packages}"!="${EMPTY}"    Combine Lists    ${PACKAGES_LIST}    ${packages}
-    ...    ELSE    Set Variable    ${PACKAGES_LIST}
-    Set To Dictionary    ${terraform_dico}    packages    ${PACKAGES_LIST}
     @{authorized_keys}    Create List    ${SSH_PUB_KEY}
     Set To Dictionary    ${terraform_dico}    authorized_keys    ${authorized_keys}
-    Comment    Set To Dictionary    ${terraform_dico}    repositories    ${REPOS_LIST}
     Comment    Set To Dictionary    ${terraform_dico}    lb_repositories    ${LB_REPO_LIST}
     [Return]    ${terraform_dico}
 
@@ -107,3 +100,19 @@ create register scc file
     Create File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -r, \$\{caasp_registry_code\} ]\n
     Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, sle-module-containers/${sles_version}/x86_64 ]\n
     Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, caasp/${scc_version}/x86_64, -r, \$\{caasp_registry_code\} ]
+
+_update commands.tpl
+    FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
+        ${cluster_number}    evaluate    ${i}+1
+        Create File    ${TERRAFORMDIR}/cluster_${cluster_number}/cloud-init/commands.tpl    \ \ - echo ${AIRGAPPED_IP} mirror.server.aws > /etc/hosts\n
+        Append To File    ${TERRAFORMDIR}/cluster_${cluster_number}/cloud-init/commands.tpl    \ \ - zypper -n install \$\{packages\}
+    END
+
+_create package list
+    [Arguments]    ${terraform_dico}
+    ${status}    ${packages}    Run Keyword And Ignore Error    Get From Dictionary    ${terraform_dico}    packages
+    ${packages}    Run Keyword If    "${status}"=="FAIL"    Create List
+    ...    ELSE    Set Variable    ${packages}
+    ${PACKAGES_LIST}    Run Keyword If    "${packages}"!="${EMPTY}"    Combine Lists    ${PACKAGES_LIST}    ${packages}
+    ...    ELSE    Set Variable    ${PACKAGES_LIST}
+    Set To Dictionary    ${terraform_dico}    packages    ${PACKAGES_LIST}
