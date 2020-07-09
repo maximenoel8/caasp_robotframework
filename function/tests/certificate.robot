@@ -63,25 +63,25 @@ annotate dex gangway and metrics secret for reload
     kubectl    -n kube-system annotate deploy/metrics-server secret.reloader.stakater.com/reload=metrics-server-cert --overwrite
 
 create tls secret to
-    [Arguments]    ${service}    ${SAN}    ${namespace}    ${duration}=6 days, 23 hours    ${ca}=False
+    [Arguments]    ${service}    ${SAN}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False    ${ca_crt}=${WORKDIR}/cluster_1/pki/ca.crt    ${ca_key}=${WORKDIR}/cluster_1/pki/ca.key
     execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
     create client config    ${service}    ${SAN}
-    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${duration}
+    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${ca_crt}    ${ca_key}    ${duration}
     ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}    ${duration}
-    create tls secret manifest    ${service}    ${DATADIR}/certificate/template-cert.yaml    ${namespace}    ${ca}
+    create tls secret manifest    ${service}    ${DATADIR}/certificate/template-cert.yaml    ${namespace}    ${ca}    ca_crt=${ca_crt}
     kubectl    apply -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
 
 modify tls secret to
-    [Arguments]    ${service}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False
+    [Arguments]    ${service}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False    ${ca_crt}=${WORKDIR}/cluster_1/pki/ca.crt    ${ca_key}=${WORKDIR}/cluster_1/pki/ca.key
     step    Modify tls secret for ${service}
     backup tls secret manifest    ${service}
     ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
-    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${duration}
+    Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${ca_crt}    ${ca_key}    ${duration}
     ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}    ${duration}
-    create tls secret manifest    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${namespace}
+    create tls secret manifest    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${namespace}    ca_crt=${ca_crt}
     replace tls secret and restart service    ${service}
     wait pods ready
-    _modify expired date for secret    ${service}-cert    tls.crt    ${duration}
+    Run Keyword And Ignore Error    _modify expired date for secret    ${service}-cert    tls.crt    ${duration}
 
 backup tls secret manifest
     [Arguments]    ${service}
@@ -93,11 +93,11 @@ backup tls secret manifest
     Create File    ${LOGDIR}/certificate/${service}/backup/${service}.crt    ${tls_certificate}
 
 create tls secret manifest
-    [Arguments]    ${service}    ${file}    ${namespace}    ${ca}=True
+    [Arguments]    ${service}    ${file}    ${namespace}    ${ca}=True    ${ca_crt}=None
     ${extension}    Set Variable If    ${ca}    -cert    -tls
     ${service_crt}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.crt
     ${service_key}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.key
-    ${ca_crt}    _encode file in base64    ${WORKDIR}/cluster_1/pki/ca.crt
+    ${ca_crt}    _encode file in base64    ${ca_crt}
     ${output}    OperatingSystem.Get File    ${file}
     ${manifest_dico}    Load    ${output}
     Set To Dictionary    ${manifest_dico["metadata"]}    name=${service}${extension}
@@ -335,3 +335,15 @@ setup certificate suite
     Given cluster running
     And setup test suite monitoring
     And helm is installed
+
+updates kubeadm-config ConfigMap
+    [Arguments]    ${service}=customize-kubernetes-ca    ${cluster_number}=1
+    ${cm_kubeadm}    kubectl    get configmap -n kube-system kubeadm-config -o yaml
+    ${kubeadm_file}    Safe Load    ${cm_kubeadm}
+    ${cluster_config}    Safe Load    ${kubeadm_file["data"]["ClusterConfiguration"]}
+    Set To Dictionary    ${cluster_config["apiServer"]["extraArgs"]}    oidc-ca-file=/etc/kubernetes/pki/oidc-ca.crt
+    ${tmp_dico}    Safe Dump    ${cluster_config}
+    Set To Dictionary    ${kubeadm_file["data"]}    ClusterConfiguration=${tmp_dico}
+    ${data-kubeadm}    Safe Dump    ${kubeadm_file}
+    Create File    ${LOGDIR}/kubeadm-config.yaml    ${data-kubeadm}
+    kubectl    apply -f ${LOGDIR}/kubeadm-config.yaml
