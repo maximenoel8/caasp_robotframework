@@ -109,3 +109,17 @@ write yaml file
         ${data}    Set Variable    ${data}${separate_line}\n${output}
     END
     Create File    ${path}    ${data}
+
+add CA certificate to vm
+    [Arguments]    ${service}    ${node}
+    Switch Connection    ${node}
+    Put File    ${LOGDIR}/certificate/${service}/ca.crt    /home/${VM_USER}/
+    execute command with ssh    sudo cp /home/${VM_USER}/ca.crt /etc/pki/trust/anchors/    ${node}
+    execute command with ssh    sudo update-ca-certificates
+
+add ${service} certificate to nodes
+    @{nodes}    get nodes name from CS
+    add CA certificate to vm    ${service}    skuba_station_1
+    FOR    ${node}    IN    @{nodes}
+        add CA certificate to vm    ${service}    ${node}
+    END
