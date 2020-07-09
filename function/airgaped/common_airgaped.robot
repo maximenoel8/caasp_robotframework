@@ -2,6 +2,7 @@
 Resource          ../commands.robot
 Resource          rpm_registry.robot
 Resource          container_registry.robot
+Resource          ../helper.robot
 
 *** Keywords ***
 install mirror server
@@ -23,14 +24,6 @@ populate rmt and docker repo offline for
     import rpm repository    mirror
     import docker images    mirror
 
-add airgapped certificate to nodes
-    [Arguments]    ${cluster_number}=1
-    @{nodes}    get nodes name from CS    ${cluster_number}
-    add airgapped certificate to vm    skuba_station_${cluster_number}
-    FOR    ${node}    IN    @{nodes}
-        add airgapped certificate to vm    ${node}
-    END
-
 add mirror dns to nodes
     [Arguments]    ${cluster_number}=1
     @{nodes}    get nodes name from CS    ${cluster_number}
@@ -38,13 +31,6 @@ add mirror dns to nodes
     FOR    ${node}    IN    @{nodes}
         execute command with ssh    sudo sh -c "echo '${AIRGAPPED_IP_OFFLINE} \ mirror.server.aws' >> /etc/hosts"    ${node}
     END
-
-add airgapped certificate to vm
-    [Arguments]    ${node}
-    Switch Connection    ${node}
-    Put File    ${LOGDIR}/certificate/rmt-server/ca.crt    /home/${VM_USER}/
-    execute command with ssh    sudo cp /home/${VM_USER}/ca.crt /etc/pki/trust/anchors/    ${node}
-    execute command with ssh    sudo update-ca-certificates
 
 deploy offline airgapped
     Set Global Variable    ${AIRGAPPED_IP_OFFLINE}    ${WORKSTATION_1}
@@ -57,5 +43,5 @@ deploy offline airgapped
     set repo and packages
     populate rmt and docker repo offline for    ${REPOS_LIST}
     add CA to all server
-    add airgapped certificate to nodes
+    add rmt-server certificate to nodes
     add mirror dns to nodes
