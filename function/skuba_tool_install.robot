@@ -19,7 +19,6 @@ install skuba
     step    installing skuba ...
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        ...    AND    add mirror dns to nodes
         Run Keyword If    "${MODE}"=="${EMPTY}"    Skuba from pattern    ${cluster_number}
         ...    ELSE    _skuba from repo    ${cluster_number}
         Comment    Run Keyword if    "${PLATFORM}"=="vmware"    _disable firewall    ${cluster_number}
