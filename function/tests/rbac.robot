@@ -15,31 +15,35 @@ Library           ../../lib/base64_encoder.py
     Wait Until Keyword Succeeds    3min    10s    check pod log contain    -l app=dirsrv-389ds -n kube-system    INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
 
 authentication with skuba CI (group)
-    [Arguments]    ${cluster_number}=1
+    [Arguments]    ${customize}=False    ${cluster_number}=1
     step    checking authentification with CI ( group )
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
+    Run Keyword If    ${customize}    copy customize ca to workstation
+    ${ca_path}    Set Variable If    ${customize}    /home/${VM_USER}/cluster/pki/customize-ca/ca.crt    /home/${VM_USER}/cluster/pki/ca.crt
     kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
     Sleep    30
-    skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c tesla.conf    True
+    skuba    auth login -u tesla@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "${ca_path}" -c tesla.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/tesla.conf    ${LOGDIR}/tesla.conf
     execute command with ssh    rm /home/${VM_USER}/cluster/tesla.conf
     kubectl    --kubeconfig=${LOGDIR}/tesla.conf auth can-i get rolebindings | grep -x yes
     kubectl    delete rolebinding italiansrb
 
 authentication with skuba CI (users)
-    [Arguments]    ${cluster_number}=1
+    [Arguments]    ${customize}=False    ${cluster_number}=1
     [Timeout]    4 minutes
     step    checking authentification with CI ( users )
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb
+    Run Keyword If    ${customize}    copy customize ca to workstation
+    ${ca_path}    Set Variable If    ${customize}    /home/${VM_USER}/cluster/pki/customize-ca/ca.crt    /home/${VM_USER}/cluster/pki/ca.crt
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
     Sleep    30
-    skuba    auth login -u curie@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c curie.conf    True
+    skuba    auth login -u curie@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "${ca_path}" -c curie.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/curie.conf    ${LOGDIR}/curie.conf
     execute command with ssh    rm /home/${VM_USER}/cluster/curie.conf
     kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i list pods | grep -x yes
     kubectl    --kubeconfig=${LOGDIR}/curie.conf auth can-i delete pods | grep -x no
-    skuba    auth login -u euler@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "/home/${VM_USER}/cluster/pki/ca.crt" -c euler.conf    True
+    skuba    auth login -u euler@suse.com -p password -s https://${IP_LB_${cluster_number}}:32000 -r "${ca_path}" -c euler.conf    True
     SSHLibrary.Get File    /home/${VM_USER}/cluster/euler.conf    ${LOGDIR}/euler.conf
     execute command with ssh    rm /home/${VM_USER}/cluster/euler.conf
     kubectl    --kubeconfig=${LOGDIR}/euler.conf auth can-i delete pods | grep -x yes
@@ -190,3 +194,8 @@ _config dex modifying current cm
     ${dico_final}    Dump    ${dico}
     Create File    ${LOGDIR}/dex-config.yaml    ${dico_final}
     kubectl    apply -f ${LOGDIR}/dex-config.yaml
+
+copy customize ca to workstation
+    [Arguments]    ${service}=customize-kubernetes-ca    ${cluster_number}=1
+    Switch Connection    skuba_station_${cluster_number}
+    Put File    ${LOGDIR}/certificate/${service}/ca.crt    /home/${VM_USER}/cluster/pki/customize-ca/ca.crt
