@@ -29,6 +29,7 @@ remove node
     Should Contain    ${remove_output}    node ${skuba_node} successfully removed from the cluster
     ${nodes_output}    kubectl    get nodes -o name
     Should Not Contain    ${nodes_output}    ${node_name}
+    sleep    2
     wait pods ready
     disable node in cs    ${node_name}
 
