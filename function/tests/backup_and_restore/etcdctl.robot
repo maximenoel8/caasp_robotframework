@@ -47,7 +47,7 @@ install etcdctl on node
 
 restore etcd data on
     [Arguments]    ${node}    ${cluster_number}=1
-    ${node_ip}    get node ip from CS    ${CLUSTER_PREFIX}-${cluster_number}-${node}
+    ${node_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-${node}"]["local_ip"]}    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-${node}"]["ip"]}
     Switch Connection    ${CLUSTER_PREFIX}-${cluster_number}-${node}
     Put File    ${LOGDIR}/etcd-snapshot-${cluster}.db    ${etcd_snapshot_path}/etcd-snapshot-${cluster}.db
     ${server_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-${node}
@@ -72,10 +72,9 @@ check master started in etcdctl list
     step    ETCD was restaure successfully on ${node}
 
 add master to the etcd member list with etcdctl
-    [Arguments]    ${master}    ${cluster_number}=1
-    ${node_ip}    get node ip from CS    ${CLUSTER_PREFIX}-${cluster_number}-${master}
-    ${server_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-${master}
-    ${node_ip}    Set Variable If    "${PLATFORM}"=="aws"    ${server_name}    ${node_ip}
+    [Arguments]    ${node}    ${cluster_number}=1
+    ${server_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-${node}
+    ${node_ip}    Set Variable If    "${PLATFORM}"=="openstack"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-${node}"]["local_ip"]}    "${PLATFORM}"=="aws"    ${server_name}    "${PLATFORM}"!="aws" and "${PLATFORM}"!="openstack"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-${node}"]["ip"]}
     execute command with ssh    sudo ETCDCTL_API=3 etcdctl --endpoints=https://127.0.0.1:2379 \ --cacert=/etc/kubernetes/pki/etcd/ca.crt \ --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \ member add ${server_name} --peer-urls=https://${NODE_IP}:2380    alias=bootstrap_master_${cluster_number}
 
 delete etcd-backup job

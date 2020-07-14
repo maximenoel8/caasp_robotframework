@@ -9,10 +9,10 @@ Resource          ../parameters/vm_deployment.robot
 
 *** Keywords ***
 add node to cluster state
-    [Arguments]    ${name}    ${ip}    ${disable}=False    ${dns}=default    ${cluster_number}=1
+    [Arguments]    ${name}    ${ip}    ${disable}=False    ${dns}=default    ${cluster_number}=1    ${local_ip}=default
     ${type}    get node type    ${name}
     ${skuba_name}    Set Variable If    "${dns}"=="default"    ${name}    ${dns}
-    &{node_infos}    Create Dictionary    ip=${ip}    disable=${disable}    skuba_name=${skuba_name}
+    &{node_infos}    Create Dictionary    ip=${ip}    disable=${disable}    skuba_name=${skuba_name}    local_ip=${local_ip}
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${cluster_state["cluster_${cluster_number}"]}    ${type}
     &{node}    Run Keyword If    "${status}"=="PASS"    Create Dictionary    ${name}=${node_infos}    &{cluster_state["cluster_${cluster_number}"]["${type}"]}
     ...    ELSE    Create Dictionary    ${name}=${node_infos}
@@ -163,7 +163,7 @@ create cluster state for
     ${ip_dictionnary}=    Load JSON From File    ${LOGDIR}/cluster${cluster_number}.json
     create first cluster_state level    ${cluster_number}
     Run Keyword If    "${ip_dictionnary["terraform_version"]}"=="0.11.11"    _create cluster_state terraform 11 for    ${ip_dictionnary}    ${cluster_number}
-    ...    ELSE IF    "${ip_dictionnary["terraform_version"]}"=="0.12.19" and not "${PLATFORM}"=="aws" and not "${PLATFORM}"=="vmware" and not "${PLATFORM}"=="azure"    _create cluster_state terraform 12 for    ${ip_dictionnary}    ${cluster_number}
+    ...    ELSE IF    "${PLATFORM}"=="openstack"    _create cluster_state for openstack    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${PLATFORM}"=="aws"    _create cluster_state for aws    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${PLATFORM}"=="vmware"    _create_cluster_state_for_vmware    ${ip_dictionnary}    ${cluster_number}
     ...    ELSE IF    "${PLATFORM}"=="azure"    _create cluster_state for azure    ${ip_dictionnary}    ${cluster_number}
@@ -322,3 +322,38 @@ _create cluster_state for azure
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer
     ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["ip_load_balancer"]["value"]["fqdn"]}
     add lb to CS    ${IP_LB}    ${cluster_number}
+
+_create cluster_state for openstack
+    [Arguments]    ${ip_dictionnary}    ${cluster_number}
+    @{masters}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
+    @{workers}    Get Dictionary Keys    ${ip_dictionnary["outputs"]["ip_workers"]["value"]}
+    ${count}    Set Variable    0
+    ${length}    Get Length    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
+    ${length}    Evaluate    ${length}-1
+    FOR    ${key}    IN    @{masters}
+        Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    ${cluster_number}
+        ...    AND    Exit For Loop
+        ${local_ip}    _get local ip for openstack    ${ip_dictionnary}    ${key}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    cluster_number=${cluster_number}    local_ip=${local_ip}
+        ${count}    Evaluate    ${count}+1
+    END
+    FOR    ${key}    IN    @{workers}
+        add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    cluster_number=${cluster_number}
+    END
+    ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer
+    ${IP_LB}    Set Variable If    "${status}"=="FAIL"    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}    ${ip_dictionnary["outputs"]["ip_load_balancer"]["value"]["${CLUSTER_PREFIX}-${cluster_number}-lb"]}
+    add lb to CS    ${IP_LB}    ${cluster_number}
+
+_get local ip for openstack
+    [Arguments]    ${dictionnary}    ${node}
+    ${type}    get node type    ${node}
+    FOR    ${element}    IN    @{dictionnary["resources"]}
+        ${instances}    Set Variable If    "${element["name"]}"=="${type}" and "${element["type"]}"=="openstack_compute_instance_v2"    ${element["instances"]}
+        Exit For Loop If    "${element["name"]}"=="${type}" and "${element["type"]}"=="openstack_compute_instance_v2"
+    END
+    FOR    ${instance}    IN    @{instances}
+        ${ip}    Set Variable If    "${instance["attributes"]["name"]}"=="${node}"    ${instance["attributes"]["network"][0]["fixed_ip_v4"]}
+        Exit For Loop If    "${instance["attributes"]["name"]}"=="${node}"
+        log    ${ip}
+    END
+    [Return]    ${ip}
