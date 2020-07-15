@@ -59,11 +59,6 @@ helm
     ${output}    Wait Until Keyword Succeeds    3x    2s    execute command localy    helm ${arguments}
     [Return]    ${output}
 
-openssl
-    [Arguments]    ${cmd}
-    ${output}    execute command with ssh    openssl ${cmd}
-    [Return]    ${output}
-
 velero
     [Arguments]    ${argument}    ${cluster_number}=1
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
