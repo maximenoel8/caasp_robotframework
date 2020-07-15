@@ -65,7 +65,6 @@ annotate dex gangway and metrics secret for reload
 create tls secret to
     [Arguments]    ${service}    ${SAN}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False    ${ca_crt}=${WORKDIR}/cluster_1/pki/ca.crt    ${ca_key}=${WORKDIR}/cluster_1/pki/ca.key
     execute command localy    mkdir -p ${LOGDIR}/certificate/${service}
-    create client config    ${service}    ${SAN}
     Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${ca_crt}    ${ca_key}    ${duration}
     ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}    ${duration}
     create tls secret manifest    ${service}    ${DATADIR}/certificate/template-cert.yaml    ${namespace}    ${ca}    ca_crt=${ca_crt}
@@ -347,3 +346,8 @@ updates kubeadm-config ConfigMap
     ${data-kubeadm}    Safe Dump    ${kubeadm_file}
     Create File    ${LOGDIR}/kubeadm-config.yaml    ${data-kubeadm}
     kubectl    apply -f ${LOGDIR}/kubeadm-config.yaml
+
+copy customize ca to workstation
+    [Arguments]    ${service}=customize-kubernetes-ca    ${cluster_number}=1
+    Switch Connection    skuba_station_${cluster_number}
+    Put File    ${LOGDIR}/certificate/${service}/ca.crt    /home/${VM_USER}/cluster/pki/customize-ca/ca.crt

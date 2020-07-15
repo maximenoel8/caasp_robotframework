@@ -48,20 +48,6 @@ generate new certificate with CA signing request
     ${start_date}    ${end_date}    generate start_date and end_date    ${duration}
     generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${ca_crt}    ${ca_key}    ${start_date}    ${end_date}    ${san}
 
-create client config
-    [Arguments]    ${service}    ${SAN}
-    Copy File    ${DATADIR}/certificate/server.conf    ${LOGDIR}/certificate/${service}/${service}.conf
-    ${count}    Set Variable    1
-    FOR    ${ip}    IN    @{SAN["ip"]}
-        Append To File    ${LOGDIR}/certificate/${service}/${service}.conf    IP.${count} = ${ip}\n
-        ${count}    Evaluate    ${count} + 1
-    END
-    ${count}    Set Variable    1
-    FOR    ${dns}    IN    @{SAN["dns"]}
-        Append To File    ${LOGDIR}/certificate/${service}/${service}.conf    DNS.${count} = ${dns}\n
-        ${count}    Evaluate    ${count} + 1
-    END
-
 create CA
     [Arguments]    ${service}    ${cn}=default    ${duration}=87600 hours
     ${cn}    Set Variable If    "${cn}"=="default"    ${service}    ${cn}
@@ -74,3 +60,32 @@ create CA with CA signing request
     Create Directory    ${LOGDIR}/certificate/${service}
     ${start_date}    ${end_date}    generate start_date and end_date    ${duration}
     generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/ca.crt    ${LOGDIR}/certificate/${service}/ca.key    ${WORKDIR}/cluster_1/pki/ca.crt    ${WORKDIR}/cluster_1/pki/ca.key    ${start_date}    ${end_date}    CA=True
+
+add CA certificate to vm
+    [Arguments]    ${service}    ${node}
+    Switch Connection    ${node}
+    Put File    ${LOGDIR}/certificate/${service}/ca.crt    /home/${VM_USER}/
+    execute command with ssh    sudo cp /home/${VM_USER}/ca.crt /etc/pki/trust/anchors/    ${node}
+    execute command with ssh    sudo update-ca-certificates
+
+add ${service} certificate to nodes
+    @{nodes}    get nodes name from CS
+    add CA certificate to vm    ${service}    skuba_station_1
+    FOR    ${node}    IN    @{nodes}
+        add CA certificate to vm    ${service}    ${node}
+    END
+
+add CA to server
+    [Arguments]    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_15_${VM_VERSION}/SUSE:CA.repo    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ref    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo zypper -n in ca-certificates-suse    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo update-ca-certificates    ${node}
+    Run Keyword And Ignore Error    execute command with ssh    sudo systemctl restart crio    ${node}
+
+add CA to all server
+    [Arguments]    ${cluster_number}=1
+    @{nodes}    get nodes name from CS
+    FOR    ${node}    IN    @{nodes}
+        add CA to server    ${node}
+    END
