@@ -35,13 +35,12 @@ install rmt-server
     execute command with ssh    sudo cp /etc/rmt/ssl/ca.crt /etc/pki/trust/anchors/    mirror
     execute command with ssh    sudo update-ca-certificates    mirror
 
-generate certificates
+generate rmt certificates
     ${service}    Set Variable    rmt-server
     create CA    ${service}    RMT Certificate Authority
     ${san_dns}    Create List    mirror.server.aws
     ${san_ip}    Create List    ${AIRGAPPED_IP_OFFLINE}
     ${SAN}    Create Dictionary    dns=${san_dns}    ip=${san_ip}
-    create client config    ${service}    ${SAN}
     generate new certificate with CA signing request    ${service}    ${SAN}    ${LOGDIR}/certificate/${service}/ca.crt    ${LOGDIR}/certificate/${service}/ca.key
 
 sync and mirror online

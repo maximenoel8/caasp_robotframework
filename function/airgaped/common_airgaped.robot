@@ -38,7 +38,7 @@ deploy offline airgapped
     open ssh session    ${AIRGAPPED_IP_OFFLINE}    alias=mirror
     execute command with ssh    scp -i /home/sles/id_shared -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null /home/sles/registry.tar.gz ${VM_USER}@${AIRGAPPED_IP_OFFLINE}:/home/${VM_USER}    alias=online_mirror
     execute command with ssh    scp -i /home/sles/id_shared -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null /home/sles/rmt.tar.gz ${VM_USER}@${AIRGAPPED_IP_OFFLINE}:/home/${VM_USER}    alias=online_mirror
-    generate certificates
+    generate rmt certificates
     install mirror server
     set repo and packages
     populate rmt and docker repo offline for    ${REPOS_LIST}
