@@ -92,3 +92,10 @@ init cluster
     execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${alias}
     Run Keyword If    ${CPI_VSPHERE}    _setup vsphere cloud configuration    ${cluster_number}
     Run Keyword If    "${PLATFORM}"=="azure"    _setup azure cloud configuration    ${cluster_number}
+
+skuba authentication
+    [Arguments]    ${user}    ${domain}=suse.com    ${password}=password    ${oidc_certificate}=${EMPTY}    ${cluster_number}=1
+    ${oidc_cmd}    Set Variable If    "${oidc_certificate}"!="${EMPTY}"    --oidc-dex-ca ${oidc_certificate}    ${oidc_certificate}
+    ${ca_path}    Set Variable    /home/${VM_USER}/cluster/pki/ca.crt
+    ${ca_path}    Set Variable    /home/${VM_USER}/cluster/pki/ca.crt
+    skuba    auth login -u ${user}@${domain} -p ${password} -s https://${IP_LB_${cluster_number}}:32000 ${oidc_cmd} -r ${ca_path} -c ${user}.conf    True
