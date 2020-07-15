@@ -23,7 +23,7 @@ install skuba
         ...    ELSE    _skuba from repo    ${cluster_number}
         Comment    Run Keyword if    "${PLATFORM}"=="vmware"    _disable firewall    ${cluster_number}
         Switch Connection    skuba_station_${cluster_number}
-        Put File    data/id_shared    /home/${VM_USER}/    mode=0600
+        Put File    data/id_shared    /home/${VM_USER}    mode=0600
     END
     Run keyword if    "${MODE}"=="${EMPTY}" and '${RPM}'!='${EMPTY}' and not ${UPGRADE} and not ${redeploy} and ${CHECK_TERRAFORM}    check terrafrom are updated and redeploy if not
 
