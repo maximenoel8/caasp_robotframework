@@ -44,21 +44,6 @@ check string contain
     ${status}    Set Variable If    "${status_cmd}"=="PASS"    True    False
     [Return]    ${status}
 
-add CA to server
-    [Arguments]    ${node}
-    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_15_${VM_VERSION}/SUSE:CA.repo    ${node}
-    Run Keyword And Ignore Error    execute command with ssh    sudo zypper ref    ${node}
-    Run Keyword And Ignore Error    execute command with ssh    sudo zypper -n in ca-certificates-suse    ${node}
-    Run Keyword And Ignore Error    execute command with ssh    sudo update-ca-certificates    ${node}
-    Run Keyword And Ignore Error    execute command with ssh    sudo systemctl restart crio    ${node}
-
-add CA to all server
-    [Arguments]    ${cluster_number}=1
-    @{nodes}    get nodes name from CS
-    FOR    ${node}    IN    @{nodes}
-        add CA to server    ${node}
-    END
-
 get cluster number
     [Arguments]    ${cluster}
     ${out}    Split String    ${cluster}    _
@@ -109,17 +94,3 @@ write yaml file
         ${data}    Set Variable    ${data}${separate_line}\n${output}
     END
     Create File    ${path}    ${data}
-
-add CA certificate to vm
-    [Arguments]    ${service}    ${node}
-    Switch Connection    ${node}
-    Put File    ${LOGDIR}/certificate/${service}/ca.crt    /home/${VM_USER}/
-    execute command with ssh    sudo cp /home/${VM_USER}/ca.crt /etc/pki/trust/anchors/    ${node}
-    execute command with ssh    sudo update-ca-certificates
-
-add ${service} certificate to nodes
-    @{nodes}    get nodes name from CS
-    add CA certificate to vm    ${service}    skuba_station_1
-    FOR    ${node}    IN    @{nodes}
-        add CA certificate to vm    ${service}    ${node}
-    END
