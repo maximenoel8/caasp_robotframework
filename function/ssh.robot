@@ -6,6 +6,9 @@ Library           SSHLibrary
 *** Keywords ***
 open ssh session
     [Arguments]    ${server}    ${alias}=default    ${proxy_cmd}=${EMPTY}    ${cluster_number}=1    ${user}=default
+    [Documentation]    Create ssh session to vm and set it to an alias that can be pass in arguments
+    ...
+    ...    Can create ssh session through bastion
     ${user}    Set Variable If    "${user}"=="default"    ${VM_USER}    ${user}
     ${server_ip}    Run Keyword If    "${alias}"=="default"    get node ip from CS    ${server}    ${cluster_number}
     ...    ELSE    Set Variable    ${server}
