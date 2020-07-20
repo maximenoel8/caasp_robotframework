@@ -1,6 +1,17 @@
 # import from ldap.forumsys.com
 # ldapsearch -x -H ldap://ldap.forumsys.com:389 -b dc=example,dc=com -LLL
 
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+
+dn: cn=Directory Administrators,dc=example,dc=com
+objectClass: top
+objectClass: groupofuniquenames
+cn: Directory Administrators
+uniqueMember: cn=Directory Manager
+
 dn: uid=newton,dc=example,dc=com
 sn: Newton
 objectClass: inetOrgPerson
