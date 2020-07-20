@@ -8,6 +8,9 @@ Resource          ssh.robot
 *** Keywords ***
 execute command with ssh
     [Arguments]    ${cmd}    ${alias}=skuba_station_1    ${check_rc}=True    ${timeout}=15min
+    [Documentation]    Run command in remote server by using alias created with `open ssh session`
+    ...
+    ...    The function by default will fail if command fail. Can be change with ${check_rc} variable
     Switch Connection    ${alias}
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=${timeout}
     log    ${stderr}    repr=true    formatter=repr
@@ -21,7 +24,7 @@ execute command localy
     [Arguments]    ${cmd}    ${check_rc}=True
     ${rc}    ${output}    Run And Return Rc And Output    ${cmd}
     log    ${output}    repr=true    formatter=repr
-    Run Keyword And Ignore Error    Append To File    ${LOGDIR}/tests/${TEST NAME}.log    \n\nCommand :${cmd} output: \n${output} \n
+    Run Keyword And Ignore Error    Append To File    ${LOGDIR}/tests/${TEST NAME}.log    \n\nCommand :${cmd} output: \n${output} \n    encoding=ASCII
     Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0    ${output}
     ...    ELSE    Return From Keyword    ${output}    ${rc}
     [Return]    ${output}
