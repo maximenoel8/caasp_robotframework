@@ -357,3 +357,6 @@ _get local ip for openstack
         log    ${ip}
     END
     [Return]    ${ip}
+
+platform is ${platform}
+    Should Be Equal    ${cluster_state["cluster_1"]["platform"]}    ${platform}

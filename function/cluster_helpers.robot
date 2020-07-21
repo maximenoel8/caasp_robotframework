@@ -3,6 +3,10 @@ Library           OperatingSystem
 Resource          commands.robot
 Library           String
 Library           Collections
+Resource          govc.robot
+Resource          tools.robot
+Library           yaml
+Resource          helper.robot
 
 *** Keywords ***
 wait nodes are ready
@@ -230,3 +234,40 @@ wait daemonset are ready
         Exit For Loop If    ${status}
     END
     Should Not Be Equal    ${i}    59
+
+patch vm provider for all nodes
+    step    Patch vm provider
+    @{nodes}    get nodes name from CS
+    FOR    ${node}    IN    @{nodes}
+        ${UUID}    get ${node} UUID
+        ${skuba_name}    get node skuba name    ${node}
+        kubectl    patch node ${skuba_name} -p "{\\"spec\\":{\\"providerID\\":\\"vsphere://${UUID}\\"}}"
+    END
+
+save kubeadm-config to local machine as ${file}
+    kubectl    -n kube-system get cm/kubeadm-config -o yaml > ${LOGDIR}/${file}
+
+edit and apply ${file} for vsphere provider
+    ${kubeadmin}    open yaml file    ${LOGDIR}/${file}
+    ${cluster_config}    Safe Load    ${kubeadmin["data"]["ClusterConfiguration"]}
+    ${extra_args}    Create Dictionary    cloud-config=/etc/kubernetes/vsphere.conf    cloud-provider=vsphere
+    ${extra_volume}    Create Dictionary    hostPath=/etc/kubernetes/vsphere.conf    mountPath=/etc/kubernetes/vsphere.conf    name=cloud-config    pathType=FileOrCreate    readOnly=${true}
+    ${extra_args_dic}    Convert To Dictionary    ${extra_args}
+    ${extra_volume_dic}    Convert To Dictionary    ${extra_volume}
+    ${extra_vol_list}    Create List    ${extra_volume_dic}
+    ${extra_vol_list_2}    Copy List    ${extra_vol_list}    deepcopy=True
+    Set To Dictionary    ${cluster_config["apiServer"]["extraArgs"]}    &{extra_args_dic}
+    Set To Dictionary    ${cluster_config["apiServer"]}    extraVolumes=${extra_vol_list}
+    Set To Dictionary    ${cluster_config["controllerManager"]}    extraArgs=${extra_args_dic}
+    Set To Dictionary    ${cluster_config["controllerManager"]}    extraVolumes=${extra_vol_list_2}
+    ${cluster_config_dump}    Dump    ${cluster_config}
+    Set To Dictionary    ${kubeadmin["data"]}    ClusterConfiguration=${cluster_config_dump}
+    ${kubeadmin_dump}    Dump    ${kubeadmin}
+    Create File    ${LOGDIR}/${file}    ${kubeadmin_dump}
+    kubectl    apply -f ${LOGDIR}/${file} --force
+
+update control-plane on masters
+    @{masters}    get master servers name
+    FOR    ${master}    IN    @{masters}
+        execute command with ssh    sudo kubeadm upgrade node phase control-plane --etcd-upgrade=false    ${master}
+    END

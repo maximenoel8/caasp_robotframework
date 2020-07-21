@@ -1,3 +1,6 @@
+*** Settings ***
+Resource          vmware_deployment.robot
+
 *** Variables ***
 ${VM_USER}        sles
 ${NUMBER}         1:2

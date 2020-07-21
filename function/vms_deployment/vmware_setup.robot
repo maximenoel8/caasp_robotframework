@@ -11,9 +11,9 @@ configure terraform tfvars vmware
         ${cluster_number}    evaluate    ${i}+1
         &{vmware_dico}    Convert Tvars To Dico    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfvars.example
         Remove From Dictionary    ${vmware_dico}    vsphere_datastore
-        Set To Dictionary    ${vmware_dico}    vsphere_datacenter    PROVO
+        Set To Dictionary    ${vmware_dico}    vsphere_datacenter    ${DATACENTER}
         Set To Dictionary    ${vmware_dico}    vsphere_network    VM Network
-        Set To Dictionary    ${vmware_dico}    vsphere_resource_pool    CaaSP_RP
+        Set To Dictionary    ${vmware_dico}    vsphere_resource_pool    ${RESSOURCE_POOL}
         Set To Dictionary    ${vmware_dico}    template_name    ${template}
         Set To Dictionary    ${vmware_dico}    stack_name    ${CLUSTER_PREFIX}-${cluster_number}
         Set To Dictionary    ${vmware_dico}    worker_disk_size    ${80}
@@ -32,6 +32,7 @@ set vmware env variables
     ${keys}    Get Dictionary Keys    ${VMWARE}
     FOR    ${key}    IN    @{keys}
         Set Environment Variable    ${key}    ${VMWARE["${key}"]}
+        Set Global Variable    ${${key}}    ${VMWARE["${key}"]}
     END
 
 _change_vsphere_datastorage
@@ -42,8 +43,22 @@ _change_vsphere_datastorage
 
 _setup vsphere cloud configuration
     [Arguments]    ${cluster_number}
+    _create vsphere cloud configuration
+    Put File    ${LOGDIR}/vsphere.conf    /home/${VM_USER}/cluster/cloud/vsphere/
+
+copy vsphere cloud configuration to all nodes
+    [Arguments]    ${cluster_number}=1
+    @{nodes}    get nodes name from CS    ${cluster_number}
+    _create vsphere cloud configuration
+    FOR    ${node}    IN    @{nodes}
+        Switch Connection    ${node}
+        Put File    ${LOGDIR}/vsphere.conf    /home/${VM_USER}/
+        execute command with ssh    sudo cp /home/${VM_USER}/vsphere.conf /etc/kubernetes/    ${node}
+    END
+
+_create vsphere cloud configuration
+    [Arguments]    ${cluster_number}=1
     Copy File    ${DATADIR}/cpi/vsphere.conf.template    ${LOGDIR}/vsphere.conf
     modify string in file    ${LOGDIR}/vsphere.conf    <user>    ${vmware["VSPHERE_USER"]}
     modify string in file    ${LOGDIR}/vsphere.conf    <password>    ${vmware["VSPHERE_PASSWORD"]}
     modify string in file    ${LOGDIR}/vsphere.conf    <stack>    ${CLUSTER_PREFIX}-${cluster_number}
-    Put File    ${LOGDIR}/vsphere.conf    /home/${VM_USER}/cluster/cloud/vsphere/

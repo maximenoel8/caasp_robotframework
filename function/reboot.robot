@@ -39,3 +39,19 @@ reboot worker 0 and master 0 and wait server up
     Wait Until Keyword Succeeds    10min    30    wait nodes are ready
     wait pods ready
     refresh ssh session
+
+_update kubelet on ${node}
+    execute command with ssh    sudo systemctl stop kubelet    ${node}
+    ${KUBELET_KUBEADM_ARGS}    execute command with ssh    source /var/lib/kubelet/kubeadm-flags.env && echo $KUBELET_KUBEADM_ARGS    ${node}
+    execute command with ssh    echo KUBELET_KUBEADM_ARGS='"'--cloud-config=/etc/kubernetes/vsphere.conf --cloud-provider=vsphere ${KUBELET_KUBEADM_ARGS}'"' > /tmp/kubeadm-flags.env    ${node}
+    execute command with ssh    sudo mv /tmp/kubeadm-flags.env /var/lib/kubelet/kubeadm-flags.env    ${node}
+    execute command with ssh    sudo systemctl start kubelet    ${node}
+    Wait Until Keyword Succeeds    1 min    10 sec    execute command with ssh    sudo systemctl is-active --quiet kubelet    ${node}
+
+update kubelet on ${type}
+    @{nodes}    Run Keyword if    "${type}"=="masters"    get master servers name
+    ...    ELSE IF    "${type}"=="workers"    get worker servers name
+    ...    ELSE    Fail    Wrong node type
+    FOR    ${node}    IN    @{nodes}
+        _update kubelet on ${node}
+    END

@@ -85,3 +85,7 @@ sonobuoy
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${output}    execute command localy    ${LOGDIR}/sonobuoy ${args}
     [Return]    ${output}
+
+govc
+    [Arguments]    ${args}
+    execute command localy    govc ${args}
