@@ -12,90 +12,94 @@
       "issuer": "front-proxy-ca",
       "expiration": "9 years, 12 months, 0 weeks",
       "number": "master",
-      "kind" : "CA"
+      "kind": "CA"
     },
     "front-proxy-client": {
       "filename": "/etc/kubernetes/pki/front-proxy-client.crt",
       "issuer": "front-proxy-ca",
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "master",
-      "kind" : "TLS Web Client Authentication"
+      "kind": "TLS Web Client Authentication"
     },
     "kube-apiserver": {
       "filename": "/etc/kubernetes/pki/apiserver.crt",
       "issuer": "kubernetes",
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "master",
-      "kind" : "TLS Web Server Authentication"
+      "kind": "TLS Web Server Authentication"
     },
     "kube-apiserver-etcd-client": {
       "filename": "/etc/kubernetes/pki/apiserver-etcd-client.crt",
       "issuer": "etcd-ca",
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "master",
-      "kind" : "TLS Web Client Authentication"
+      "kind": "TLS Web Client Authentication"
     },
     "kube-apiserver-kubelet-client": {
       "filename": "/etc/kubernetes/pki/apiserver-kubelet-client.crt",
       "issuer": "kubernetes",
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "master",
-      "kind" : "TLS Web Client Authentication"
+      "kind": "TLS Web Client Authentication"
     },
     "kube-etcd-healthcheck-client": {
       "filename": "/etc/kubernetes/pki/etcd/healthcheck-client.crt",
       "issuer": "etcd-ca",
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "master",
-      "kind" : "TLS Web Client Authentication"
+      "kind": "TLS Web Client Authentication"
     },
     "kubelet-ca": {
       "filename": "/var/lib/kubelet/pki/kubelet-ca.crt",
       "issuer": "kubelet-ca",
       "expiration": "9 years, 12 months, 0 weeks",
       "number": "all",
-      "kind" : "CA"
+      "kind": "CA"
     },
     "kubernetes": {
       "filename": "/etc/kubernetes/pki/ca.crt",
       "issuer": "kubernetes",
       "expiration": "9 years, 12 months, 0 weeks",
       "number": "all",
-      "kind" : "CA"
+      "kind": "CA"
     },
-    "kube-etcd-peer" : {
+    "kube-etcd-peer": {
       "filename": "/etc/kubernetes/pki/etcd/peer.crt",
       "issuer": "etcd-ca",
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "all",
-      "kind" : "TLS Web Server Authentication,TLS Web Client Authentication"
+      "kind": "TLS Web Server Authentication,TLS Web Client Authentication"
     },
     "kube-etcd-server": {
       "filename": "/etc/kubernetes/pki/etcd/server.crt",
       "issuer": "etcd-ca",
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "all",
-      "kind" : "TLS Web Server Authentication,TLS Web Client Authentication"
+      "kind": "TLS Web Server Authentication,TLS Web Client Authentication"
     },
     "master": {
       "filename": [
         "/etc/kubernetes/pki/etcd/peer.crt",
         "/etc/kubernetes/pki/etcd/server.crt",
-        "/var/lib/kubelet/pki/kubelet.crt"
+        "/var/lib/kubelet/pki/kubelet.crt",
+        "/var/lib/kubelet/pki/kubelet-client-current.pem"
       ],
       "issuer": [
         "etcd-ca",
-        "kubelet-ca"
+        "kubelet-ca",
+        "kubernetes"
       ],
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "master"
     },
     "worker": {
       "filename": [
-        "/var/lib/kubelet/pki/kubelet.crt"
+        "/var/lib/kubelet/pki/kubelet.crt",
+        "/var/lib/kubelet/pki/kubelet-client-current.pem"
       ],
       "issuer": [
-        "kubelet-ca"
+        "kubelet-ca",
+        "kubernetes"
       ],
       "expiration": "12 months, 0 weeks, 4 days",
       "number": "worker"
@@ -116,7 +120,8 @@
         "filename": [
           "/etc/kubernetes/scheduler.conf",
           "/etc/kubernetes/controller-manager.conf",
-          "/etc/kubernetes/admin.conf"
+          "/etc/kubernetes/admin.conf",
+          "/etc/kubernetes/kubelet.conf"
         ],
         "expiration": "12 months, 0 weeks, 4 days"
       }
@@ -127,6 +132,12 @@
           "/etc/kubernetes/kubelet.conf"
         ],
         "expiration": "9 years, 12 months, 0 weeks"
+      },
+      "user": {
+        "filename": [
+          "/etc/kubernetes/kubelet.conf"
+        ],
+        "expiration": "12 months, 0 weeks, 4 days"
       }
     }
   },
@@ -137,7 +148,7 @@
         "expiration": "9 years, 12 months, 0 weeks"
       },
       "tls.crt": {
-        "cn" : "metrics-server.kube-system.svc",
+        "cn": "metrics-server.kube-system.svc",
         "expiration": "12 months, 0 weeks, 4 days"
       }
     },
@@ -147,7 +158,7 @@
         "expiration": "9 years, 12 months, 0 weeks"
       },
       "tls.crt": {
-        "cn" : "oidc-dex",
+        "cn": "oidc-dex",
         "expiration": "12 months, 0 weeks, 4 days"
       }
     },
@@ -157,12 +168,12 @@
         "expiration": "9 years, 12 months, 0 weeks"
       },
       "tls.crt": {
-        "cn" : "oidc-gangway",
+        "cn": "oidc-gangway",
         "expiration": "12 months, 0 weeks, 4 days"
       }
     },
     "issuer": "kubernetes",
-    "secret_namespace" : "kube-system"
+    "secret_namespace": "kube-system"
   },
   "certificate_remove": 0
 }
