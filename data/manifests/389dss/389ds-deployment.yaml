@@ -17,11 +17,11 @@ spec:
     spec:
       containers:
         - name: dirsrv-389ds
-          image: registry.suse.com/caasp/v4/389-ds:1.4.0
+          image: registry.suse.com/caasp/v5/389-ds:1.4.3
           ports:
             - containerPort: 3389
               name: ldap
-            - containerPort: 636
+            - containerPort: 3636
               name: ldaps
           imagePullPolicy: Always
           env:

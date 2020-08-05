@@ -10,7 +10,7 @@ spec:
     - name: ldap
       port: 3389
     - name: ldaps
-      port: 636
+      port: 3636
   selector:
     app: dirsrv-389ds
 
@@ -31,8 +31,8 @@ spec:
       nodePort: 30389
     - name: ldaps
       protocol: TCP
-      port: 636
-      targetPort: 636
+      port: 3636
+      targetPort: 3636
       nodePort: 30636
   selector:
     app: dirsrv-389ds

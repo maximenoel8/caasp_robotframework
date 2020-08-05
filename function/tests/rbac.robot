@@ -92,7 +92,7 @@ dex is configured for
 
 clean 389ds server
     step    clean 389ds service
-    Comment    kubectl    delete -f "${DATADIR}/manifests/389dss"
+    kubectl    delete -f "${DATADIR}/manifests/389dss"
     [Teardown]    teardown_test
 
 openldap server is deployed

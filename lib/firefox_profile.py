@@ -7,6 +7,7 @@ from selenium import webdriver
 def get_firefox_profile():
     browser_profile = webdriver.FirefoxProfile()
     browser_profile.accept_untrusted_certs = True
+    browser_profile.assume_untrusted_cert_issuer = True
     browser_profile.set_preference("browser.download.folderList", 2)
     browser_profile.set_preference("browser.download.dir", "/home/seluser/Downloads/")
     browser_profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/plain")

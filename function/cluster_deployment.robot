@@ -18,7 +18,7 @@ ${bootstrap_deployment_limit}    1
 ${bootstrap_expected_output}    [bootstrap] successfully bootstrapped core add-ons
 ${master_expected_output}    successfully joined the cluster
 ${worker_expected_output}    successfully joined the cluster
-${sleep_time}     10
+${sleep_time}     15
 
 *** Keywords ***
 create cluster deployment dictionnary
