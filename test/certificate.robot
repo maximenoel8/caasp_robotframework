@@ -31,8 +31,8 @@ check kucero is correctly renewing certificates
     [Setup]    refresh ssh session
     refresh ssh session
     And kucero is running on master
-    And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
-    And serverTLSBootstrap exists in config map
+    Comment    And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
+    Comment    And serverTLSBootstrap exists in config map
     ${current_files_number}    And current number of certificates are backuped
     When modify kucero command in manifest adding polling period and renew-before
     And kucero has renewed certificate
