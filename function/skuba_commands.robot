@@ -68,9 +68,9 @@ start bootstrap
     [Arguments]    ${node}    ${cluster}
     ${cluster_number}    get cluster number    ${cluster}
     _check bootstrap retry    ${cluster_number}
-    open ssh session    ${WORKSTATION__${cluster_number}}    ${node}
-    init cluster    ${node}    ${cluster_number}
+    init cluster    skuba_station_${cluster_number}    ${cluster_number}
     ${master_0_name}    get node skuba name    ${CLUSTER_PREFIX}-${cluster_number}-master-0    ${cluster_number}
+    open ssh session    ${WORKSTATION__${cluster_number}}    ${node}
     ${output}    skuba_write    node bootstrap --user ${VM_USER} --sudo --target ${cluster_state["${cluster}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]} ${master_0_name}
     Append To File    ${LOGDIR}/deployment/${CLUSTER_PREFIX}-${cluster_number}-master-0    ${output}\n
 
@@ -92,6 +92,8 @@ init cluster
     execute command with ssh    skuba cluster init ${extra_args} --control-plane ${IP_LB_${cluster_number}} cluster    ${alias}
     Run Keyword If    ${CPI_VSPHERE}    _setup vsphere cloud configuration    ${cluster_number}
     Run Keyword If    "${PLATFORM}"=="azure"    _setup azure cloud configuration    ${cluster_number}
+    Run Keyword If    "${OIDC_CERT}"=="NO_KEY"    day 1 customize oidc certificate without oidc-ca key    ${alias}
+    Run Keyword If    "${OIDC_CERT}"=="KEY"    day 1 customize oidc certificate with oidc-ca key    ${alias}
 
 skuba authentication
     [Arguments]    ${user}    ${domain}=suse.com    ${password}=password    ${oidc_certificate}=${EMPTY}    ${cluster_number}=1
@@ -99,3 +101,10 @@ skuba authentication
     ${ca_path}    Set Variable    /home/${VM_USER}/cluster/pki/ca.crt
     ${ca_path}    Set Variable    /home/${VM_USER}/cluster/pki/ca.crt
     skuba    auth login -u ${user}@${domain} -p ${password} -s https://${IP_LB_${cluster_number}}:32000 ${oidc_cmd} -r ${ca_path} -c ${user}.conf    True
+
+skuba generate oidc certiticate request
+    [Arguments]    ${alias}
+    Switch Connection    ${alias}
+    skuba    cert generate-csr    True
+    Get Directory    /home/${VM_USER}/cluster/pki    ${LOGDIR}/
+    SSHLibrary.Get File    /home/${VM_USER}/cluster/kubeadm-init.conf    ${LOGDIR}/

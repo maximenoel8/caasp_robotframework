@@ -16,11 +16,11 @@ Resource          ../skuba_commands.robot
     Wait Until Keyword Succeeds    3min    10s    check pod log contain    -l app=dirsrv-389ds -n kube-system    INFO - slapd_daemon - Listening on All Interfaces port 3636 for LDAPS requests
 
 authentication with skuba CI (group)
-    [Arguments]    ${customize}=False    ${cluster_number}=1
+    [Arguments]    ${customize}=False    ${file_name}=oidc-ca    ${cluster_number}=1
     step    checking authentification with CI ( group )
     Run Keyword And Ignore Error    kubectl    delete rolebinding italiansrb
-    Run Keyword If    ${customize}    copy customize ca to workstation
-    ${oidc_certificate_path}    Set Variable If    ${customize}    /home/${VM_USER}/cluster/pki/customize-ca/ca.crt    ${EMPTY}
+    Run Keyword If    "${customize}" != "False"    copy customize oidc-ca to workstation    service=${customize}
+    ${oidc_certificate_path}    Set Variable If    "${customize}" != "False"    /home/${VM_USER}/cluster/pki/${file_name}.crt    ${EMPTY}
     kubectl    create rolebinding italiansrb --clusterrole=admin --group=Italians
     Sleep    30
     skuba authentication    tesla    oidc_certificate=${oidc_certificate_path}
@@ -30,12 +30,12 @@ authentication with skuba CI (group)
     kubectl    delete rolebinding italiansrb
 
 authentication with skuba CI (users)
-    [Arguments]    ${customize}=False    ${cluster_number}=1
+    [Arguments]    ${customize}=False    ${file_name}=oidc-ca    ${cluster_number}=1
     [Timeout]    4 minutes
     step    checking authentification with CI ( users )
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb
-    Run Keyword If    ${customize}    copy customize ca to workstation
-    ${oidc_certificate_path}    Set Variable If    ${customize}    /home/${VM_USER}/cluster/pki/customize-ca/ca.crt    ${EMPTY}
+    Run Keyword If    "${customize}" != False    copy customize oidc-ca to workstation    ${customize}
+    ${oidc_certificate_path}    Set Variable If    "${customize}" != False    /home/${VM_USER}/cluster/pki/oidc-ca.crt    ${EMPTY}
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
     Sleep    30

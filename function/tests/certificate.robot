@@ -347,7 +347,7 @@ updates kubeadm-config ConfigMap
     Create File    ${LOGDIR}/kubeadm-config.yaml    ${data-kubeadm}
     kubectl    apply -f ${LOGDIR}/kubeadm-config.yaml
 
-copy customize ca to workstation
-    [Arguments]    ${service}=customize-kubernetes-ca    ${cluster_number}=1
+copy customize oidc-ca to workstation
+    [Arguments]    ${service}=customize-kubernetes-ca    ${file_name}=oidc-ca    ${cluster_number}=1
     Switch Connection    skuba_station_${cluster_number}
-    Put File    ${LOGDIR}/certificate/${service}/ca.crt    /home/${VM_USER}/cluster/pki/customize-ca/ca.crt
+    Put File    ${LOGDIR}/certificate/${service}/${file_name}.crt    /home/${VM_USER}/cluster/pki/${file_name}.crt

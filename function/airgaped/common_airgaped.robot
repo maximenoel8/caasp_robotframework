@@ -43,5 +43,5 @@ deploy offline airgapped
     set repo and packages
     populate rmt and docker repo offline for    ${REPOS_LIST}
     add CA to all server
-    add rmt-server certificate to nodes
+    add certificate to nodes    rmt-server
     add mirror dns to nodes

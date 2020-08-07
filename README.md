@@ -62,12 +62,20 @@ You can change global variable by adding -v \<variablename\>:\<new value\>. Here
 - `KEEP`: keep cluster after test
 - `NUMBER_OF_CLUSTER` : by default one, deploy number of cluster in the same robot framework session ( will use NUMBER for both of it)
 
+### OIDC configuration
+
+- `OIDC_CERT` : configure usage of oidc customize certificate  
+   - `KEY` : setup oidc-ca with key
+   - `NO_KEY` : use skuba cert generate-csr command to generate oidc certificates
+   - `None` : no customization
+
 ### Installation customization 
 - `MODE` : 
     - empty by default, skuba will be installed from pattern
     - DEV / STAGING / RELEASE : will build skuba from github project with choose option 
         . when using this mode,  you can specify a pull request number (pull-\<pull request number>) or a tag (tag-\<tag number>) with the variable `SKUBA_PULL_REQUEST`
 - `CHART_PULL_REQUEST` : clone https://github.com/SUSE/kubernetes-charts-suse-com in LOGDIR and checkout to the pull request
+
 ### Upgrade part and install with RPM
 - `UPGRADE` : by default false, if True, deploy the cluster with current pattern then add repo specify in RPM and upgrade cluster
 - `RPM` : Skuba repo with upgrade

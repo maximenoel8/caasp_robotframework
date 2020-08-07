@@ -5,6 +5,7 @@ Library           ../lib/openssl_library.py
 Resource          helper.robot
 Library           DateTime
 Resource          tools.robot
+Resource          skuba_commands.robot
 
 *** Keywords ***
 create kubernetes CA issuer secret
@@ -49,11 +50,11 @@ generate new certificate with CA signing request
     generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${ca_crt}    ${ca_key}    ${start_date}    ${end_date}    ${san}
 
 create CA
-    [Arguments]    ${service}    ${cn}=default    ${duration}=87600 hours
+    [Arguments]    ${service}    ${cn}=default    ${duration}=87600 hours    ${file_name}=ca
     ${cn}    Set Variable If    "${cn}"=="default"    ${service}    ${cn}
     Create Directory    ${LOGDIR}/certificate/${service}
     ${start_date}    ${end_date}    generate start_date and end_date    ${duration}
-    generate_self_signed_ssl_certificate    ${cn}    ${LOGDIR}/certificate/${service}/ca.crt    ${LOGDIR}/certificate/${service}/ca.key    ${start_date}    ${end_date}    CA=True
+    generate_self_signed_ssl_certificate    ${cn}    ${LOGDIR}/certificate/${service}/${file_name}.crt    ${LOGDIR}/certificate/${service}/${file_name}.key    ${start_date}    ${end_date}    CA=True
 
 create CA with CA signing request
     [Arguments]    ${service}    ${duration}=87600 hours
@@ -62,17 +63,18 @@ create CA with CA signing request
     generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/ca.crt    ${LOGDIR}/certificate/${service}/ca.key    ${WORKDIR}/cluster_1/pki/ca.crt    ${WORKDIR}/cluster_1/pki/ca.key    ${start_date}    ${end_date}    CA=True
 
 add CA certificate to vm
-    [Arguments]    ${service}    ${node}
+    [Arguments]    ${service}    ${node}    ${cert_name}=ca
     Switch Connection    ${node}
-    Put File    ${LOGDIR}/certificate/${service}/ca.crt    /home/${VM_USER}/
-    execute command with ssh    sudo cp /home/${VM_USER}/ca.crt /etc/pki/trust/anchors/    ${node}
+    Put File    ${LOGDIR}/certificate/${service}/${cert_name}.crt    /home/${VM_USER}/
+    execute command with ssh    sudo cp /home/${VM_USER}/${cert_name}.crt /etc/pki/trust/anchors/    ${node}
     execute command with ssh    sudo update-ca-certificates
 
-add ${service} certificate to nodes
+add certificate to nodes
+    [Arguments]    ${service}    ${cert_name}=ca
     @{nodes}    get nodes name from CS
-    add CA certificate to vm    ${service}    skuba_station_1
+    add CA certificate to vm    ${service}    skuba_station_1    ${cert_name}
     FOR    ${node}    IN    @{nodes}
-        add CA certificate to vm    ${service}    ${node}
+        add CA certificate to vm    ${service}    ${node}    ${cert_name}
     END
 
 add CA to server
@@ -89,3 +91,33 @@ add CA to all server
     FOR    ${node}    IN    @{nodes}
         add CA to server    ${node}
     END
+
+signed existing csr
+    [Arguments]    ${key_path}    ${csr_path}    ${crt_path}    ${ca_crt}    ${ca_key}    ${duration}=6 days, 23 hours
+    ${start_date}    ${end_date}    generate start_date and end_date    ${duration}
+    signed_certificate_request    ${key_path}    ${csr_path}    ${crt_path}    ${ca_crt}    ${ca_key}    ${start_date}    ${end_date}
+
+day 1 customize oidc certificate without oidc-ca key
+    [Arguments]    ${alias}
+    ${issuer_CN}    Set Variable    oidc-ca
+    And create CA    ${issuer_CN}    file_name=${issuer_CN}
+    skuba generate oidc certiticate request    ${alias}
+    signed existing csr    ${LOGDIR}/pki/oidc-dex-server.key    ${LOGDIR}/pki/oidc-dex-server.csr    ${LOGDIR}/pki/oidc-dex-server.crt    ${LOGDIR}/certificate/${issuer_CN}/${issuer_CN}.crt    ${LOGDIR}/certificate/${issuer_CN}/${issuer_CN}.key
+    signed existing csr    ${LOGDIR}/pki/oidc-gangway-server.key    ${LOGDIR}/pki/oidc-gangway-server.csr    ${LOGDIR}/pki/oidc-gangway-server.crt    ${LOGDIR}/certificate/${issuer_CN}/${issuer_CN}.crt    ${LOGDIR}/certificate/${issuer_CN}/${issuer_CN}.key
+    Switch Connection    ${alias}
+    Copy File    ${LOGDIR}/certificate/${issuer_CN}/${issuer_CN}.crt    ${LOGDIR}/pki
+    Put Directory    ${LOGDIR}/pki    /home/${VM_USER}/cluster/    0644
+    modify string in file    ${LOGDIR}/kubeadm-init.conf    /etc/kubernetes/pki/ca.crt    /etc/kubernetes/pki/oidc-ca.crt
+    Put File    ${LOGDIR}/kubeadm-init.conf    /home/${VM_USER}/cluster
+
+day 1 customize oidc certificate with oidc-ca key
+    [Arguments]    ${alias}
+    ${issuer_CN}    Set Variable    oidc-ca
+    And create CA    ${issuer_CN}    file_name=${issuer_CN}
+    Switch Connection    ${alias}
+    SSHLibrary.Get File    /home/${VM_USER}/cluster/kubeadm-init.conf    ${LOGDIR}/kubeadm-init.conf
+    execute command with ssh    mkdir -p /home/${VM_USER}/cluster/pki    ${alias}
+    Put file    ${LOGDIR}/certificate/${issuer_CN}/${issuer_CN}.crt    /home/${VM_USER}/cluster/pki    0644
+    Put file    ${LOGDIR}/certificate/${issuer_CN}/${issuer_CN}.key    /home/${VM_USER}/cluster/pki    0600
+    modify string in file    ${LOGDIR}/kubeadm-init.conf    /etc/kubernetes/pki/ca.crt    /etc/kubernetes/pki/oidc-ca.crt
+    Put File    ${LOGDIR}/kubeadm-init.conf    /home/${VM_USER}/cluster

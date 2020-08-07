@@ -22,7 +22,8 @@ copy terraform configuration
     log    ${NUMBER_OF_CLUSTER}
     ${limit}    Evaluate    ${NUMBER_OF_CLUSTER}+1
     FOR    ${cluster_number}    IN RANGE    1    ${limit}
-        Copy Directory    ${TEMPLATE_TERRAFORM_DIR}/${PLATFORM}    ${TERRAFORMDIR}/cluster_${cluster_number}
+        execute command localy    mkdir -p ${TERRAFORMDIR}/cluster_${cluster_number}
+        execute command localy    cp -R ${TEMPLATE_TERRAFORM_DIR}/${PLATFORM}/* ${TERRAFORMDIR}/cluster_${cluster_number}
         create register scc file    ${TERRAFORMDIR}/cluster_${cluster_number}
     END
     Comment    Remove Directory    ${WORKDIR}/skuba    True

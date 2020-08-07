@@ -93,6 +93,12 @@ def _load_key(KEY_FILE):
     return key
 
 
+def _load_certificate_request(CRS_FILE):
+    st_cert = open(CRS_FILE, 'rt').read()
+    cert_req = crypto.load_certificate_request(crypto.FILETYPE_PEM, st_cert)
+    return cert_req
+
+
 # a certificate signing request (csr)
 def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, CA_key_file, start_date, end_date,
                                     SAN=None, CA=False):
@@ -109,18 +115,45 @@ def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, 
     csrrequest.set_pubkey(psec)
     csrrequest.set_version(2)
 
-    selfsignedcert = crypto.X509()
-    selfsignedcert.set_serial_number(12345)
-    selfsignedcert.set_notBefore(bytes(start_date, "utf-8"))
-    selfsignedcert.set_notAfter(bytes(end_date, "utf-8"))
-    selfsignedcert.set_subject(csrrequest.get_subject())
-    selfsignedcert.set_issuer(cacert.get_subject())
-    selfsignedcert.set_version(2)
-    selfsignedcert.set_pubkey(csrrequest.get_pubkey())
+    signed_cert = crypto.X509()
+    signed_cert.set_serial_number(12345)
+    signed_cert.set_notBefore(bytes(start_date, "utf-8"))
+    signed_cert.set_notAfter(bytes(end_date, "utf-8"))
+    signed_cert.set_subject(csrrequest.get_subject())
+    signed_cert.set_issuer(cacert.get_subject())
+    signed_cert.set_version(2)
+    signed_cert.set_pubkey(csrrequest.get_pubkey())
     extension = _create_x509_extension_for_CA() if CA else _create_x509_extension_for_server(SAN)
-    selfsignedcert.add_extensions(extension)
-    selfsignedcert.sign(cakey, "sha256")
-    _write_key_certificate(CERT_FILE, KEY_FILE, selfsignedcert, psec)
+    signed_cert.add_extensions(extension)
+    signed_cert.sign(cakey, "sha256")
+    _write_key_certificate(CERT_FILE, KEY_FILE, signed_cert, psec)
+
+
+# a certificate signing request (csr)
+def signed_certificate_request(KEY_FILE, CSR_FILE, CERT_FILE, CA_cert_file, CA_key_file, start_date, end_date,
+                               CA=False):
+
+    # load CA key and certificate
+    ca_cert = _load_certificate(CA_cert_file)
+    ca_key = _load_key(CA_key_file)
+
+    # load csr request and key
+    csr_request = _load_certificate_request(CSR_FILE)
+    psec = _load_key(KEY_FILE)
+
+    # create certificate
+    signed_certificate = crypto.X509()
+    signed_certificate.set_serial_number(12345)
+    signed_certificate.set_notBefore(bytes(start_date, "utf-8"))
+    signed_certificate.set_notAfter(bytes(end_date, "utf-8"))
+    signed_certificate.set_subject(csr_request.get_subject())
+    signed_certificate.set_issuer(ca_cert.get_subject())
+    signed_certificate.set_version(2)
+    signed_certificate.set_pubkey(csr_request.get_pubkey())
+    extension = csr_request.get_extensions()
+    signed_certificate.add_extensions(extension)
+    signed_certificate.sign(ca_key, "sha256")
+    _write_key_certificate(CERT_FILE, KEY_FILE, signed_certificate, psec)
 
 
 def generate_self_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, start_date, end_date, SAN=None, CA=False):
