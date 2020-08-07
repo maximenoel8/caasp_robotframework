@@ -18,3 +18,8 @@ configure terraform tvars aws
         ${vmware_dico}    configure terraform file common    ${vmware_dico}
         _create tvars json file    ${vmware_dico}    ${cluster_number}
     END
+
+set aws env variables
+    Set Environment Variable    AWS_ACCESS_KEY_ID    ${AWS_ACCESS_KEY}
+    Set Environment Variable    AWS_SECRET_ACCESS_KEY    ${AWS_SECRET_KEY}
+    Set Environment Variable    AWS_DEFAULT_REGION    eu-central-1

@@ -43,7 +43,9 @@ _skuba from repo
     [Arguments]    ${cluster_number}
     Run Keyword And Ignore Error    _install go git make    ${cluster_number}
     build skuba from repo    ${SKUBA_PULL_REQUEST}    cluster_number=${cluster_number}
-    execute command with ssh    sudo zypper --non-interactive in kubernetes-client    alias=skuba_station_${cluster_number}
+    ${kubeclient}    Set Variable If    "${VM_VERSION}"=="SP2"    kubernetes-1.18-client    kubernetes-client
+    execute command with ssh    sudo zypper --non-interactive in ${kubeclient}    alias=skuba_station_${cluster_number}
+    Run Keyword If    "${VM_VERSION}"=="SP2"    _install crio 1.18 on all nodes
     Run Keyword If    "${platform}"=="azure" or "${platform}"=="aws"    Copy File    ${DATADIR}/airgapped/registries.conf    ${LOGDIR}
     Run Keyword If    "${platform}"=="azure" or "${platform}"=="aws"    add container repo file to nodes    ${cluster_number}
     step    skuba was build with ${MODE}
@@ -114,4 +116,11 @@ _add repo from incident on
     ${incidents}    Get Dictionary Keys    ${INCIDENT_REPO}
     FOR    ${incident}    IN    @{incidents}
         Run Keyword And Ignore Error    execute command with ssh    sudo zypper ar -fG ${INCIDENT_REPO["${incident}"]} ${incident}    ${node}
+    END
+
+_install crio 1.18 on all nodes
+    @{nodes}    get nodes name from CS
+    execute command with ssh    sudo zypper -n in cri-tools-1.18
+    FOR    ${node}    IN    @{nodes}
+        execute command with ssh    sudo zypper -n in cri-tools-1.18    ${node}
     END

@@ -30,3 +30,4 @@ set infra env parameters
     Run Keyword If    "${PLATFORM}"=="vmware"    Set vmware env variables
     ...    ELSE IF    "${PLATFORM}"=="openstack"    Set openstack env variables
     ...    ELSE IF    "${PLATFORM}"=="azure"    set azure env variables
+    ...    ELSE IF    "${PLATFORM}"=="aws"    set aws env variables
