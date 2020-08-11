@@ -20,7 +20,9 @@ wait reboot
 wait pods ready
     [Arguments]    ${arguments}=${EMPTY}    ${cluster_number}=1
     Run Keyword If    "${arguments}"=="${EMPTY}"    wait all pods are running    ${cluster_number}
-    ...    ELSE    kubectl    wait pods --for=condition=ready --timeout=5m ${arguments}    ${cluster_number}
+    Return From Keyword If    "${arguments}"=="${EMPTY}"    PASS
+    ${status}    Wait Until Keyword Succeeds    3x    2min    _wait pod ready    ${arguments}    ${cluster_number}
+    Run Keyword If    "${status}"=="FAIL"    Fail    waiting for pods with argument ${arguments} fail
 
 wait cillium
     [Arguments]    ${cluster_number}=1
@@ -271,3 +273,9 @@ update control-plane on masters
     FOR    ${master}    IN    @{masters}
         execute command with ssh    sudo kubeadm upgrade node phase control-plane --etcd-upgrade=false    ${master}
     END
+
+_wait pod ready
+    [Arguments]    ${arguments}    ${cluster_number}
+    ${status}    ${output}    Run Keyword And Ignore Error    kubectl    wait pods --for=condition=ready --timeout=5m ${arguments}    ${cluster_number}
+    Run Keyword if     "${status}"=="FAIL"    Should Not Contain    ${output}    no matching resources found
+    [Return]    ${status}
