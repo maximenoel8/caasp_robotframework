@@ -88,3 +88,13 @@ deploy storagedefault on azure
     [Arguments]    ${cluster_number}
     kubectl    apply -f ${DATADIR}/cpi/azure-default-storageclass.yaml    cluster_number=${cluster_number}
     step    Storage default class is setup for azure
+
+format disk to vms
+    [Arguments]    ${cluster_number}=1
+    step    Format disk on vms
+    run commands on nodes    ${cluster_number}    sudo zypper -n install lvm2    sudo sgdisk --zap-all /dev/sdb
+
+deploy pod with pvc
+    kubectl    apply -f ${DATADIR}/manifests/rook/7/ceph/csi/rbd/pvc.yaml
+    kubectl    apply -f ${DATADIR}/manifests/rook/7/ceph/csi/rbd/pod.yaml
+    wait pods ready    csirbd-demo-pod

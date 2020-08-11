@@ -50,11 +50,11 @@ get cluster number
     ${cluster_number}    Set Variable    ${out[-1]}
     [Return]    ${cluster_number}
 
-run command on nodes
-    [Arguments]    ${cmd}    ${cluster_number}
+run commands on nodes
+    [Arguments]    ${cluster_number}=1    @{cmd}
     @{nodes}    get nodes name from CS    ${cluster_number}
     FOR    ${node}    IN    @{nodes}
-        execute command with ssh    ${cmd}    ${node}
+        run commands on node    ${node}    @{cmd}
     END
 
 open yaml file
@@ -94,3 +94,9 @@ write yaml file
         ${data}    Set Variable    ${data}${separate_line}\n${output}
     END
     Create File    ${path}    ${data}
+
+run commands on node
+    [Arguments]    ${node}    @{cmd}
+    FOR    ${command}    IN    @{cmd}
+        execute command with ssh    ${command}    ${node}
+    END

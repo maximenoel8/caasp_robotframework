@@ -24,7 +24,7 @@ check L7 policy
 
 check cilium version
     [Tags]    release
-    Then cilium version should be    1.6.6
+    Then cilium version should be    1.7.5
 
 check cilium uses CRD instead of etcd
     [Tags]    release
@@ -49,7 +49,6 @@ dns traffic is allowed without network policy
     one.one.one.one    1.1.1.1
     one.one.one.one    1.0.0.1
     dns.google    8.8.8.8
-    localhost    127.0.0.1
 
 dns traffic is forbidden by the default network policy
     [Tags]    release
@@ -67,7 +66,6 @@ dns is allowed by network policy
     one.one.one.one    1.1.1.1
     one.one.one.one    1.0.0.1
     dns.google    8.8.8.8
-    localhost    127.0.0.1
 
 http traffic is still not allowed by the default network policy
     [Tags]    release

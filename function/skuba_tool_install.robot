@@ -60,7 +60,7 @@ _change skuba branch
 
 _disable firewall
     [Arguments]    ${cluster_number}
-    run command on nodes    sudo systemctl stop firewalld    ${cluster_number}
+    run commands on nodes    ${cluster_number}    sudo systemctl stop firewalld
 
 _install go git make
     [Arguments]    ${cluster_number}

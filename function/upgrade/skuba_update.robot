@@ -21,7 +21,7 @@ wait skuba-update inactive on all nodes
 
 skuba-update nodes
     [Arguments]    ${cluster_number}
-    run command on nodes    sudo skuba-update    ${cluster_number}
+    run commands on nodes    ${cluster_number}    sudo skuba-update
     kured config    on    ${cluster_number}
     kured config    --period=1m    ${cluster_number}
     wait until all nodes dont need reboot    ${cluster_number}
