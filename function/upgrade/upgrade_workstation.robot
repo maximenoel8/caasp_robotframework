@@ -12,6 +12,7 @@ _upgrade skuba from skuba repo
 
 upgrade workstation
     [Arguments]    ${cluster_number}
+    step    upgrade the worksation ...
     Run Keyword If    '${RPM}'!='${EMPTY}'    add repo from incident and update    ${cluster_number}
     Run Keyword If    "${MODE}"=="${EMPTY}" and '${RPM}'!='${EMPTY}' and '${REGISTRY}'!='${EMPTY}'    check diff from current terraform files with updated workstation
     Run Keyword If    '${RPM}'!='${EMPTY}'    add repo to nodes    ${cluster_number}
@@ -19,6 +20,7 @@ upgrade workstation
     Comment    _enable update package
     Comment    _upgrade skuba from skuba repo
     Comment    update package on workstation
+    step    ... upgrade done for workstation
 
 _delete current skuba
     ${path}    execute command with ssh    which skuba    skuba_station_${cluster_number}
