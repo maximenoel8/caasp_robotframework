@@ -6,7 +6,7 @@ Resource          ../../parameters/vm_deployment.robot
 configure terraform tfvars vmware
     ${cpi_enable}    Set Variable If    ${CPI_VSPHERE}    true    false
     ${hostname_from_dhcp}    Set Variable If    ${DNS_HOSTNAME}    true    false
-    ${template}    Set Variable If    "${VM_VERSION}"=="SP1"    SLES15-SP1-GM-up191203-guestinfo    SLES15-SP2-GMC-up200615-guestinfo
+    ${template}    Set Variable If    "${VM_VERSION}"=="SP1"    SLES15-SP1-GM-up200615-guestinfo    SLES15-SP2-GMC-up200615-guestinfo
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    evaluate    ${i}+1
         &{vmware_dico}    Convert Tvars To Dico    ${TERRAFORMDIR}/cluster_${cluster_number}/terraform.tfvars.example
