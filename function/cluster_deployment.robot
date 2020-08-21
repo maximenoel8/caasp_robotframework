@@ -224,6 +224,7 @@ cluster running
     wait cillium    cluster_number=${cluster_number}
     Run Keyword If    ${UPGRADE}    upgrade cluster
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and "${RPM}"!="${EMPTY}"    check upgrade completed    ${cluster_number}
+    get pods container version
     step    cluster is correctly running
 
 cluster is deployed temp
