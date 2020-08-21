@@ -66,6 +66,7 @@ check node exit in CS
 
 get node ip from CS
     [Arguments]    ${name}    ${cluster_number}=1
+    Return From Keyword If    "${name}"=="skuba_station_${cluster_number}"    ${cluster_state["cluster_${cluster_number}"]["workstation"]}
     ${type}    get node type    ${name}
     ${ip}    Get From Dictionary    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${name}"]}    ip
     [Return]    ${ip}
@@ -106,7 +107,8 @@ get worker servers name
 
 create first cluster_state level
     [Arguments]    ${cluster_number}
-    &{cluster}    Create Dictionary    platform=${PLATFORM}
+    &{version}    Create Dictionary
+    &{cluster}    Create Dictionary    platform=${PLATFORM}    versions=&{version}
     Collections.Set To Dictionary    ${cluster_state}    cluster_${cluster_number}=${cluster}
 
 _create cluster_state terraform 11 for
@@ -253,14 +255,16 @@ _create_cluster_state_for_vmware
     FOR    ${key}    IN    @{masters}
         Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    ${cluster_number}
         ...    AND    Exit For Loop
-        ${hostname_octet}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}
-        ${hostname}    Set Variable If    ${DNS_HOSTNAME}    ${hostname_octet}    ${key}
+        Comment    ${hostname_octet}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}
+        Comment    ${hostname}    Set Variable If    ${DNS_HOSTNAME}    ${hostname_octet}    ${key}
+        ${hostname}    Set Variable    ${key}
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    ${hostname}    cluster_number=${cluster_number}
         ${count}    Evaluate    ${count}+1
     END
     FOR    ${key}    IN    @{workers}
-        ${hostname_octet}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}
-        ${hostname}    Set Variable If    ${DNS_HOSTNAME}    ${hostname_octet}    ${key}
+        Comment    ${hostname_octet}    _get_hostname_vmware    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}
+        Comment    ${hostname}    Set Variable If    ${DNS_HOSTNAME}    ${hostname_octet}    ${key}
+        ${hostname}    Set Variable    ${key}
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_workers"]["value"]["${key}"]}    True    ${hostname}    cluster_number=${cluster_number}
     END
     ${status}    ${output}    Run Keyword And Ignore Error    Dictionary Should Contain Key    ${ip_dictionnary["outputs"]}    ip_load_balancer
@@ -360,3 +364,7 @@ _get local ip for openstack
 
 platform is ${platform}
     Should Be Equal    ${cluster_state["cluster_1"]["platform"]}    ${platform}
+
+write cluster containers version in CS
+    [Arguments]    ${container}    ${version}    ${cluster_number}=1
+    Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]["versions"]}    ${container}    ${version}

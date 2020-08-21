@@ -7,6 +7,8 @@ Resource          govc.robot
 Resource          tools.robot
 Library           yaml
 Resource          helper.robot
+Resource          ../parameters/general_information.robot
+Resource          vms_deployment/terraform.robot
 
 *** Keywords ***
 wait nodes are ready
@@ -80,7 +82,7 @@ wait all pods are running
         ${output}    kubectl    get pods --no-headers -n kube-system -o wide | grep -vw Completed | grep -vw Terminating    ${cluster_number}
         ${status}    ${pod}    check pods running    ${output}
         Exit For Loop If    ${status}
-        Sleep    10
+        Sleep    15
     END
     Run Keyword If    not ${status}    Fail    Pod ${pod} not running
     Comment    FOR    ${element}    IN    @{pods}
@@ -277,5 +279,34 @@ update control-plane on masters
 _wait pod ready
     [Arguments]    ${arguments}    ${cluster_number}
     ${status}    ${output}    Run Keyword And Ignore Error    kubectl    wait pods --for=condition=ready --timeout=5m ${arguments}    ${cluster_number}
-    Run Keyword if     "${status}"=="FAIL"    Should Not Contain    ${output}    no matching resources found
+    Run Keyword if    "${status}"=="FAIL"    Should Not Contain    ${output}    no matching resources found
     [Return]    ${status}
+
+get pods container version
+    Log Dictionary    ${containers_list}
+    @{containers}    Get Dictionary Keys    ${containers_list}
+    FOR    ${container}    IN    @{containers}
+        ${version}    _get container version and check all containers has the same    ${container}
+        write cluster containers version in CS    ${container}    ${version}
+    END
+    ${skuba_version}    skuba    version    True
+    ${split_skuba_verison}    Split To Lines    ${skuba_version}
+    ${skuba_version_without}    Remove String    ${split_skuba_verison[-1]}    "
+    write cluster containers version in CS    skuba    ${skuba_version_without}
+    ${terraform_version}    terraform version
+    write cluster containers version in CS    terraform    ${terraform_version}
+    dump cluster state
+
+_get container version and check all containers has the same
+    [Arguments]    ${container}
+    ${yaml}    kubectl    get pods -l ${containers_list["${container}"]} \ -o yaml -n kube-system
+    ${container_dictionnary}    yaml.Safe Load    ${yaml}
+    ${lg}    Get Length    ${container_dictionnary["items"]}
+    ${container_image}    Set Variable    ${container_dictionnary["items"][0]["spec"]["containers"][0]["image"]}
+    ${string_container}    Split String    ${container_image}    :
+    ${container_version}    Set Variable    ${string_container[-1]}
+    FOR    ${i}    IN RANGE    ${lg}
+        ${tmp_container_image}    Set Variable    ${container_dictionnary["items"][${i}]["spec"]["containers"][0]["image"]}
+        Should Be Equal    ${container_image}    ${tmp_container_image}
+    END
+    [Return]    ${container_version}
