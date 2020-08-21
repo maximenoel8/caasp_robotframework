@@ -25,3 +25,10 @@ terraform destroy all cluster
         ${cluster_number}    Evaluate    ${i}+1
         terraform destroy    ${TERRAFORMDIR}/cluster_${cluster_number}
     END
+
+terraform version
+    [Arguments]    ${cluster_number}=1
+    ${output}    execute command with ssh    terraform version    skuba_station_${cluster_number}
+    ${lines}    Split To Lines    ${output}
+    ${version}    Set Variable    ${lines[0]}
+    [Return]    ${version}
