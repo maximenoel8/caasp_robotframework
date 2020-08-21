@@ -21,9 +21,8 @@ reboot and wait server up
     [Arguments]    ${ip}
     reboot or shutdown server    ${ip}
     wait server up    ${ip}
-    wait nodes are ready
+    Wait Until Keyword Succeeds    3x    5min    wait nodes are ready
     wait pods ready
-    [Teardown]    Close Connection
 
 wait server up
     [Arguments]    ${ip}
