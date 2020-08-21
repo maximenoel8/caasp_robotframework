@@ -1,11 +1,10 @@
 -v PREFIX:mnoel
 -v NUMBER:2:3
 -v platform:vmware
--v KEEP:False
+-v KEEP:True
 -v VM_VERSION:SP2
--v CAASP_VERSION:5
+-v CAASP_VERSION:4.5
 -v VM_USER:sles
 -v CHECK_TERRAFORM:False
 -v CPI_VSPHERE:True
--v DNS_HOSTNAME:True
 --include release
