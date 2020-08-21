@@ -80,3 +80,7 @@ You can change global variable by adding -v \<variablename\>:\<new value\>. Here
 - `UPGRADE` : by default false, if True, deploy the cluster with current pattern then add repo specify in RPM and upgrade cluster
 - `RPM` : Skuba repo with upgrade
 - `REGISTRY` : Registry repo with last container
+
+### Caasp version
+ - `VM_VERSION` : choose the vm version ( by default SP1 ), can be set to SP2
+ - `CAASP_VERSION` : choose the caasp version. Can be 4 or 4.5 ( by default 4)
