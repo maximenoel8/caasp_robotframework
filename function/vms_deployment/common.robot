@@ -40,11 +40,8 @@ run terraform
 configure registration auto tfvars vmware
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        Comment    ${terraform_tvars}    OperatingSystem.Get File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars
-        Comment    ${terraform_tvars}    Replace String    ${terraform_tvars}    \#caasp_registry_code = ""    caasp_registry_code = "${CAASP_KEY_V${CAASP_VERSION}}"
         Create File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars    caasp_registry_code = "${CAASP_KEY_V${CAASP_VERSION}}"
         Comment    ${terraform_tvars}    Replace String    ${terraform_tvars}    \#rmt_server_name = "rmt.example.com"    rmt_server_name = "saturn.qa.suse.cz"
-        Create File    ${TERRAFORMDIR}/cluster_${cluster_number}/registration.auto.tfvars    ${terraform_tvars}
     END
 
 clean cluster
@@ -97,10 +94,11 @@ _create tvars json file
 create register scc file
     [Arguments]    ${terraform_folder}
     ${sles_version}    Set Variable If    "${VM_VERSION}"=="SP1"    15.1    15.2
-    ${scc_version}    Set Variable If    "${CAASP_VERSION}"=="4"    4.0    5
+    ${scc_version}    Set Variable If    "${CAASP_VERSION}"=="4"    4.0    4.5
     Create File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -r, \$\{caasp_registry_code\} ]\n
     Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, sle-module-containers/${sles_version}/x86_64 ]\n
-    Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, caasp/${scc_version}/x86_64, -r, \$\{caasp_registry_code\} ]
+    Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, caasp/${scc_version}/x86_64, -r, \$\{caasp_registry_code\} ]\n
+    Comment    Append To File    ${terraform_folder}/cloud-init/register-scc.tpl    \ \ - [ SUSEConnect, -p, ses/6/x86_64, -r, ${SES_KEY} ]
 
 _update commands.tpl
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
