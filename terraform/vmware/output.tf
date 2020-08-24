@@ -5,3 +5,4 @@ output "ip_masters" {
 output "ip_workers" {
   value = "${zipmap(vsphere_virtual_machine.worker.*.name, vsphere_virtual_machine.worker.*.default_ip_address)}"
 }
+
