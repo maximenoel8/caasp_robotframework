@@ -2,3 +2,6 @@
 	path = data/locust-kubernetes
 	url = https://github.com/maximenoel8/locust-kubernetes.git
 	branch = master
+[submodule "data/deploy-cap"]
+	path = data/deploy-cap
+	url = git@github.com:lcavajani/deploy-cap.git
