@@ -1,6 +1,8 @@
 -v PREFIX:mnoel
--v NUMBER:1:2
+-v NUMBER:2:3
 -v PLATFORM:aws
 -v keep:True
 -v VM_USER:ec2-user
---include join
+-v VM_VERSION:SP2
+-v CAASP_VERSION:4.5
+--include release

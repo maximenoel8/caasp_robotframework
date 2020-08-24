@@ -1,9 +1,11 @@
 -v PREFIX:mnoel
 -v NUMBER:2:3
 -v platform:openstack
--v keep:False
+-v keep:True
 -v VM_VERSION:SP1
 -v CAASP_VERSION:4
 -v VM_USER:sles
 -v CHECK_TERRAFORM:False
---include join
+--include release
+--include sonobuoy
+-v RPM:http://download.suse.de/ibs/SUSE:/Maintenance:/16065/SUSE_Updates_SUSE-CAASP_4.0_x86_64/
