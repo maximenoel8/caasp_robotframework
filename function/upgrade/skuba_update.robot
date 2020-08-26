@@ -21,6 +21,7 @@ wait skuba-update inactive on all nodes
 
 skuba-update nodes
     [Arguments]    ${cluster_number}
+    refresh ssh session
     step    run skuba update ...
     run commands on nodes    ${cluster_number}    sudo skuba-update
     kured config    on    ${cluster_number}
@@ -34,6 +35,8 @@ wait until node dont need reboot
     [Arguments]    ${node}    ${waiting_time}
     step    wait until ${node} don't need reboot ...
     Switch Connection    ${node}
+    Close Connection
+    open ssh session    ${node}
     Wait Until Keyword Succeeds    ${waiting_time}    60    SSHLibrary.File Should Not Exist    /var/run/reboot-needed
 
 wait until all nodes dont need reboot
@@ -41,7 +44,7 @@ wait until all nodes dont need reboot
     step    wait until all nodes don't need reboot ...
     ${nodes}    get nodes name from CS    ${cluster_number}
     ${length}    Get Length    ${nodes}
-    ${waiting_time}    Evaluate    ${length}*10*60
+    ${waiting_time}    Evaluate    ${length}*10*15
     FOR    ${node}    IN    @{nodes}
         wait until node dont need reboot    ${node}    ${waiting_time}
     END

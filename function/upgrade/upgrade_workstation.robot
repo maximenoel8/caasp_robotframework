@@ -12,6 +12,7 @@ _upgrade skuba from skuba repo
 
 upgrade workstation
     [Arguments]    ${cluster_number}
+    refresh ssh session
     step    upgrade the worksation ...
     Run Keyword If    '${RPM}'!='${EMPTY}'    add repo from incident and update    ${cluster_number}
     Run Keyword If    "${MODE}"=="${EMPTY}" and '${RPM}'!='${EMPTY}' and '${REGISTRY}'!='${EMPTY}'    check diff from current terraform files with updated workstation

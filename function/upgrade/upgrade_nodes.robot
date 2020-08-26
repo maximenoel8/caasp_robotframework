@@ -23,7 +23,7 @@ migrate node from SP1 to SP2
 
 migrate cluster from SP1 to SP2
     [Arguments]    ${cluster_number}=1
-    Comment    migrate node from SP1 to SP2    skuba_station_${cluster_number}
+    migrate node from SP1 to SP2    skuba_station_${cluster_number}
     @{nodes}    get nodes name from CS    ${cluster_number}
     FOR    ${node}    IN    @{nodes}
         migrate node from SP1 to SP2    ${node}
