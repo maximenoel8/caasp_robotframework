@@ -34,8 +34,8 @@ authentication with skuba CI (users)
     [Timeout]    4 minutes
     step    checking authentification with CI ( users )
     Run Keyword And Ignore Error    kubectl    delete rolebinding curierb eulerrb
-    Run Keyword If    "${customize}" != False    copy customize oidc-ca to workstation    ${customize}
-    ${oidc_certificate_path}    Set Variable If    "${customize}" != False    /home/${VM_USER}/cluster/pki/oidc-ca.crt    ${EMPTY}
+    Run Keyword if    "${customize}" != "False"    copy customize oidc-ca to workstation    ${customize}
+    ${oidc_certificate_path}    Set Variable If    "${customize}" != "False"    /home/${VM_USER}/cluster/pki/oidc-ca.crt    ${EMPTY}
     kubectl    create rolebinding curierb --clusterrole=view --user=curie@suse.com
     kubectl    create rolebinding eulerrb --clusterrole=edit --user=euler@suse.com
     Sleep    30
