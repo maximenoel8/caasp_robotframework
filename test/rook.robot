@@ -4,6 +4,7 @@ Resource          ../function/tests/rook.robot
 
 *** Test Cases ***
 deploy rook on vmware
+    [Tags]    release
     Pass Execution If    "${PLATFORM}" != "vmware"    rook deployment only vmware
     Given cluster running
     run commands on nodes    1    sudo SUSEConnect -p ses/7/x86_64 -r ${SES_KEY}
