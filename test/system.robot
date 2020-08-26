@@ -10,8 +10,10 @@ skuba update enabled
 
 apparmor enabled
     [Tags]    release
+    refresh ssh session
     Then apparmor should be running and enabled on all the nodes
 
 swap turned off
     [Tags]    release
+    refresh ssh session
     Then swap should be turn off
