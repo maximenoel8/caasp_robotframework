@@ -42,6 +42,7 @@ openldap authentication
     [Teardown]    clean up openldap
 
 389ds authentication with dex configure using kustomize
+    [Tags]    release
     Pass Execution If    "${OIDC_CERT}" != "None"    Using oidc customize
     Given cluster running
     And helm is installed
@@ -74,7 +75,7 @@ static password authentication
     And create CA    ${issuer_CN}    file_name=${file_name}
     When modify tls secret to    oidc-dex    ca=True    ca_crt=${LOGDIR}/certificate/${issuer_CN}/${file_name}.crt    ca_key=${LOGDIR}/certificate/${issuer_CN}/${file_name}.key
     When modify tls secret to    oidc-gangway    ca=True    ca_crt=${LOGDIR}/certificate/${issuer_CN}/${file_name}.crt    ca_key=${LOGDIR}/certificate/${issuer_CN}/${file_name}.key
-    add certificate to nodes    ${issuer_CN}     ${file_name}
+    add certificate to nodes    ${issuer_CN}    ${file_name}
     And addon oidc-dex certificate is signed by ${issuer_CN} on ${IP_LB_1} 32000 with ${LOGDIR}/certificate/${issuer_CN}/${file_name}.crt
     And addon oidc-ganway certificate is signed by ${issuer_CN} on ${IP_LB_1} 32001 with ${LOGDIR}/certificate/${issuer_CN}/${file_name}.crt
     And updates kubeadm-config ConfigMap
