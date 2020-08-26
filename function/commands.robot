@@ -14,9 +14,9 @@ execute command with ssh
     Switch Connection    ${alias}
     ${output}    ${stderr}    ${rc}    Execute Command    ${cmd}    return_stdout=True    return_stderr=True    return_rc=True    timeout=${timeout}
     log    ${stderr}    repr=true    formatter=repr
-    Append To File    ${LOGDIR}/tests/${TEST NAME}.log    \n\nCommand :${cmd} : ERROR :\n${stderr} \n
+    Run Keyword And Ignore Error    Append To File    ${LOGDIR}/tests/${TEST NAME}-error.log    \n\nCommand :${cmd} : ERROR :\n${stderr}\n
     log    ${output}    repr=true    formatter=repr
-    Append To File    ${LOGDIR}/tests/${TEST NAME}.log    output: \n${output} \n
+    Run Keyword And Ignore Error    Append To File    ${LOGDIR}/tests/${TEST NAME}.log    \n\nCommand :${cmd}\noutput: \n${output}\n
     Run Keyword If    ${check_rc}    Should Be Equal As Integers    ${rc}    0
     [Return]    ${output}
 
