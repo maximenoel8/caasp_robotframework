@@ -4,7 +4,7 @@ Resource          ../function/skuba_commands.robot
 
 *** Test Cases ***
 dex_gangway_replicat
-    [Tags]    release
+    [Tags]    replicate    release
     Given cluster running
     Then replica dex and gangway are correctly distribued
     Then remove node    ${CLUSTER_PREFIX}-1-worker-2
