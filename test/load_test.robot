@@ -7,7 +7,6 @@ Resource          ../function/tests/nginx.robot
 
 *** Test Cases ***
 wordpress load test
-    [Tags]    release
     Given cluster running
     And helm is installed
     And storageclass is deployed
@@ -19,7 +18,6 @@ wordpress load test
     [Teardown]    wordpress is removed
 
 wordpress with hpa test
-    [Tags]    release
     Given cluster running
     And helm is installed
     And storageclass is deployed
