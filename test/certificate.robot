@@ -10,7 +10,7 @@ check kubelet server certificate is the one signed by kubelet-ca for each nodes
     Then kubelet server certificate should be signed by kubelet-ca for each nodes
 
 check cert-manager correctly do the certificate rotation for dex and gangway when certificate is expired
-    [Tags]    release
+    [Tags]    release    4.5
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
     and deploy cert-manager
@@ -28,8 +28,8 @@ check cert-manager correctly do the certificate rotation for dex and gangway whe
     [Teardown]    clean cert-manager
 
 check kucero is correctly renewing certificates
+    [Tags]    release    v4.5
     [Setup]    refresh ssh session
-    refresh ssh session
     And kucero is running on master
     Comment    And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
     Comment    And serverTLSBootstrap exists in config map
