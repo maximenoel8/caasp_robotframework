@@ -20,7 +20,7 @@ upgrade workstation
     Run Keyword If    '${REGISTRY}'!='${EMPTY}'    add container repo file to nodes    ${cluster_number}
     Comment    _enable update package
     Comment    _upgrade skuba from skuba repo
-    Comment    update package on workstation
+    update package on workstation
     step    ... upgrade done for workstation
 
 _delete current skuba
