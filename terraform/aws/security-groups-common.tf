@@ -62,7 +62,7 @@ resource "aws_security_group" "common" {
     from_port   = 10250
     to_port     = 10250
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
     description = "master to worker kubelet communication - internal"
   }
 
