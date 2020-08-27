@@ -7,14 +7,13 @@ Resource          tools.robot
 reboot or shutdown server
     [Arguments]    ${ip}    ${cmd}=reboot
     open ssh session    ${ip}    tempo
-    Run Keyword And Ignore Error    execute command with ssh    sudo ${cmd}    tempo
+    Run Keyword And Ignore Error    execute command with ssh    sudo ${cmd}    tempo    timeout=30sec
     Run Keyword And Expect Error    REGEXP: (NoValidConnectionsError.*|timeout: timed out|SSHException: No existing session)    check ssh connection    ${ip}
     [Return]    Close session
 
 check ssh connection
     [Arguments]    ${ip}
-    SSHLibrary.Open Connection    ${ip}    timeout=30sec    alias=check_tempo
-    Login With Public Key    ${VM_USER}    data/id_shared
+    open ssh session    ${ip}    alias=check_tempo    timeout=10sec
     [Teardown]    Close Connection
 
 reboot and wait server up
@@ -23,6 +22,7 @@ reboot and wait server up
     wait server up    ${ip}
     Wait Until Keyword Succeeds    3x    5min    wait nodes are ready
     wait pods ready
+    refresh ssh session
 
 wait server up
     [Arguments]    ${ip}
@@ -33,8 +33,8 @@ reboot worker 0 and master 0 and wait server up
     step    reboot master0 and worker0
     reboot or shutdown server    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-${cluster_number}-worker-0"]["ip"]}
     reboot or shutdown server    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
-    wait server up    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-${cluster_number}-worker-0"]["ip"]}
     wait server up    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
+    wait server up    ${cluster_state["cluster_${cluster_number}"]["worker"]["${CLUSTER_PREFIX}-${cluster_number}-worker-0"]["ip"]}
     Wait Until Keyword Succeeds    10min    30    wait nodes are ready
     wait pods ready
     refresh ssh session
