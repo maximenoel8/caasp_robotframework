@@ -31,7 +31,12 @@ deploy cap
     ${ip}    get node ip from CS    ${workers[0]}
     step    install cap
     execute command localy    ${DATADIR}/deploy-cap/cap --deploy --internal-ip ${ip} --storage-class ${sc} -k ${CLUSTERDIR}_${cluster_number}/admin.conf
+
+test cap
+    [Arguments]    ${cluster_number}=1
     step    test cap
     execute command localy    ${DATADIR}/deploy-cap/cap --test -k ${CLUSTERDIR}_${cluster_number}/admin.conf
+
+destroy cap
     step    destroy cap
     execute command localy    ${DATADIR}/deploy-cap/cap --destroy
