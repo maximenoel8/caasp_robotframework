@@ -24,7 +24,7 @@ deploy cluster vms
     run terraform
     step    vms are deployed
     Set Global Variable    ${PLATFORM_DEPLOY}    PASS
-    Run Keyword If    "${PLATFORM}"=="aws"    sleep    30
+    Run Keyword If    "${PLATFORM}"=="aws"    sleep    120
 
 set infra env parameters
     Run Keyword If    "${PLATFORM}"=="vmware"    Set vmware env variables
