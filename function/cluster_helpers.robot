@@ -293,9 +293,10 @@ get pods container version
     ${split_skuba_verison}    Split To Lines    ${skuba_version}
     ${skuba_version_without}    Remove String    ${split_skuba_verison[-1]}    "
     write cluster containers version in CS    skuba    ${skuba_version_without}
-    ${terraform_version}    terraform version
+    ${terraform_version}    ${status}    Run Keyword And Ignore Error    terraform version
     write cluster containers version in CS    terraform    ${terraform_version}
     dump cluster state
+    Set Global Variable    ${CLUSTER_STATUS}    PASS
 
 _get container version and check all containers has the same
     [Arguments]    ${container}

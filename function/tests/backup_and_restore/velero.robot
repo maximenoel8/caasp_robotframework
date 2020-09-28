@@ -32,12 +32,14 @@ backup-location slave is set up
 
 create backup on
     [Arguments]    ${backup_name}    ${location}=default    ${args}=${EMPTY}
+    step    Create velero backup
     ${random}    String.Generate Random String    4    [NUMBERS]
     Set Suite Variable    ${backup_name}    ${backup_name}-${random}
     velero    backup create ${backup_name} ${args} --storage-location ${location}
 
 backup should be successfull
-    Wait Until Keyword Succeeds    5m    10s    check backup completed
+    step    Wait velero backup is created ...
+    Wait Until Keyword Succeeds    15m    10s    check backup completed
     step    Backup ${backup_name} has been correctly created
 
 create schedule backup on
@@ -83,9 +85,11 @@ teardown velero
     Run Keyword And Ignore Error    velero    delete backup --confirm ${backup_name}
     Run Keyword And Ignore Error    wait until velero backup is deleted
     Run Keyword And Ignore Error    Run Keyword If    "${bucket_type}"=="aws" or "${bucket_type}"=="minio"    execute command localy    ${LOGDIR}/mc rm --recursive --force ${bucket_type}/${bucket}
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    -n velero
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
-        Run Keyword And Ignore Error    helm    delete --purge velero    ${cluster_number}
+        Run Keyword And Ignore Error    helm    delete ${purge} velero    ${cluster_number}
+        Run Keyword And Ignore Error    kubectl    delete namespace velero
         Run Keyword And Ignore Error    wordpress is removed    ${cluster_number}
         Run Keyword And Ignore Error    Remove File    ${credential-velero-file}
     END
@@ -96,7 +100,7 @@ check backup is present
     ${backup_list}    velero    get backup    ${cluster_number}
     Should Contain    ${backup_list}    ${backup}
 
-velero server is deployed with volume snapeshot aws
+velero server is deployed with volume snapshot aws
     create credentials file
     helm    install --name velero --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${BUCKET_MASTER} --set configuration.backupStorageLocation.config.region=minio --set configuration.backupStorageLocation.config.s3ForcePathStyle=true --set configuration.backupStorageLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.bucket=velero --set configuration.volumeSnapshotLocation.config.region=minio --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true --set configuration.volumeSnapshotLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set-file credentials.secretContents.cloud=${credential-velero-file} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set image.repository=${velero_image} --set configMaps.restic-restore-action-config.data.image=${restic_image} ${LOGDIR}/kubernetes-charts-suse-com/stable/velero    ${cluster_number}
     wait pods ready    -l name=velero -n velero    ${cluster_number}
@@ -105,23 +109,27 @@ velero server is deployed with volume snapeshot aws
 velero deployment for minio
     [Arguments]    ${cluster_number}
     create credentials file
-    helm    install --name velero --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set configuration.backupStorageLocation.config.region=minio --set configuration.backupStorageLocation.config.s3ForcePathStyle=true --set configuration.backupStorageLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.bucket=velero --set configuration.volumeSnapshotLocation.config.region=minio --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true --set configuration.volumeSnapshotLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set-file credentials.secretContents.cloud=${credential-velero-file} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins suse-charts/velero    ${cluster_number}
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set configuration.backupStorageLocation.config.region=minio --set configuration.backupStorageLocation.config.s3ForcePathStyle=true --set configuration.backupStorageLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.bucket=velero --set configuration.volumeSnapshotLocation.config.region=minio --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true --set configuration.volumeSnapshotLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set-file credentials.secretContents.cloud=${credential-velero-file} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins ${naming} ${suse_charts}/velero    ${cluster_number}
 
 velero deployment for aws
     [Arguments]    ${cluster_number}
     create credentials file
-    helm    install --name velero --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set configuration.backupStorageLocation.config.region=${aws_region} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.config.region=${aws_region} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set-file credentials.secretContents.cloud=${credential-velero-file} suse-charts/velero    ${cluster_number}
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set configuration.backupStorageLocation.config.region=${aws_region} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.config.region=${aws_region} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set-file credentials.secretContents.cloud=${credential-velero-file} ${naming} ${suse_charts}/velero    ${cluster_number}
 
 velero deployment for gcp
     [Arguments]    ${cluster_number}
     Set Suite Variable    ${bucket}    ${BUCKET_MASTER}-gcp
-    helm    install --name velero --namespace velero --set configuration.provider=gcp --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set-file credentials.secretContents.cloud=${DATADIR}/${gcp_credential_file} --set initContainers[0].name=velero-plugin-for-gcp --set initContainers[0].image=${gcp_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins suse-charts/velero    ${cluster_number}
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=gcp --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set-file credentials.secretContents.cloud=${DATADIR}/${gcp_credential_file} --set initContainers[0].name=velero-plugin-for-gcp --set initContainers[0].image=${gcp_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins ${naming} ${suse_charts}/velero    ${cluster_number}
 
 velero deployment for azure
     [Arguments]    ${cluster_number}
     _create azure credentials file
     ${bucket}    Set Variable    velero
-    helm    install --name velero --namespace velero --set configuration.provider=azure \ --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} \ --set snapshotsEnabled=true --set deployRestic=true \ --set configuration.backupStorageLocation.bucket=velero \ --set configuration.backupStorageLocation.config.resourceGroup=${AZURE.resource_group} \ --set configuration.backupStorageLocation.config.storageAccount=${AZURE.storage_account} \ --set configuration.volumeSnapshotLocation.name=default \ --set-file credentials.secretContents.cloud=${credential-velero-file} \ --set initContainers[0].name=velero-plugin-for-microsoft-azure \ --set initContainers[0].image=${azure_plugin_image} \ --set initContainers[0].volumeMounts[0].mountPath=/target \ --set initContainers[0].volumeMounts[0].name=plugins suse-charts/velero    ${cluster_number}
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=azure --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} \ --set snapshotsEnabled=true --set deployRestic=true \ --set configuration.backupStorageLocation.bucket=velero \ --set configuration.backupStorageLocation.config.resourceGroup=${AZURE.resource_group} \ --set configuration.backupStorageLocation.config.storageAccount=${AZURE.storage_account} \ --set configuration.volumeSnapshotLocation.name=default \ --set-file credentials.secretContents.cloud=${credential-velero-file} \ --set initContainers[0].name=velero-plugin-for-microsoft-azure \ --set initContainers[0].image=${azure_plugin_image} \ --set initContainers[0].volumeMounts[0].mountPath=/target \ --set initContainers[0].volumeMounts[0].name=plugins ${naming} ${suse_charts}/velero    ${cluster_number}
 
 _create azure credentials file
     Create File    ${credential-velero-file}    AZURE_SUBSCRIPTION_ID=${AZURE.subscription_id}\n
@@ -131,7 +139,7 @@ _create azure credentials file
     Append To File    ${credential-velero-file}    AZURE_RESOURCE_GROUP=${AZURE.resource_group}\n
     Append To File    ${credential-velero-file}    AZURE_CLOUD_NAME=${AZURE.cloud_name}\n
 
-deploy wordpress, deploy velero aws and create backup
+deploy wordpress deploy velero aws and create backup
     And velero setup
     And storageclass is deployed
     And velero cli is installed
@@ -156,3 +164,28 @@ wait until velero backup is deleted
 
 check velero is deleted
     Run Keyword And Expect Error    *    velero    get backup | grep ${backup_name}
+
+velero deployment for aws - temp
+    [Arguments]    ${cluster_number}
+    create credentials file
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set configuration.backupStorageLocation.config.region=${aws_region} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.config.region=${aws_region} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set-file credentials.secretContents.cloud=${credential-velero-file} \ --set image.repository=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero --set configMaps.restic-restore-action-config.data.image=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero-restic-restore-helper ${naming} ${suse_charts}/velero    ${cluster_number}
+
+velero deployment for gcp - temp
+    [Arguments]    ${cluster_number}
+    Set Suite Variable    ${bucket}    ${BUCKET_MASTER}-gcp
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=gcp --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set initContainers[0].name=velero-plugin-for-gcp --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set-file credentials.secretContents.cloud=${DATADIR}/${gcp_credential_file} --set initContainers[0].image=${gcp_plugin_image} --set image.repository=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero --set configMaps.restic-restore-action-config.data.image=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero-restic-restore-helper ${naming} ${suse_charts}/velero    ${cluster_number}
+
+velero deployment for azure - temp
+    [Arguments]    ${cluster_number}
+    Set Suite Variable    ${bucket}    ${BUCKET_MASTER}-azure
+    _create azure credentials file
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=azure --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.backupStorageLocation.bucket=velero --set configuration.backupStorageLocation.config.resourceGroup=${AZURE.resource_group} --set configuration.backupStorageLocation.config.storageAccount=${AZURE.storage_account} --set-file credentials.secretContents.cloud=${credential-velero-file} --set initContainers[0].name=velero-plugin-for-microsoft-azure --set initContainers[0].image=${azure_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set-file credentials.secretContents.cloud=${credential-velero-file} \ --set image.repository=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero --set configMaps.restic-restore-action-config.data.image=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero-restic-restore-helper ${naming} ${suse_charts}/velero    ${cluster_number}
+
+velero deployment for minio - tmp
+    [Arguments]    ${cluster_number}
+    create credentials file
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name velero    velero
+    helm    install --namespace velero --set configuration.provider=aws --set configuration.backupStorageLocation.name=default --set configuration.backupStorageLocation.bucket=${bucket} --set configuration.backupStorageLocation.config.region=minio --set configuration.backupStorageLocation.config.s3ForcePathStyle=true --set configuration.backupStorageLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set snapshotsEnabled=true --set deployRestic=true --set configuration.volumeSnapshotLocation.name=default --set configuration.volumeSnapshotLocation.bucket=velero --set configuration.volumeSnapshotLocation.config.region=minio --set configuration.volumeSnapshotLocation.config.s3ForcePathStyle=true --set configuration.volumeSnapshotLocation.config.s3Url=${MINIO_MASTER_SERVER_URL} --set-file credentials.secretContents.cloud=${credential-velero-file} --set initContainers[0].name=velero-plugin-for-aws --set initContainers[0].image=${aws_plugin_image} --set initContainers[0].volumeMounts[0].mountPath=/target --set initContainers[0].volumeMounts[0].name=plugins --set image.repository=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero --set configMaps.restic-restore-action-config.data.image=registry.suse.de/devel/caasp/4.5/containers/cr/containers/caasp/v4.5/velero-restic-restore-helper ${naming} ${suse_charts}/velero    ${cluster_number}

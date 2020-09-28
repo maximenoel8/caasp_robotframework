@@ -75,17 +75,19 @@ prometheus is deployed
     Run Keyword If    "${status}"=="FAIL"    deploy prometheus    ${cluster_number}
 
 cleaning monitoring
-    Run Keyword And Ignore Error    helm    delete prometheus --purge
-    Run Keyword And Ignore Error    helm    delete grafana --purge
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    -n monitoring
+    Run Keyword And Ignore Error    helm    delete ${purge} prometheus
+    Run Keyword And Ignore Error    helm    delete ${purge} grafana
+    Run Keyword And Ignore Error    helm    del ${purge} cert-exporter
     Run Keyword And Ignore Error    kubectl    delete namespace monitoring
-    Run Keyword And Ignore Error    helm    del --purge cert-exporter
     Run Keyword And Ignore Error    Close All Browsers
     [Teardown]    teardown_test
 
 add certificate exporter
     kubectl    label --overwrite secret oidc-dex-cert -n kube-system caasp.suse.com/skuba-addon=true
     kubectl    label --overwrite secret oidc-gangway-cert -n kube-system caasp.suse.com/skuba-addon=true
-    helm    install --name cert-exporter --namespace monitoring suse-charts/cert-exporter --wait
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name cert-exporter    cert-exporter
+    helm    install --namespace monitoring ${naming} ${suse_charts}/cert-exporter --wait
 
 certificates dashboard is deployed
     kubectl    apply -f https://raw.githubusercontent.com/SUSE/caasp-monitoring/master/grafana-dashboards-caasp-certificates.yaml
@@ -117,7 +119,8 @@ deploy grafana
 deploy prometheus
     [Arguments]    ${cluster_number}
     create monitoring certificate
-    helm    install --name prometheus suse-charts/prometheus --namespace monitoring --values ${DATADIR}/monitoring/prometheus-config-values.yaml    cluster_number=${cluster_number}
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name prometheus    prometheus
+    helm    install --namespace monitoring --values ${DATADIR}/monitoring/prometheus-config-values.yaml \ ${naming} ${suse_charts}/prometheus    cluster_number=${cluster_number}
     add certificate exporter
     wait_deploy    -n monitoring prometheus-server    15m
     wait_deploy    -n monitoring prometheus-alertmanager    15m

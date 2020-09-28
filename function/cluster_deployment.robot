@@ -179,7 +179,6 @@ cluster is deployed
     kured config    off
     step    cluster is successfully deploy
     step    cluster configuration is available in ${CLUSTERDIR}_1
-    Set Global Variable    ${CLUSTER_STATUS}    PASS
     step    Checking cluster is correctly running ...
 
 _check status is done
@@ -201,7 +200,7 @@ _move node from ongoing to waiting
 
 _set deployment timeout
     ${clusters}    Get Dictionary Keys    ${deployment_state}
-    ${waiting time}    Set Variable    1
+    ${waiting time}    Set Variable    60
     FOR    ${cluster}    IN    @{clusters}
         ${worker_number}    Get Length    ${deployment_state["${cluster}"]["waiting_worker"]}
         ${master_number}    Get Length    ${deployment_state["${cluster}"]["waiting_master"]}
@@ -224,7 +223,7 @@ cluster running
     wait cillium    cluster_number=${cluster_number}
     Run Keyword If    ${UPGRADE}    upgrade cluster
     Run Keyword If    "${CLUSTER_STATUS}" == "FAIL" and "${RPM}"!="${EMPTY}"    check upgrade completed    ${cluster_number}
-    get pods container version
+    Run Keyword If    ("${CLUSTER_STATUS}" == "FAIL" and ${cluster_number}==1) or ${UPGRADE}    get pods container version
     step    cluster is correctly running
 
 cluster is deployed temp

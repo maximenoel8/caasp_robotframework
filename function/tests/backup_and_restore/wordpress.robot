@@ -10,15 +10,17 @@ wordpress is deployed
     [Arguments]    ${maria}=True
     Run Keyword unless    ${maria}    deploy mysql
     create wordpress certificate
-    Run Keyword if    ${maria}    helm    install --name wordpress --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values-maria.yaml bitnami/wordpress
-    ...    ELSE    helm    install --name wordpress --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values.yaml bitnami/wordpress
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name wordpress    wordpress
+    Run Keyword if    ${maria}    helm    install --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values-maria.yaml ${naming} bitnami/wordpress
+    ...    ELSE    helm    install --namespace wordpress -f ${DATADIR}/wordpress/wordpress-values.yaml ${naming} bitnami/wordpress
     wordpress is up
     step    wordpress is deployed with pv
 
 wordpress is removed
     [Arguments]    ${cluster_number}=1
-    Run Keyword And Ignore Error    helm    delete --purge wordpress    ${cluster_number}
-    Run Keyword And Ignore Error    helm    delete --purge mysql    ${cluster_number}
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    -n wordpress
+    Run Keyword And Ignore Error    helm    delete ${purge} wordpress    ${cluster_number}
+    Run Keyword And Ignore Error    helm    delete ${purge} mysql    ${cluster_number}
     Run Keyword And Ignore Error    kubectl    delete namespace wordpress    ${cluster_number}
     Run Keyword And Ignore Error    kubectl    delete -f ${LOGDIR}/hpa-avg-cpu-value.yaml
     Run Keyword And Ignore Error    check wordpress pvc are deleted    ${cluster_number}
@@ -71,7 +73,8 @@ wordpress pv are patch
 
 deploy mysql
     step    Deploy mysql for wordpress
-    helm    install --name mysql \ --namespace wordpress -f ${DATADIR}/wordpress/mysql_values.yaml bitnami/mysql
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name mysql    mysql
+    helm    install --namespace wordpress -f ${DATADIR}/wordpress/mysql_values.yaml ${naming} bitnami/mysql
     wait podname    -l app=mysql -n wordpress
 
 create wordpress certificate

@@ -13,16 +13,27 @@ Resource          monitoring/monitoring.robot
 *** Keywords ***
 deploy reloader
     step    deploy reloader
-    helm    repo add stakater https://stakater.github.io/stakater-charts
-    helm    repo update
-    helm    install stakater/reloader --name reloader --namespace kube-system
+    ${naming}    set variable if    ${HELM_VERSION}==2    --name reloader    reloader
+    helm    install --namespace kube-system ${naming} ${suse_charts}/reloader
     wait deploy    reloader-reloader -n kube-system
 
 deploy cert-manager
     step    deploy cert-manager
     helm    repo add jetstack https://charts.jetstack.io
     helm    repo update
-    helm    install jetstack/cert-manager --name cert-manager --namespace kube-system --version v0.15.0 --set installCRDs=true
+    ${naming}    set variable if    ${HELM_VERSION}==2    --name cert-manager    cert-manager
+    helm    install --namespace kube-system --version v0.16.1 --set installCRDs=true ${naming} jetstack/cert-manager
+    wait deploy    cert-manager -n kube-system
+
+deploy cert-manager new version
+    step    deploy cert-manager
+    ${naming}    set variable if    ${HELM_VERSION}==2    --name cert-manager    cert-manager
+    Comment    helm    install --namespace kube-system --version v0.16.1 --set installCRDs=true ${naming} ${LOGDIR}/kubernetes-charts-suse-com/stable/velero
+    Comment    helm    repo add jetstack https://charts.jetstack.io
+    Comment    kubectl    create namespace cert-manager
+    Comment    helm    repo update
+    helm    install --name cert-manager --namespace cert-manager --version v0.16.1 --set installCRDs=true jetstack/cert-manager
+    Comment    helm    install --namespace kube-system --set installCRDs=true ${naming} ${suse_charts}/cert-manager
     wait deploy    cert-manager -n kube-system
 
 create and apply rotation certificate manifest for
@@ -145,8 +156,9 @@ addon ${service} certificate is signed by ${issuer} on ${server_ip} ${port} with
 
 clean cert-manager
     step    clean cert-manager deployment
-    Run Keyword And Ignore Error    helm    delete --purge reloader
-    Run Keyword And Ignore Error    helm    delete --purge cert-manager
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    -n kube-system
+    Run Keyword And Ignore Error    helm    delete ${purge} reloader
+    Run Keyword And Ignore Error    helm    delete ${purge} cert-manager
     Run Keyword And Ignore Error    kubectl    delete -f ${LOGDIR}/manifests/certificate/issuer.yaml
     Run Keyword And Ignore Error    kubectl    delete secret kubernetes-ca -n kube-system
     Run Keyword And Ignore Error    kubectl    delete secret ${issuer_CN} -n kube-system

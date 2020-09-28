@@ -21,7 +21,8 @@ setup rsyslog server
 rsyslog is deployed
     kubectl    apply --filename="${DATADIR}/centralized_logging/rsyslog/rsyslog-server-configmap-mtls-verify-peer.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-secret.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-deployment.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-service.yaml" --wait
     setup rsyslog server
-    helm    install -n log-agent-rsyslog suse-charts/log-agent-rsyslog --values "${LOGDIR}/mtls-verify-peer-values.yaml"
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    -n log-agent-rsyslog    log-agent-rsyslog
+    helm    install --values ${LOGDIR}/mtls-verify-peer-values.yaml ${naming} ${suse_charts}/log-agent-rsyslog
     check rsyslog is deployed
     sleep    30
     step    Rsyslog is deployed
@@ -54,7 +55,8 @@ check message in rsyslog log
     [Return]    ${podlogs}
 
 teardown centralized log
-    Run Keyword And Ignore Error    helm    delete --purge log-agent-rsyslog
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    ${EMPTY}
+    Run Keyword And Ignore Error    helm    delete ${purge} log-agent-rsyslog
     Run Keyword And Ignore Error    kubectl    delete --filename="${DATADIR}/centralized_logging/rsyslog/rsyslog-server-configmap-mtls-verify-peer.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-secret.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-deployment.yaml","${DATADIR}/centralized_logging/rsyslog/rsyslog-server-service.yaml"
     [Teardown]    teardown_test
 

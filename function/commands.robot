@@ -32,17 +32,13 @@ execute command localy
 kubectl
     [Arguments]    ${arguments}    ${cluster_number}=1    ${screenshot}=False
     log    kubectl ${arguments}
-    ${connection_error}    Set Variable    connection to the server ${IP_LB_${cluster_number}}:6443 was refused
-    ${unable to connect}    Set Variable    Unable to connect to the server:
-    ${etcd timedout}    Set Variable    Error from server: etcdserver: request timed out
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
     ${retry}    Set Variable If    ${screenshot}    1    5
     FOR    ${i}    IN RANGE    0    ${retry}
         ${status}    ${output}    Run Keyword And Ignore Error    _kubectl configuration    ${arguments}    ${cluster_number}    ${screenshot}
-        ${status_connection}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
-        ${status_unable}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${unable to connect}
-        ${status_etcdserver}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${etcd timedout}
-        Exit For Loop If    "${status_connection}"=="FAIL" and "${status_unable}"=="FAIL" and "${status_etcdserver}"=="FAIL"
+        ${timeout_status}    Run Keyword If    "${status}"=="FAIL"    _kubectl timeout error    ${output}    ${cluster_number}
+        ...    ELSE    Set variable    False
+        Exit For Loop If    "${status}"=="PASS" or not ${timeout_status}
         Run Keyword If    not ${screenshot}    Sleep    30sec
     END
     Run Keyword If    "${status}"=="FAIL"    Fail    ${output}
@@ -59,19 +55,19 @@ helm
     [Arguments]    ${arguments}    ${cluster_number}=1
     Set Environment Variable    HELM_HOME    ${WORKDIR}/helm_${cluster_number}
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
-    ${output}    Wait Until Keyword Succeeds    3x    2s    execute command localy    helm ${arguments}
+    ${output}    Wait Until Keyword Succeeds    3x    2s    execute command localy    helm${HELM_VERSION} ${arguments}
     [Return]    ${output}
 
 velero
     [Arguments]    ${argument}    ${cluster_number}=1
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
-    ${output}    execute command localy    ${velero_path}velero ${argument}
+    ${output}    execute command localy    ${velero_path}velero ${argument} -cacert ${DATADIR}/certificate/minio-ca.crt
     [Return]    ${output}
 
 _kubectl configuration
     [Arguments]    ${arguments}    ${cluster_number}    ${screenshot}
     ${output}    ${rc}    execute command localy    kubectl ${arguments}    False
-    Run Keyword if    ${rc}!=0 and not ${screenshot}    screenshot cluster status    ${cluster_number}
+    Comment    Run Keyword if    ${rc}!=0 and not ${screenshot}    screenshot cluster status    ${cluster_number}
     Should Be Equal As Integers    ${rc}    0    ${output}    values=False
     [Return]    ${output}
 
@@ -89,3 +85,14 @@ sonobuoy
 govc
     [Arguments]    ${args}
     execute command localy    govc ${args}
+
+_kubectl timeout error
+    [Arguments]    ${output}    ${cluster_number}
+    ${connection_error}    Set Variable    connection to the server ${IP_LB_${cluster_number}}:6443 was refused
+    ${unable to connect}    Set Variable    Unable to connect to the server:
+    ${etcd timedout}    Set Variable    Error from server: etcdserver: request timed out
+    ${status_connection}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${connection_error}
+    ${status_unable}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${unable to connect}
+    ${status_etcdserver}    ${output_status}    Run Keyword And Ignore Error    Should Contain    ${output}    ${etcd timedout}
+    ${status}    Set Variable If    "${status_connection}"=="PASS" or "${status_unable}"=="PASS" or "${status_etcdserver}"=="PASS"    True    False
+    [Return]    ${status}

@@ -53,11 +53,12 @@ _skuba from repo
 
 _change skuba branch
     [Arguments]    ${commit}    ${folder}    ${cluster_number}
-    ${pull request}    Split String    ${commit}    -
+    ${pull request}    Split String    ${commit}    --
     Run Keyword If    "${pull request[0]}"=="pull"    execute command with ssh    cd ${folder} && git fetch origin pull/${pull request[1]}/head:customize    alias=skuba_station_${cluster_number}
     ...    ELSE IF    "${pull request[0]}"=="tag"    execute command with ssh    cd ${folder} && git checkout tags/${pull request[1]} -b customize    alias=skuba_station_${cluster_number}
+    ...    ELSE IF    "${pull request[0]}"=="branch"    execute command with ssh    cd ${folder} && git checkout ${pull request[1]}    alias=skuba_station_${cluster_number}
     ...    ELSE    Fail    wrong type
-    execute command with ssh    cd ${folder} && git checkout customize    alias=skuba_station_${cluster_number}
+    Run Keyword If    "${pull request[0]}"!="branch"    execute command with ssh    cd ${folder} && git checkout customize    alias=skuba_station_${cluster_number}
 
 _disable firewall
     [Arguments]    ${cluster_number}
@@ -70,11 +71,13 @@ _install go git make
 
 build skuba from repo
     [Arguments]    ${commit}    ${skuba_folder}=skuba    ${cluster_number}=1
+    ${version}    Set Variable If    "${VM_VERSION}"=="SP1"    15.1    15.2
+    ${scc_version}    Set Variable If    ${CAASP_VERSION}==4    4.0    4.5
     execute command with ssh    rm -rf /home/${VM_USER}/skuba
     execute command with ssh    git clone https://github.com/SUSE/skuba.git ${skuba_folder}    skuba_station_${cluster_number}
     Run Keyword Unless    "${commit}"=="${EMPTY}"    _change skuba branch    ${commit}    ${skuba_folder}    ${cluster_number}
-    Run Keyword If    "${MODE}"=="RELEASE"    execute command with ssh    sudo SUSEConnect -p sle-module-containers/15.1/x86_64    skuba_station_${cluster_number}
-    Run Keyword If    "${MODE}"=="RELEASE"    execute command with ssh    sudo SUSEConnect -p caasp/4.0/x86_64 -r ${CAASP_KEY}    skuba_station_${cluster_number}
+    Run Keyword If    "${MODE}"=="RELEASE"    execute command with ssh    sudo SUSEConnect -p sle-module-containers/${version}/x86_64    skuba_station_${cluster_number}
+    Run Keyword If    "${MODE}"=="RELEASE"    execute command with ssh    sudo SUSEConnect -p caasp/${scc_version}/x86_64 -r ${CAASP_KEY_V${CAASP_VERSION}}    skuba_station_${cluster_number}
     ${args}    set variable if    "${MODE}"=="DEV"    ${EMPTY}    "${MODE}"=="STAGING"    staging    "${MODE}"=="RELEASE"    release
     execute command with ssh    cd ${skuba_folder} && make ${args}    skuba_station_${cluster_number}
     execute command with ssh    sudo ln -s /home/${VM_USER}/go/bin/skuba /usr/bin/    skuba_station_${cluster_number}

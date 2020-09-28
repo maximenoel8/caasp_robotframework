@@ -87,7 +87,7 @@ add CA to server
 
 add CA to all server
     [Arguments]    ${cluster_number}=1
-    @{nodes}    get nodes name from CS
+    @{nodes}    get nodes name from CS    ${cluster_number}
     FOR    ${node}    IN    @{nodes}
         add CA to server    ${node}
     END

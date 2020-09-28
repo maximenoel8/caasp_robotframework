@@ -11,7 +11,9 @@ nginx is deployed
     step    deploying nginx service
     ${output}    kubectl    get pod -l app=nginx-ingress -n nginx-ingress -o name    cluster_number=${cluster_number}
     ${status}    ${_}    Run Keyword And Ignore Error    Should Not Be Empty    ${output}
-    Run Keyword If    "${status}"=="FAIL"    helm    install --name nginx-ingress --namespace nginx-ingress suse-charts/nginx-ingress --values ${DATADIR}/nginx/nginx-ingress-config-values.yaml    cluster_number=${cluster_number}
+    Run Keyword And Ignore Error    kubectl    create namespace nginx-ingress
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name nginx-ingress    nginx-ingress
+    Run Keyword If    "${status}"=="FAIL"    helm    install --namespace nginx-ingress --values ${DATADIR}/nginx/nginx-ingress-config-values.yaml ${naming} ${suse_charts}/nginx-ingress    cluster_number=${cluster_number}
     wait deploy    -n nginx-ingress --all
 
 can access nginx server
@@ -50,10 +52,11 @@ service should be accessible
     execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:32443/pear | grep pear
 
 teardown nginx testcase
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    -n nginx-ingress
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-ingress-rewrite.yaml
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-apple.yaml
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-pear.yaml
-    Run Keyword And Ignore Error    helm    delete nginx-ingress --purge
+    Run Keyword And Ignore Error    helm    delete ${purge} nginx-ingress
     [Teardown]    teardown_test
 
 update /etc/hosts

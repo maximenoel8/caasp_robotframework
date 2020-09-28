@@ -9,7 +9,7 @@ set openstack env variables
     END
 
 configure terraform tfvars openstack
-    ${template}    Set Variable If    "${VM_VERSION}"=="SP1"    SLES15-SP1-JeOS.x86_64-QU1    SLES15-SP2-JeOS.x86_64-PublicRC2
+    ${template}    Set Variable If    "${VM_VERSION}"=="SP1"    SLES15-SP1-JeOS.x86_64-QU1    SLES15-SP2-JeOS.x86_64-15.2-OpenStack-Cloud-GM
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    evaluate    ${i}+1
         _modify master and worker instances    ${cluster_number}
@@ -36,3 +36,9 @@ _modify master and worker instances
     ${worker_file}    Replace String    ${worker_file}    caasp-worker-\${var.stack_name}-\${count.index}    \${var.stack_name}-worker-\${count.index}
     create file    ${TERRAFORMDIR}/cluster_${cluster_number}/master-instance.tf    ${master_file}
     create file    ${TERRAFORMDIR}/cluster_${cluster_number}/worker-instance.tf    ${worker_file}
+
+add cap security group
+    @{workers}    get worker servers name
+    FOR    ${worker}    IN    @{workers}
+        execute command localy    openstack server add security group ${worker} validator-cap
+    END

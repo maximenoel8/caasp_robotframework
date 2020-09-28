@@ -60,7 +60,7 @@ etcd-backup
     [Teardown]    teardown etcdctl
 
 Restore all master nodes - etcd cluster and data
-    [Tags]    backup
+    [Tags]    backup    release
     Given cluster running
     And helm is installed
     And rsyslog is deployed
@@ -122,6 +122,7 @@ velero backup wordpress gcp
     [Teardown]    teardown velero
 
 velero backup wordpress azure
+    [Tags]    backup
     Given cluster running
     And velero setup
     And helm is installed

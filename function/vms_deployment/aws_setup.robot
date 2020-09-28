@@ -22,4 +22,4 @@ configure terraform tvars aws
 set aws env variables
     Set Environment Variable    AWS_ACCESS_KEY_ID    ${AWS_ACCESS_KEY}
     Set Environment Variable    AWS_SECRET_ACCESS_KEY    ${AWS_SECRET_KEY}
-    Set Environment Variable    AWS_DEFAULT_REGION    eu-central-1
+    Set Environment Variable    AWS_DEFAULT_REGION    ap-southeast-2
