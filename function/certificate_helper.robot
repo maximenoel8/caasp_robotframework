@@ -48,6 +48,8 @@ generate new certificate with CA signing request
     [Arguments]    ${service}    ${san}    ${ca_crt}    ${ca_key}    ${duration}=6 days, 23 hours
     ${start_date}    ${end_date}    generate start_date and end_date    ${duration}
     generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${ca_crt}    ${ca_key}    ${start_date}    ${end_date}    ${san}
+    Comment    Run Keyword If    "${san}"=="None"    generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${ca_crt}    ${ca_key}    ${start_date}    ${end_date}
+    ...    ELSE    generate_signed_ssl_certificate    ${service}    ${LOGDIR}/certificate/${service}/${service}.crt    ${LOGDIR}/certificate/${service}/${service}.key    ${ca_crt}    ${ca_key}    ${start_date}    ${end_date}    ${san}
 
 create CA
     [Arguments]    ${service}    ${cn}=default    ${duration}=87600 hours    ${file_name}=ca

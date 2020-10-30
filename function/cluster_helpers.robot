@@ -72,7 +72,7 @@ check pod log contain
     Should Contain    ${output}    ${expected_value}
 
 wait deploy
-    [Arguments]    ${arg}    ${timeout}=5m
+    [Arguments]    ${arg}    ${timeout}=8m
     kubectl    wait deployment --for=condition=available --timeout=${timeout} ${arg}
 
 wait all pods are running
@@ -278,7 +278,7 @@ update control-plane on masters
 
 _wait pod ready
     [Arguments]    ${arguments}    ${cluster_number}
-    ${status}    ${output}    Run Keyword And Ignore Error    kubectl    wait pods --for=condition=ready --timeout=5m ${arguments}    ${cluster_number}
+    ${status}    ${output}    Run Keyword And Ignore Error    kubectl    wait pods --for=condition=ready --timeout=6m ${arguments}    ${cluster_number}
     Run Keyword if    "${status}"=="FAIL"    Should Not Contain    ${output}    no matching resources found
     [Return]    ${status}
 
