@@ -112,7 +112,8 @@ reboot grafana
 deploy grafana
     [Arguments]    ${cluster_number}=1
     kubectl    apply -f ${DATADIR}/monitoring/grafana-datasources.yaml    cluster_number=${cluster_number}
-    helm    install --name grafana suse-charts/grafana --namespace monitoring --values ${DATADIR}/monitoring/grafana-config-values.yaml    cluster_number=${cluster_number}
+    ${naming}    Set Variable If    ${HELM_VERSION}==2    --name grafana    grafana
+    helm    install --namespace monitoring --values ${DATADIR}/monitoring/grafana-config-values.yaml ${naming} ${suse_charts}/grafana    cluster_number=${cluster_number}
     wait_deploy    -n monitoring grafana    15m
     kubectl    apply -f ${DATADIR}/monitoring/ingress-grafana.yaml    cluster_number=${cluster_number}
 
