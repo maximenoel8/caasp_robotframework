@@ -123,8 +123,13 @@ def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, 
     signed_cert.set_issuer(cacert.get_subject())
     signed_cert.set_version(2)
     signed_cert.set_pubkey(csrrequest.get_pubkey())
-    extension = _create_x509_extension_for_CA() if CA else _create_x509_extension_for_server(SAN)
-    signed_cert.add_extensions(extension)
+    if CA:
+        extension = _create_x509_extension_for_CA()
+        signed_cert.add_extensions(extension)
+    elif SAN != None:
+        extension = _create_x509_extension_for_server(SAN)
+        signed_cert.add_extensions(extension)
+
     signed_cert.sign(cakey, "sha256")
     _write_key_certificate(CERT_FILE, KEY_FILE, signed_cert, psec)
 
@@ -132,7 +137,6 @@ def generate_signed_ssl_certificate(service, CERT_FILE, KEY_FILE, CA_cert_file, 
 # a certificate signing request (csr)
 def signed_certificate_request(KEY_FILE, CSR_FILE, CERT_FILE, CA_cert_file, CA_key_file, start_date, end_date,
                                CA=False):
-
     # load CA key and certificate
     ca_cert = _load_certificate(CA_cert_file)
     ca_key = _load_key(CA_key_file)
