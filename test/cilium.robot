@@ -12,7 +12,7 @@ check L3-L4 policy
     when l3 l4 policiy is deployed
     then node is able to land    tiefighter
     and node is not able to land    xwing
-    [Teardown]    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
+    [Teardown]    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.7/examples/minikube/sw_l3_l4_policy.yaml
 
 check L7 policy
     [Tags]    release
@@ -20,11 +20,11 @@ check L7 policy
     When l7 policy is deployed
     Then PUT request is denied    tiefighter
     And node is able to land    tiefighter
-    [Teardown]    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_l7_policy.yaml
+    [Teardown]    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.7/examples/minikube/sw_l3_l4_l7_policy.yaml
 
 check cilium version
     [Tags]    release
-    Then cilium version should be    1.7.5
+    Then cilium version should be    1.7.6
 
 check cilium uses CRD instead of etcd
     [Tags]    release
