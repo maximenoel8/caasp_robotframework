@@ -37,27 +37,32 @@ deploy cert-manager new version
     wait deploy    cert-manager -n kube-system
 
 create and apply rotation certificate manifest for
-    [Arguments]    ${service}    ${issuer}=kubernetes-ca    ${duration}=8760h    ${renew_before}=720h
+    [Arguments]    ${service}    ${issuer}=kubernetes-ca    ${duration}=8760h    ${renew_before}=720h    ${extension}=cert    ${secret_name}=default
     step    create rotation certificate manifest for ${service}
-    backup tls secret manifest    ${service}
-    ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    backup tls secret manifest    ${service}    ${extension}
+    ${PASS}    ${SAN}    Run Keyword And Ignore Error    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    ${SAN}    Set Variable If    "${PASS}"=="FAIL"    None    ${SAN}
     ${common_name}    Set Variable If    "${service}"=="metrics-server"    metrics-server.kube-system.svc    ${service}
-    _create certificate rotation manifest    ${service}    ${common_name}    ${SAN}    ${issuer}    ${duration}    ${renew_before}
+    _create certificate rotation manifest    ${service}    ${common_name}    ${SAN}    ${issuer}    ${duration}    ${renew_before}    ${secret_name}
     kubectl    apply -f ${LOGDIR}/${service}-certificate.yaml
     wait certificate ${service}-cert in kube-system is ready
-    kubectl    rollout restart deployment/${service} -n kube-system
-    wait deploy    ${service} -n kube-system
+    Run Keyword If    "${service}"=="cilium"    kubectl    rollout restart daemonset/${service} -n kube-system
+    ...    ELSE    kubectl    rollout restart deployment/${service} -n kube-system
+    Run Keyword If    "${service}"=="cilium"    wait daemonset are ready    cilium
+    ...    ELSE    wait deploy    ${service} -n kube-system
 
 _create certificate rotation manifest
-    [Arguments]    ${service}    ${common_name}    ${SAN}    ${issuer}=kubernetes-ca    ${duration}=8760    ${renew_before}=720
-    ${dns_list}    Set Variable    ${SAN["dns"]}
-    ${ip_list}    Set Variable    ${SAN["ip"]}
+    [Arguments]    ${service}    ${common_name}    ${SAN}    ${issuer}=kubernetes-ca    ${duration}=8760    ${renew_before}=720    ${secret_name}=default
+    ${empty_list}    Create List
+    ${dns_list}    Set Variable if    "${SAN}"=="None"    ${empty_list}    ${SAN["dns"]}
+    ${ip_list}    Set Variable if    "${SAN}"=="None"    ${empty_list}    ${SAN["ip"]}
     ${lt_dns}    Get Length    ${dns_list}
     ${lt_ip}    Get Length    ${ip_list}
     ${manifest_dictionnary}    open yaml file    ${DATADIR}/manifests/certificate/template-certificate.yaml
+    ${secret_name}    Set Variable If    "${secret_name}"=="default"    ${service}-cert    ${secret_name}
     Set To Dictionary    ${manifest_dictionnary["metadata"]}    name=${service}-cert
-    Set To Dictionary    ${manifest_dictionnary["metadata"]}    name=${service}-cert
-    Set To Dictionary    ${manifest_dictionnary["spec"]}    secretName=${service}-cert
+    Comment    Set To Dictionary    ${manifest_dictionnary["metadata"]}    name=${service}-cert
+    Set To Dictionary    ${manifest_dictionnary["spec"]}    secretName=${secret_name}
     Set To Dictionary    ${manifest_dictionnary["spec"]}    commonName=${common_name}
     Set To Dictionary    ${manifest_dictionnary["spec"]}    duration=${duration}
     Set To Dictionary    ${manifest_dictionnary["spec"]}    renewBefore=${renew_before}
@@ -71,7 +76,7 @@ annotate dex gangway and metrics secret for reload
     step    annotate dex, metrcis and gangway secret for reload
     kubectl    -n kube-system annotate deploy/oidc-dex secret.reloader.stakater.com/reload=oidc-dex-cert --overwrite
     kubectl    -n kube-system annotate deploy/oidc-gangway secret.reloader.stakater.com/reload=oidc-gangway-cert --overwrite
-    kubectl    -n kube-system annotate deploy/metrics-server secret.reloader.stakater.com/reload=metrics-server-cert --overwrite
+    Run Keyword If    "${CAASP_VERSION}"==4.5    kubectl    -n kube-system annotate deploy/metrics-server secret.reloader.stakater.com/reload=metrics-server-cert --overwrite
 
 create tls secret to
     [Arguments]    ${service}    ${SAN}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False    ${ca_crt}=${WORKDIR}/cluster_1/pki/ca.crt    ${ca_key}=${WORKDIR}/cluster_1/pki/ca.key
@@ -82,35 +87,38 @@ create tls secret to
     kubectl    apply -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
 
 modify tls secret to
-    [Arguments]    ${service}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False    ${ca_crt}=${WORKDIR}/cluster_1/pki/ca.crt    ${ca_key}=${WORKDIR}/cluster_1/pki/ca.key
+    [Arguments]    ${service}    ${namespace}=kube-system    ${duration}=6 days, 23 hours    ${ca}=False    ${ca_crt}=${WORKDIR}/cluster_1/pki/ca.crt    ${ca_key}=${WORKDIR}/cluster_1/pki/ca.key    ${extension}=cert
     step    Modify tls secret for ${service}
-    backup tls secret manifest    ${service}
-    ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    backup tls secret manifest    ${service}    ${extension}
+    Comment    ${SAN}    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    ${PASS}    ${SAN}    Run Keyword And Ignore Error    get san from cert    ${LOGDIR}/certificate/${service}/backup/${service}.crt
+    ${SAN}    Set Variable If    "${PASS}"=="FAIL"    None    ${SAN}
     Run Keyword If    ${ca}    generate new certificate with CA signing request    ${service}    ${SAN}    ${ca_crt}    ${ca_key}    ${duration}
     ...    ELSE    generate new certificate without CA request    ${service}    ${SAN}    ${duration}
-    create tls secret manifest    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${namespace}    ca_crt=${ca_crt}
+    create tls secret manifest    ${service}    ${LOGDIR}/certificate/${service}/backup/${service}-${extension}.yaml    ${namespace}    ca_crt=${ca_crt}    extension=${extension}
     replace tls secret and restart service    ${service}
     wait pods ready
     Run Keyword And Ignore Error    _modify expired date for secret    ${service}-cert    tls.crt    ${duration}
 
 backup tls secret manifest
-    [Arguments]    ${service}
+    [Arguments]    ${service}    ${extension}=cert
     Create Directory    ${LOGDIR}/certificate/${service}/backup
-    ${output}    kubectl    get secret ${service}-cert -n kube-system -o yaml
-    Create File    ${LOGDIR}/certificate/${service}/backup/${service}-cert.yaml    ${output}
+    ${output}    kubectl    get secret ${service}-${extension} -n kube-system -o yaml
+    Create File    ${LOGDIR}/certificate/${service}/backup/${service}-${extension}.yaml    ${output}
     ${dico_output}    load    ${output}
     ${tls_certificate}    Decode Base64    ${dico_output["data"]["tls.crt"]}
     Create File    ${LOGDIR}/certificate/${service}/backup/${service}.crt    ${tls_certificate}
 
 create tls secret manifest
-    [Arguments]    ${service}    ${file}    ${namespace}    ${ca}=True    ${ca_crt}=None
-    ${extension}    Set Variable If    ${ca}    -cert    -tls
+    [Arguments]    ${service}    ${file}    ${namespace}    ${ca}=True    ${ca_crt}=None    ${extension}=default
+    ${extension_local}    Set Variable If    ${ca}    cert    tls
+    ${extension}    Set Variable If    "${extension}"=="default"    ${extension_local}    ${extension}
     ${service_crt}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.crt
     ${service_key}    _encode file in base64    ${LOGDIR}/certificate/${service}/${service}.key
     ${ca_crt}    _encode file in base64    ${ca_crt}
     ${output}    OperatingSystem.Get File    ${file}
     ${manifest_dico}    Load    ${output}
-    Set To Dictionary    ${manifest_dico["metadata"]}    name=${service}${extension}
+    Set To Dictionary    ${manifest_dico["metadata"]}    name=${service}-${extension}
     Set To Dictionary    ${manifest_dico["metadata"]}    namespace=${namespace}
     Set To Dictionary    ${manifest_dico["data"]}    tls.crt=${service_crt}
     Set To Dictionary    ${manifest_dico["data"]}    tls.key=${service_key}
@@ -122,11 +130,12 @@ create tls secret manifest
 replace tls secret and restart service
     [Arguments]    ${service}    ${namespace}=kube-system
     kubectl    replace -f ${LOGDIR}/certificate/${service}/${service}-cert.yaml
-    kubectl    rollout restart deployment/${service} -n ${namespace}
+    Run Keyword If    "${service}"=="cilium"    kubectl    rollout restart daemonset/${service} -n ${namespace}
+    ...    ELSE    kubectl    rollout restart deployment/${service} -n ${namespace}
 
-check expired date for ${service} is sup to ${time}
+check expired date for ${service}_${extension} is sup to ${time}
     step    check expired date for ${service} is superior to ${time}
-    backup tls secret manifest    ${service}
+    backup tls secret manifest    ${service}    ${extension}
     ${certificate_time}    get_expiry_date    ${LOGDIR}/certificate/${service}/backup/${service}.crt
     ${convert_time}    Convert Date    ${certificate_time}    date_format=%Y%m%d%H%M%SZ
     ${current_time}    DateTime.Get Current Date    UTC
@@ -334,8 +343,8 @@ ${service} certificate CA signed is custom trusted CA certificate
     ${status}    verify_certificate_chain    ${LOGDIR}/certificate-${server_ip}.crt    ${authority}
     Should Be True    ${status}
 
-addon ${service} certificate is correctly generated in certificate status by ${issuer}
-    ${output}    kubectl    get certificates ${service}-cert -n kube-system -o yaml
+addon ${service}_${extension} certificate is correctly generated in certificate status by ${issuer}
+    ${output}    kubectl    get certificates ${service}-${extension} -n kube-system -o yaml
     ${certificate_dico}    Safe Load    ${output}
     Should Be Equal    ${certificate_dico["spec"]["commonName"]}    ${service}
     Should Be Equal    ${certificate_dico["spec"]["issuerRef"]["name"]}    ${issuer}
@@ -363,3 +372,9 @@ copy customize oidc-ca to workstation
     [Arguments]    ${service}=customize-kubernetes-ca    ${file_name}=oidc-ca    ${cluster_number}=1
     Switch Connection    skuba_station_${cluster_number}
     Put File    ${LOGDIR}/certificate/${service}/${file_name}.crt    /home/${VM_USER}/cluster/pki/${file_name}.crt
+
+_set SAN
+    ${dns_list}    Set Variable    ${SAN["dns"]}
+    ${ip_list}    Set Variable    ${SAN["ip"]}
+    ${lt_dns}    Get Length    ${dns_list}
+    ${lt_ip}    Get Length    ${ip_list}

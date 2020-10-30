@@ -17,18 +17,18 @@ check cert-manager correctly do the certificate rotation for dex and gangway whe
     and create kubernetes CA issuer secret
     When create and apply rotation certificate manifest for    oidc-dex    duration=12h    renew_before=6h
     and create and apply rotation certificate manifest for    oidc-gangway
-    Then addon oidc-dex certificate is correctly generated in certificate status by kubernetes-ca
-    And addon oidc-gangway certificate is correctly generated in certificate status by kubernetes-ca
-    Then check expired date for oidc-gangway is sup to 720 hours
-    And check expired date for oidc-dex is sup to 6 hours
+    Then addon oidc-dex_cert certificate is correctly generated in certificate status by kubernetes-ca
+    And addon oidc-gangway_cert certificate is correctly generated in certificate status by kubernetes-ca
+    Then check expired date for oidc-gangway_cert is sup to 720 hours
+    And check expired date for oidc-dex_cert is sup to 6 hours
     When modify tls secret to    oidc-dex    duration=6 hours, 2 minutes    ca=True
     step    waiting 3 minutes
     And sleep    3 minutes
-    Then check expired date for oidc-dex is sup to 11 hours
+    Then check expired date for oidc-dex_cert is sup to 11 hours
     [Teardown]    clean cert-manager
 
 check kucero is correctly renewing certificates
-    [Tags]    release    v4.5
+    [Tags]    v4.5
     [Setup]    refresh ssh session
     And kucero is running on master
     Comment    And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
@@ -61,8 +61,8 @@ check oidc-dex and oidc-gangway signed by custom CA certificate and key are corr
     and create kubernetes CA issuer secret    ${LOGDIR}/certificate/${issuer_CN}    ${issuer_CN}
     When create and apply rotation certificate manifest for    oidc-dex    ${issuer_CN}    12h    6h
     And create and apply rotation certificate manifest for    oidc-gangway    ${issuer_CN}    12h    6h
-    Then addon oidc-dex certificate is correctly generated in certificate status by ${issuer_CN}
-    And addon oidc-gangway certificate is correctly generated in certificate status by ${issuer_CN}
+    Then addon oidc-dex_cert certificate is correctly generated in certificate status by ${issuer_CN}
+    And addon oidc-gangway_cert certificate is correctly generated in certificate status by ${issuer_CN}
     And addon oidc-dex certificate is signed by ${issuer_CN} on ${IP_LB_1} 32000 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt
     And addon oidc-ganway certificate is signed by ${issuer_CN} on ${IP_LB_1} 32001 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt
     [Teardown]    clean cert-manager
@@ -77,8 +77,39 @@ check oidc-dex and oidc-gangway signed by custom CA certificate signed by kubern
     and create kubernetes CA issuer secret    ${LOGDIR}/certificate/${issuer_CN}    ${issuer_CN}
     When create and apply rotation certificate manifest for    oidc-dex    ${issuer_CN}    12h    6h
     And create and apply rotation certificate manifest for    oidc-gangway    ${issuer_CN}    12h    6h
-    Then addon oidc-dex certificate is correctly generated in certificate status by ${issuer_CN}
-    And addon oidc-gangway certificate is correctly generated in certificate status by ${issuer_CN}
+    Then addon oidc-dex_cert certificate is correctly generated in certificate status by ${issuer_CN}
+    And addon oidc-gangway_cert certificate is correctly generated in certificate status by ${issuer_CN}
     And addon oidc-dex certificate is signed by ${issuer_CN} on ${IP_LB_1} 32000 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt ${CLUSTERDIR}_1/pki/ca.crt
     And addon oidc-ganway certificate is signed by ${issuer_CN} on ${IP_LB_1} 32001 with ${LOGDIR}/certificate/${issuer_CN}/ca.crt ${CLUSTERDIR}_1/pki/ca.crt
     [Teardown]    clean cert-manager
+
+check cert-manager rotation with CA within certificate
+    Comment    and deploy reloader
+    Comment    and annotate dex gangway and metrics secret for reload
+    Comment    and deploy cert-manager
+    and create kubernetes CA issuer secret
+    When create and apply rotation certificate manifest for    oidc-dex    duration=12h    renew_before=6h
+    and create and apply rotation certificate manifest for    oidc-gangway
+    Then addon oidc-dex_cert certificate is correctly generated in certificate status by kubernetes-ca
+    And addon oidc-gangway_cert certificate is correctly generated in certificate status by kubernetes-ca
+    Then check expired date for oidc-gangway_cert is sup to 720 hours
+    And check expired date for oidc-dex_cert is sup to 6 hours
+    When modify tls secret to    oidc-dex    duration=5 hours    ca=True
+    step    waiting 3 minutes
+    And sleep    3 minutes
+    Then check expired date for oidc-dex_cert is sup to 11 hours
+
+cert-manager renew certificates cilium 1.5
+    Given cluster running
+    and helm is installed
+    load vm ip
+    kubectl    annotate --overwrite daemonset/cilium -n kube-system secret.reloader.stakater.com/reload=cilium-secret
+    kubectl    label --overwrite secret cilium-secret -n kube-system caasp.suse.com/skuba-addon=true
+    and create kubernetes CA issuer secret    issuer_name=etcd-ca    certificate_folder=${CLUSTERDIR}_1/pki/etcd
+    When create and apply rotation certificate manifest for    cilium    duration=12h    renew_before=6h    issuer=etcd-ca    secret_name=cilium-secret    extension=secret
+    Then addon cilium_cert certificate is correctly generated in certificate status by etcd-ca
+    Then check expired date for cilium_secret is sup to 7 hours
+    When modify tls secret to    cilium    duration=6 hours, 2 minutes    ca=True    extension=secret    ca_crt=${CLUSTERDIR}_1/pki/etcd/ca.crt    ca_key=${CLUSTERDIR}_1/pki/etcd/ca.key
+    step    waiting 3 minutes
+    And sleep    3 minutes
+    Then check expired date for cilium_secret is sup to 11 hours
