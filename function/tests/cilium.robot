@@ -31,18 +31,18 @@ node is NOT able to land
 teardown testsuite cilium
     [Tags]    release
     step    teardown testsuite cilium
-    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/http-sw-app.yaml
-    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
-    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_l7_policy.yaml
+    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.7/examples/minikube/http-sw-app.yaml
+    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.7/examples/minikube/sw_l3_l4_policy.yaml
+    Run Keyword And Ignore Error    kubectl    delete -f https://raw.githubusercontent.com/cilium/cilium/v1.7/examples/minikube/sw_l3_l4_l7_policy.yaml
     Run Keyword And Ignore Error    kubectl    delete -f ${DATADIR}/manifests/cilium
     [Teardown]    teardown_test
 
 l3 l4 policiy is deployed
-    kubectl    create -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_policy.yaml
+    kubectl    create -f https://raw.githubusercontent.com/cilium/cilium/v1.7/examples/minikube/sw_l3_l4_policy.yaml
     step    deploy l3 l4 policy
 
 l7 policy is deployed
-    kubectl    apply -f https://raw.githubusercontent.com/cilium/cilium/v1.6/examples/minikube/sw_l3_l4_l7_policy.yaml
+    kubectl    apply -f https://raw.githubusercontent.com/cilium/cilium/v1.7/examples/minikube/sw_l3_l4_l7_policy.yaml
 
 PUT request create error
     [Arguments]    ${node}
