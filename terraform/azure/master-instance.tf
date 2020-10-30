@@ -43,7 +43,7 @@ resource "azurerm_linux_virtual_machine" "master" {
 
   source_image_reference {
     publisher = "SUSE"
-    offer     = "sles-15-sp1-chost-byos"
+    offer     = "sles-15-sp2-chost-byos"
     sku       = "gen2"
     version   = data.azurerm_platform_image.sles_chost_byos.version
   }
@@ -53,6 +53,13 @@ resource "azurerm_linux_virtual_machine" "master" {
   lifecycle {
     create_before_destroy = true
     ignore_changes        = [source_image_id]
+  }
+
+  dynamic "identity" {
+    for_each = range(var.cpi_enable ? 1 : 0)
+    content {
+      type = "SystemAssigned"
+    }
   }
 }
 
@@ -69,4 +76,17 @@ resource "azurerm_virtual_machine_extension" "master" {
         "script": "${base64encode(data.template_file.cloud-init.rendered)}"
     }
 SETTINGS
+}
+
+locals {
+  master_principal_ids = var.cpi_enable ? azurerm_linux_virtual_machine.master.*.identity.0.principal_id : []
+}
+
+resource "azurerm_role_assignment" "master" {
+  count              = var.cpi_enable ? var.masters : 0
+  scope              = data.azurerm_subscription.current.id
+  role_definition_id = "${data.azurerm_subscription.current.id}${data.azurerm_role_definition.contributor.id}"
+  principal_id       = local.master_principal_ids[count.index]
+
+  depends_on = [azurerm_linux_virtual_machine.master]
 }
