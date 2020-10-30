@@ -19,11 +19,11 @@ selenium_grafana
     ${profile}    get_firefox_profile
     Open Browser    url=https://grafana.example.com:32443    browser=headlessfirefox    remote_url=${SELENIUM_URL}    ff_profile_dir=${profile}
     SeleniumLibrary.Location Should Be    https://grafana.example.com:32443/login
-    Wait Until Element Is Visible    username
-    Input Text    username    admin
+    Wait Until Element Is Visible    user
+    Input Text    user    admin
     Input Text    password    linux
-    Click Element    CSS:button[type=submit]
-    Wait Until Page Contains    Home Dashboard
+    Click Element    CSS:button[aria-label="Login button"]
+    Wait Until Page Contains    Welcome to Grafana
     access certificate dashboard    ${cluster_number}
 
 selenium_prometheus
@@ -39,8 +39,9 @@ access certificate dashboard
     [Arguments]    ${cluster_number}=1
     step    checking certificates dashboard
     Go To    url=https://grafana.example.com:32443/dashboards
-    Click Element    xpath://div[text()="SUSE CaaS Platform Certificates"]
-    @{grafana_panels_webelements}    Get WebElements    css:grafana-panel
+    Click Element    xpath://span[text()="SUSE CaaS Platform Certificates"]
+    Comment    @{grafana_panels_webelements}    Get WebElements    css:grafana-panel
+    @{grafana_panels_webelements}    Get WebElements    css:.panel-wrapper
     ${grafana_panels_length}    Get Length    ${grafana_panels_webelements}
     Should Be Equal As Integers    ${grafana_panels_length}    ${expected_panels_number}
     FOR    ${grafana_panel_element}    IN    @{grafana_panels_webelements}
