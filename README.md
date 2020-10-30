@@ -70,12 +70,16 @@ You can change global variable by adding -v \<variablename\>:\<new value\>. Here
    - `None` : no customization
 
 ### Installation customization 
+- `SKUBA_PULL_REQUEST` : install from skuba repo, prefix by 
+    - `branch--` : to select branch
+    - `pull--` : PR number
+    - `tag--` : specific tag
 - `MODE` : 
     - empty by default, skuba will be installed from pattern
     - DEV / STAGING / RELEASE : will build skuba from github project with choose option 
         . when using this mode,  you can specify a pull request number (pull-\<pull request number>) or a tag (tag-\<tag number>) with the variable `SKUBA_PULL_REQUEST`
-- `
-` : clone https://github.com/SUSE/kubernetes-charts-suse-com in LOGDIR and checkout to the pull request
+- `KUBERNETES_CHARS` : clone https://github.com/SUSE/kubernetes-charts-suse-com in LOGDIR and checkout to the pull request
+- `HELM_VERSION` : helm version
 
 ### Upgrade part and install with RPM
 - `UPGRADE` : by default false, if True, deploy the cluster with current pattern then add repo specify in RPM and upgrade cluster
