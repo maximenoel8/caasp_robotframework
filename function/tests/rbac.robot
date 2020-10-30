@@ -97,7 +97,8 @@ clean 389ds server
 
 openldap server is deployed
     step    deploying openldap server
-    helm    install --name ldap --set adminPassword=admin --set env.LDAP_DOMAIN=example.com stable/openldap
+    ${naming}    set variable if    ${HELM_VERSION}==2    --name ldap    ldap
+    helm    install ${naming} --set adminPassword=admin --set env.LDAP_DOMAIN=example.com stable/openldap
 
 _add user for ldap
     ${ldap_pod}    wait podname    -l app=openldap
@@ -105,7 +106,8 @@ _add user for ldap
 
 clean up openldap
     step    clean ldap service
-    helm    delete --purge ldap
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    ${EMPTY}
+    helm    delete ${purge} ldap
     [Teardown]    teardown_test
 
 clean static password
