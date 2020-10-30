@@ -52,11 +52,12 @@ service should be accessible
     execute command localy    curl -skL https://${BOOTSTRAP_MASTER_1}:32443/pear | grep pear
 
 teardown nginx testcase
-    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    -n nginx-ingress
+    ${purge}    Set Variable If    ${HELM_VERSION}==2    --purge    ${EMPTY}
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-ingress-rewrite.yaml
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-apple.yaml
     Run Keyword And Ignore Error    kubectl    delete -f $DATADIR/nginx-pear.yaml
     Run Keyword And Ignore Error    helm    delete ${purge} nginx-ingress
+    Run Keyword And Ignore Error    kubectl    delete deployment nginx
     [Teardown]    teardown_test
 
 update /etc/hosts
