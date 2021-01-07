@@ -3,7 +3,7 @@ adminPassword: linux
 
 # Configure persistent storage
 persistence:
-  enabled: true
+  enabled: false
   accessModes:
     - ReadWriteOnce
   ## Create a PersistentVolumeClaim of 10Gi

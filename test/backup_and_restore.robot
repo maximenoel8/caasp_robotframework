@@ -8,8 +8,9 @@ Resource          ../function/cluster_deployment.robot
 
 *** Test Cases ***
 velero backup wordpress aws
-    [Tags]    backup    release
+    [Tags]    backup    release    smoke
     Given cluster running
+    add CA to all server
     And velero setup
     And helm is installed
     And storageclass is deployed
@@ -54,13 +55,12 @@ velero migrate wordpress from cluster 1 to 2
     [Teardown]    teardown velero    aws
 
 etcd-backup
-    [Tags]    backup    release
+    [Tags]    backup    release    smoke
     Given cluster running
     And etcd-backup job is executed
     [Teardown]    teardown etcdctl
 
 Restore all master nodes - etcd cluster and data
-    [Tags]    backup    release
     Given cluster running
     And helm is installed
     And rsyslog is deployed
@@ -83,6 +83,7 @@ Restore all master nodes - etcd cluster and data
 velero backup wordpress
     [Tags]    backup
     Given cluster running
+    Comment    add CA to all server
     And velero setup
     And helm is installed
     And storageclass is deployed
@@ -142,7 +143,6 @@ velero backup wordpress azure
     [Teardown]    teardown velero
 
 velero migration with azure
-    [Tags]    backup
     Run Keyword If    ${NUMBER_OF_CLUSTER} < 2    Fail    Need two cluster for this test
     Given cluster running
     and cluster running    2
@@ -172,3 +172,22 @@ velero create backup before upgrade, upgrade and restaure
     Comment    deploy wordpress, deploy velero aws and create backup
     Comment    Run Keyword If    ${UPGRADE}    upgrade cluster
     delete wordpress and restore with velero aws
+
+velro backup wordpress aws 4.2
+    Given cluster running
+    And velero setup
+    And helm is installed
+    And storageclass is deployed
+    And velero cli is installed
+    And aws bucket is setup
+    And velero server is deployed with volume snapshot for    aws
+    And wordpress is deployed
+    And file copy to wordpress pod
+    And wordpress volumes are annotated to be backed up
+    When create backup on    ${cluster}    args=--include-namespaces wordpress
+    Then backup should be successfull
+    When wordpress is removed
+    And create restore from backup    ${backup_name}
+    Sleep    10sec
+    And wordpress is up
+    Then check file exist in wordpress pod

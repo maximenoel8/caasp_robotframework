@@ -61,7 +61,8 @@ helm
 velero
     [Arguments]    ${argument}    ${cluster_number}=1
     Set Environment Variable    KUBECONFIG    ${CLUSTERDIR}_${cluster_number}/admin.conf
-    ${output}    execute command localy    ${velero_path}velero ${argument} -cacert ${DATADIR}/certificate/minio-ca.crt
+    ${output}    execute command localy    ${velero_path}velero ${argument}
+    Comment    ${output}    execute command localy    ${velero_path}velero ${argument} -cacert ${DATADIR}/certificate/minio-ca.crt
     [Return]    ${output}
 
 _kubectl configuration

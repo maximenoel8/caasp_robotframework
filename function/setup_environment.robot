@@ -18,7 +18,7 @@ set global ip variable
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
         Set Global Variable    ${BOOTSTRAP_MASTER_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["master"]["${CLUSTER_PREFIX}-${cluster_number}-master-0"]["ip"]}
-        Set Global Variable    ${WORKSTATION_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["workstation"]}
+        Run Keyword If    ${skuba_station}    Set Global Variable    ${WORKSTATION_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["workstation"]}
         Set Global Variable    ${IP_LB_${cluster_number}}    ${cluster_state["cluster_${cluster_number}"]["lb"]["ip"]}
     END
 
@@ -83,8 +83,8 @@ create container repository file
     Append To File    ${LOGDIR}/registries.conf    unqualified-search-registries = ["docker.io"]\n
     Append To File    ${LOGDIR}/registries.conf    \# Fallback registry for missing containers\n
     Append To File    ${LOGDIR}/registries.conf    \n[[registry]]\n
-    Append To File    ${LOGDIR}/registries.conf    prefix = "registry.suse.com/caasp/v4" \n
-    Append To File    ${LOGDIR}/registries.conf    location = "registry.suse.com/caasp/v4"\n\n
+    Append To File    ${LOGDIR}/registries.conf    prefix = "registry.suse.com/caasp/v${CAASP_VERSION}" \n
+    Append To File    ${LOGDIR}/registries.conf    location = "registry.suse.com/caasp/v${CAASP_VERSION}"\n\n
     FOR    ${reg}    IN    @{registries}
         Append To File    ${LOGDIR}/registries.conf    \n[[registry.mirror]]\n
         Append To File    ${LOGDIR}/registries.conf    location = "${reg}"\n

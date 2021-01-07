@@ -28,3 +28,4 @@ ${CAASP_VERSION}    4
 ${AIRGAPPED_IP_OFFLINE}    ${EMPTY}
 ${HELM_VERSION}    2
 ${OIDC_CERT}      None
+${skuba_station}    False

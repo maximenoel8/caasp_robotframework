@@ -19,7 +19,7 @@ Resource          ../function/airgaped/common_airgaped.robot
 
 *** Test Cases ***
 deploy cluster
-    [Tags]    upgrade    release    backup    join
+    [Tags]    upgrade    release    backup    join    smoke
     Given cluster running
     And helm is installed
     [Teardown]    teardown deploy

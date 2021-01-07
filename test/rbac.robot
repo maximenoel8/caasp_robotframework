@@ -16,7 +16,7 @@ Resource          ../function/tests/rbac.robot
     [Teardown]    clean 389ds server
 
 389ds authentication
-    [Tags]    release
+    [Tags]    release    smoke
     Pass Execution If    "${OIDC_CERT}" != "None"    Using oidc customize
     Given cluster running
     And helm is installed
@@ -29,7 +29,7 @@ Resource          ../function/tests/rbac.robot
     [Teardown]    clean 389ds server
 
 openldap authentication
-    [Tags]    release
+    [Tags]    release    smoke
     Pass Execution If    "${OIDC_CERT}" != "None"    Using oidc customize
     Given cluster running
     And helm is installed
@@ -42,7 +42,7 @@ openldap authentication
     [Teardown]    clean up openldap
 
 389ds authentication with dex configure using kustomize
-    [Tags]    release
+    [Tags]    release    smoke
     Pass Execution If    "${OIDC_CERT}" != "None"    Using oidc customize
     Given cluster running
     And helm is installed
@@ -55,7 +55,7 @@ openldap authentication
     [Teardown]    clean 389ds server
 
 static password authentication
-    [Tags]    release
+    [Tags]    release    smoke
     Pass Execution If    "${OIDC_CERT}" != "None"    Using oidc customize
     Given cluster running
     And dex is configured for    static password

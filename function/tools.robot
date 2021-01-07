@@ -14,7 +14,8 @@ nfs client is deployed
     Set Variable    ${server_ip}    ${nfs_ip}
     ${output}    kubectl    get pod -l app=nfs-client-provisioner -o name    cluster_number=${cluster_number}
     ${naming}    Set Variable If    ${HELM_VERSION}==2    --name nfs    nfs
-    Run Keyword If    "${output}"=="${EMPTY}"    helm    install --set nfs.server="${server_ip}" --set nfs.path="${path}" --set storageClass.defaultClass=true --set storageClass.reclaimPolicy="${mode}" ${naming} stable/nfs-client-provisioner    cluster_number=${cluster_number}
+    Run Keyword If    "${output}"=="${EMPTY}"    Run Keyword And Ignore Error    run commands on nodes    1    sudo zypper -n in nfs-client
+    Run Keyword If    "${output}"=="${EMPTY}"    helm    install --set nfs.server="${server_ip}" --set nfs.path="${path}" --set storageClass.defaultClass=true --set storageClass.reclaimPolicy="${mode}" ${naming} ckotzbauer/nfs-client-provisioner    cluster_number=${cluster_number}
     wait pods ready    -l app=nfs-client-provisioner    cluster_number=${cluster_number}
     step    Storage default class is setup for nfs
 

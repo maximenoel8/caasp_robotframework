@@ -335,7 +335,7 @@ _create cluster_state for openstack
     ${length}    Get Length    ${ip_dictionnary["outputs"]["ip_masters"]["value"]}
     ${length}    Evaluate    ${length}-1
     FOR    ${key}    IN    @{masters}
-        Run Keyword If    ${count}==${length}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    ${cluster_number}
+        Run Keyword If    ${count}==${length} and ${skuba_station}    Run Keywords    add workstation    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    ${cluster_number}
         ...    AND    Exit For Loop
         ${local_ip}    _get local ip for openstack    ${ip_dictionnary}    ${key}
         add node to cluster state    ${key}    ${ip_dictionnary["outputs"]["ip_masters"]["value"]["${key}"]}    True    cluster_number=${cluster_number}    local_ip=${local_ip}
@@ -368,3 +368,12 @@ platform is ${platform}
 write cluster containers version in CS
     [Arguments]    ${container}    ${version}    ${cluster_number}=1
     Set To Dictionary    ${cluster_state["cluster_${cluster_number}"]["versions"]}    ${container}    ${version}
+
+get skuba names by type
+    [Arguments]    ${type}    ${cluster_number}=1
+    @{node_keys}    Get Dictionary Keys    ${cluster_state["cluster_${cluster_number}"]["${type}"]}
+    ${skuba_name}    Create List
+    FOR    ${node}    IN    @{node_keys}
+        Append To List    ${skuba_name}    ${cluster_state["cluster_${cluster_number}"]["${type}"]["${node}"]["skuba_name"]}
+    END
+    [Return]    ${skuba_name}

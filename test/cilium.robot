@@ -6,7 +6,7 @@ Resource          ../function/tests/cilium.robot
 
 *** Test Cases ***
 check L3-L4 policy
-    [Tags]    release
+    [Tags]    release    smoke
     then node is able to land    tiefighter
     and node is able to land    xwing
     when l3 l4 policiy is deployed
@@ -27,12 +27,12 @@ check cilium version
     Then cilium version should be    1.7.6
 
 check cilium uses CRD instead of etcd
-    [Tags]    release
+    [Tags]    release    smoke
     Then cilium-config should contain crd setting
     And cilium-config should not contain etcd config
 
 http traffic is allowed without network policy
-    [Tags]    release
+    [Tags]    release    smoke
     [Setup]    clean all network policies
     [Template]    check http traffic
     DELETE    /anything/allowed    200
@@ -43,7 +43,7 @@ http traffic is allowed without network policy
     PUT    /anything/not-allowed    200
 
 dns traffic is allowed without network policy
-    [Tags]    release
+    [Tags]    release    smoke
     [Setup]    clean all network policies
     [Template]    dns traffic is allowed
     one.one.one.one    1.1.1.1
@@ -51,7 +51,7 @@ dns traffic is allowed without network policy
     dns.google    8.8.8.8
 
 dns traffic is forbidden by the default network policy
-    [Tags]    release
+    [Tags]    release    smoke
     [Setup]    apply a default network policy to deny all traffic
     [Template]    dns traffic is forbidden
     one.one.one.one    1.1.1.1
@@ -60,7 +60,7 @@ dns traffic is forbidden by the default network policy
     localhost    127.0.0.1
 
 dns is allowed by network policy
-    [Tags]    release
+    [Tags]    release    smoke
     [Setup]    apply network policy to allow DNS traffic
     [Template]    dns traffic is allowed
     one.one.one.one    1.1.1.1
@@ -68,7 +68,7 @@ dns is allowed by network policy
     dns.google    8.8.8.8
 
 http traffic is still not allowed by the default network policy
-    [Tags]    release
+    [Tags]    release    smoke
     [Setup]    apply a default network policy to deny all traffic
     [Template]    check http traffic
     DELETE    /anything/allowed    000command terminated with exit code 28
@@ -76,7 +76,7 @@ http traffic is still not allowed by the default network policy
     PUT    /anything/allowed    000command terminated with exit code 28
 
 http traffic is allowed by network policy at layer 3
-    [Tags]    release
+    [Tags]    release    smoke
     [Setup]    apply network policy to allow http traffic at layer 3
     [Template]    check http traffic
     DELETE    /anything/allowed    200

@@ -1,7 +1,11 @@
 wordpressUsername: admin
 wordpressPassword: password
+global:
+  imageRegistry: private-registry.prv.suse.net/validator_caasp
 mariadb:
   enabled: true
+  image:
+    tag: latest
 service:
   type: NodePort
   nodePorts:
@@ -11,4 +15,5 @@ ingress:
     - name: wordpress.example.com
   secrets:
     - secretName: wordpress-tls
-
+image:
+  tag: latest

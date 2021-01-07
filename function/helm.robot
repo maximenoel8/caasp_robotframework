@@ -25,4 +25,5 @@ install helm
     helm    repo add suse-charts https://kubernetes-charts.suse.com    ${cluster_number}
     helm    repo add bitnami https://charts.bitnami.com/bitnami    ${cluster_number}
     helm    repo add stable https://kubernetes-charts.storage.googleapis.com
+    helm    repo add ckotzbauer https://ckotzbauer.github.io/helm-charts
     step    helm is installed

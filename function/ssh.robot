@@ -13,15 +13,9 @@ open ssh session
     ${user}    Set Variable If    "${user}"=="default"    ${VM_USER}    ${user}
     ${server_ip}    Run Keyword If    "${alias}"=="default"    get node ip from CS    ${server}    ${cluster_number}
     ...    ELSE    Set Variable    ${server}
-    Comment    ${resolv_ip}    Run Keyword If    "${alias}"!="default"    _check ip resolvable    ${server}
-    ...    ELSE    Set Variable    True
-    Comment    ${proxy_needed}    Run Keyword If    "${alias}"=="default"    _do I need proxy    ${server}
-    ...    ELSE    Set Variable    False
     ${resolv_ip}    _check ip resolvable    ${server_ip}
     ${alias}    Set Variable If    "${alias}"=="default"    ${server}    ${alias}
     Open Connection    ${server_ip}    alias=${alias}    timeout=${timeout}
-    Comment    Run Keyword If    ${proxy_needed} or not ${resolv_ip}    _login with proxy    ${server_ip}    ${user}    ${cluster_number}
-    ...    ELSE    Login With Public Key    ${user}    ${DATADIR}/id_shared
     Run Keyword If    ${resolv_ip}    Login With Public Key    ${user}    ${DATADIR}/id_shared
     ...    ELSE    _login with proxy    ${server_ip}    ${user}    ${cluster_number}
 
@@ -35,7 +29,7 @@ create ssh session with workstation and nodes
     FOR    ${i}    IN RANGE    ${NUMBER_OF_CLUSTER}
         ${cluster_number}    Evaluate    ${i}+1
         open ssh session    ${BOOTSTRAP_MASTER_${cluster_number}}    alias=bootstrap_master_${cluster_number}
-        open ssh session    ${WORKSTATION_${cluster_number}}    alias=skuba_station_${cluster_number}
+        Run Keyword If    ${skuba_station}    open ssh session    ${WORKSTATION_${cluster_number}}    alias=skuba_station_${cluster_number}
         create ssh session for masters    ${cluster_number}
         create ssh session for workers    ${cluster_number}
     END
@@ -72,7 +66,8 @@ _login with proxy
 _check ip resolvable
     [Arguments]    ${ip}
     ${status}    ${output}    Run Keyword And Ignore Error    resolv dns    ${ip}
-    Return From Keyword If    "${status}"=="PASS"    True
+    ${status_ping}    ${output_ping}    Run Keyword And Ignore Error    execute command localy    ping -c 1 ${ip}
+    Return From Keyword If    "${status}"=="PASS" or "${status_ping}"=="PASS"    True
     Should Contain    ${output}    server can't find
     ${status}    Set Variable    False
     [Return]    ${status}

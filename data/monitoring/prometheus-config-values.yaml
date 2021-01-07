@@ -15,7 +15,7 @@ alertmanager:
           - prometheus-alertmanager.example.com
         secretName: monitoring-tls
   persistentVolume:
-    enabled: true
+    enabled: false
     ## Use a StorageClass
     ## Create a PersistentVolumeClaim of 2Gi
     size: 2Gi
@@ -70,7 +70,7 @@ server:
           - prometheus.example.com
         secretName: monitoring-tls
   persistentVolume:
-    enabled: true
+    enabled: false
     ## Create a PersistentVolumeClaim of 8Gi
     size: 8Gi
 

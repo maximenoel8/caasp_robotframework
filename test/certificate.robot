@@ -10,7 +10,7 @@ check kubelet server certificate is the one signed by kubelet-ca for each nodes
     Then kubelet server certificate should be signed by kubelet-ca for each nodes
 
 check cert-manager correctly do the certificate rotation for dex and gangway when certificate is expired
-    [Tags]    release    4.5
+    [Tags]    release    4.5    smoke
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
     and deploy cert-manager
@@ -28,7 +28,7 @@ check cert-manager correctly do the certificate rotation for dex and gangway whe
     [Teardown]    clean cert-manager
 
 check kucero is correctly renewing certificates
-    [Tags]    v4.5
+    [Tags]    v4.5    smoke
     [Setup]    refresh ssh session
     And kucero is running on master
     Comment    And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
@@ -36,8 +36,11 @@ check kucero is correctly renewing certificates
     ${current_files_number}    And current number of certificates are backuped
     When modify kucero command in manifest adding polling period and renew-before
     And kucero has renewed certificate
-    Then number of certificates is superior    ${current_files_number}
-    And certificate are correctly generated for all masters
+    Comment    Then number of certificates is superior    ${current_files_number}
+    Comment    And certificate are correctly generated for all masters
+    sleep    5min
+    And serverTLSbootstrap is config in /var/lib/kubelet/config.yaml on all nodes
+    Comment    And serverTLSBootstrap exists in config map
     [Teardown]    modify kucero command in manifest removing polling period and renew-before
 
 check csr server is correctly generated new kubelet certificate
@@ -52,7 +55,7 @@ check csr server is correctly generated new kubelet certificate
     And number of certificate in /var/lib/kubelet/pki is superior    ${current_files_number[1]}    ${node}
 
 check oidc-dex and oidc-gangway signed by custom CA certificate and key are correctly manage by cert-manager
-    [Tags]    release
+    [Tags]    release    smoke
     Set Test Variable    ${issuer_CN}    noca-kubernetes-ca
     and deploy reloader
     and annotate dex gangway and metrics secret for reload
